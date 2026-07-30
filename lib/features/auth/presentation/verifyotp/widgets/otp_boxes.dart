@@ -16,7 +16,7 @@ class OtpBoxes extends StatefulWidget {
 }
 
 class _OtpBoxesState extends State<OtpBoxes> {
-  static const int length = 5;
+  static const int length = 4; // Changed to 4 digits
 
   late final List<TextEditingController> controllers;
   late final List<FocusNode> focusNodes;
@@ -41,8 +41,7 @@ class _OtpBoxesState extends State<OtpBoxes> {
   }
 
   void _updateOtp() {
-    widget.controller.text =
-        controllers.map((e) => e.text).join();
+    widget.controller.text = controllers.map((e) => e.text).join();
   }
 
   void _onChanged(int index, String value) {
@@ -60,35 +59,38 @@ class _OtpBoxesState extends State<OtpBoxes> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final boxWidth = ((width - 80) / length).clamp(48.0, 68.0);
+    final boxWidth = ((width - 100) / length).clamp(42.0, 52.0);
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         length,
             (index) {
-          return SizedBox(
-            width: boxWidth,
-            height: 58,
-            child: CallbackShortcuts(
-              bindings: <ShortcutActivator, VoidCallback>{
-                const SingleActivator(LogicalKeyboardKey.backspace): () {
-                  if (controllers[index].text.isEmpty && index > 0) {
-                    focusNodes[index - 1].requestFocus();
-                    controllers[index - 1].clear();
-                    _updateOtp();
-                  } else if (controllers[index].text.isNotEmpty) {
-                    controllers[index].clear();
-                    _updateOtp();
-                  }
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0),
+            child: SizedBox(
+              width: boxWidth,
+              height: 48,
+              child: CallbackShortcuts(
+                bindings: <ShortcutActivator, VoidCallback>{
+                  const SingleActivator(LogicalKeyboardKey.backspace): () {
+                    if (controllers[index].text.isEmpty && index > 0) {
+                      focusNodes[index - 1].requestFocus();
+                      controllers[index - 1].clear();
+                      _updateOtp();
+                    } else if (controllers[index].text.isNotEmpty) {
+                      controllers[index].clear();
+                      _updateOtp();
+                    }
+                  },
                 },
-              },
-              child: OtpInputField(
-                controller: controllers[index],
-                focusNode: focusNodes[index],
-                onChanged: (value) {
-                  _onChanged(index, value);
-                },
+                child: OtpInputField(
+                  controller: controllers[index],
+                  focusNode: focusNodes[index],
+                  onChanged: (value) {
+                    _onChanged(index, value);
+                  },
+                ),
               ),
             ),
           );

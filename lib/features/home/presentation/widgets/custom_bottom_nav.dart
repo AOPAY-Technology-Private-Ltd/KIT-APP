@@ -26,42 +26,46 @@ class CustomBottomNav extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.home_outlined, Icons.home, "Home", 0),
-          _buildNavItem(Icons.group_outlined, Icons.group, "Customer", 1),
-          const SizedBox(width: 48),
-          _buildNavItem(Icons.history_outlined, Icons.history, "History", 2),
-          _buildNavItem(Icons.person_outline, Icons.person, "Profile", 3),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, IconData activeIcon, String label, int index) {
-    final isSelected = currentIndex == index;
-    return GestureDetector(
-      onTap: () => onTap(index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 55,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isSelected ? activeIcon : icon,
-              color: isSelected ? const Color(0xFF133682) : Colors.grey,
-              size: 24,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(35),
+        child: BottomNavigationBar(
+          currentIndex: currentIndex > 3 ? 0 : currentIndex,
+          onTap: onTap,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedItemColor: const Color(0xFF133682),
+          unselectedItemColor: Colors.grey,
+          selectedLabelStyle: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'Inter',
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.normal,
+            fontFamily: 'Inter',
+          ),
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(currentIndex == 0 ? Icons.home : Icons.home_outlined),
+              label: "Home",
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: isSelected ? const Color(0xFF133682) : Colors.grey,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
+            BottomNavigationBarItem(
+              icon: Icon(currentIndex == 1 ? Icons.group : Icons.group_outlined),
+              label: "Customer",
+            ),
+            BottomNavigationBarItem(
+              icon: const SizedBox.shrink(),
+              label: "",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(currentIndex == 2 ? Icons.history : Icons.history_outlined),
+              label: "History",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(currentIndex == 3 ? Icons.person : Icons.person_outline),
+              label: "Profile",
             ),
           ],
         ),

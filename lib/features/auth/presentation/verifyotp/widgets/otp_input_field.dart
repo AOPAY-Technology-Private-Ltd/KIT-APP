@@ -2,188 +2,68 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class OtpInputField extends StatelessWidget {
-
   final TextEditingController controller;
   final FocusNode focusNode;
   final ValueChanged<String> onChanged;
 
-
   const OtpInputField({
-
     super.key,
-
     required this.controller,
-
     required this.focusNode,
-
     required this.onChanged,
-
   });
-
-
 
   @override
   Widget build(BuildContext context) {
-
-
     return TextField(
-
       controller: controller,
-
       focusNode: focusNode,
-
-
-      keyboardType:
-      TextInputType.number,
-
-
-      textInputAction:
-      TextInputAction.next,
-
-
-      textAlign:
-      TextAlign.center,
-
-
-      textAlignVertical:
-      TextAlignVertical.center,
-
-
-      maxLength:1,
-
-
-      cursorColor:
-      Colors.black,
-
-
+      keyboardType: TextInputType.number,
+      textInputAction: TextInputAction.next,
+      textAlign: TextAlign.center,
+      textAlignVertical: TextAlignVertical.center,
+      maxLength: 1,
+      cursorColor: Colors.black,
       autofillHints: const [
-
         AutofillHints.oneTimeCode,
-
       ],
-
-
-      inputFormatters:[
-
+      inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
-
       ],
-
-
-
       style: const TextStyle(
-
-        fontSize:18,
-
-        fontWeight:
-        FontWeight.w600,
-
-        color:
-        Colors.black,
-
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: Colors.black,
       ),
-
-
-
       decoration: InputDecoration(
-
-
-        counterText:"",
-
-
-        filled:true,
-
-
-        fillColor:
-        Colors.white,
-
-
-        isDense:true,
-
-
-        contentPadding:
-        const EdgeInsets.symmetric(
-          vertical:15,
+        counterText: "",
+        filled: true,
+        fillColor: Colors.white,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 10,
         ),
-
-
-
-        border:
-        OutlineInputBorder(
-
-
-          borderRadius:
-          BorderRadius.circular(14),
-
-
-          borderSide:
-          BorderSide(
-
-            color:
-            Colors.black.withValues(
-              alpha:.6,
-            ),
-
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(
+            color: Colors.black.withValues(alpha: .3),
           ),
-
         ),
-
-
-
-        enabledBorder:
-        OutlineInputBorder(
-
-
-          borderRadius:
-          BorderRadius.circular(14),
-
-
-          borderSide:
-          BorderSide(
-
-            color:
-            Colors.black.withValues(
-              alpha:.6,
-            ),
-
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(
+            color: Colors.black.withValues(alpha: .3),
           ),
-
         ),
-
-
-
-
-        focusedBorder:
-        OutlineInputBorder(
-
-
-          borderRadius:
-          BorderRadius.circular(14),
-
-
-          borderSide:
-          const BorderSide(
-
-            color:
-            Colors.black,
-
-            width:2,
-
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(
+            color: Color(0xFF2563EB),
+            width: 1.5,
           ),
-
         ),
-
-
       ),
-
-
-
-      onChanged:
-      onChanged,
-
-
+      onChanged: onChanged,
     );
-
   }
-
 }

@@ -16,51 +16,114 @@ class StatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: GridView.count(
-        crossAxisCount: 2,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.6,
-        children: [
-          _buildStatCard("$totalInstalled", "Total Installed", Icons.calendar_today_outlined),
-          _buildStatCard("$locked", "Locked", Icons.calendar_today_outlined),
-          _buildStatCard("$todayInstalled", "Today Installed", Icons.calendar_today_outlined),
-          _buildStatCard("$overdue", "Overdue", Icons.calendar_today_outlined),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isTablet = constraints.maxWidth > 600;
+
+        if (isTablet) {
+          return Row(
+            children: [
+              Expanded(child: _buildStatCard("$totalInstalled", "Total Installed", Icons.check_circle_outline)),
+              const SizedBox(width: 10),
+              Expanded(child: _buildStatCard("$locked", "Locked", Icons.lock_outline)),
+              const SizedBox(width: 10),
+              Expanded(child: _buildStatCard("$todayInstalled", "Today Installed", Icons.today_outlined)),
+              const SizedBox(width: 10),
+              Expanded(child: _buildStatCard("$overdue", "Overdue", Icons.warning_amber_outlined)),
+            ],
+          );
+        }
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(child: _buildStatCard("$totalInstalled", "Total Installed", Icons.check_circle_outline)),
+                const SizedBox(width: 10),
+                Expanded(child: _buildStatCard("$locked", "Locked", Icons.lock_outline)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: _buildStatCard("$todayInstalled", "Today Installed", Icons.today_outlined)),
+                const SizedBox(width: 10),
+                Expanded(child: _buildStatCard("$overdue", "Overdue", Icons.warning_amber_outlined)),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildStatCard(String count, String label, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 20, color: const Color(0xFF6B4EE6)),
-              const SizedBox(width: 8),
-              Text(
-                count,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-              ),
-            ],
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: ShapeDecoration(
+        color: const Color(0x33DAE9FF),
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(
+            width: 1,
+            color: Color(0xCC2563EB),
           ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            padding: const EdgeInsets.all(5),
+            decoration: ShapeDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4C73FF), Color(0xFFAF76FF)],
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  count,
+                  style: const TextStyle(
+                    color: Color(0xFF020617),
+                    fontSize: 15,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w600,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.black.withOpacity(0.65),
+                    fontSize: 10.5,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w500,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

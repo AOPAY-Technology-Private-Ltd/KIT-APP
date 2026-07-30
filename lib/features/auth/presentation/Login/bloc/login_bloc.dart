@@ -1,12 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../domain/usecases/login_usecase.dart';
 import '../../../domain/usecases/send_otp_usecase.dart';
 import 'login_event.dart';
 import 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
+  final LoginUseCase loginUseCase;
   final SendOtpUseCase sendOtpUseCase;
 
-  LoginBloc({required this.sendOtpUseCase}) : super(LoginInitial()) {
+  LoginBloc({
+    required this.loginUseCase,
+    required this.sendOtpUseCase,
+  }) : super(LoginInitial()) {
     on<SendOtpPressed>(_sendOtp);
   }
 
@@ -28,7 +33,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     emit(LoginLoading());
     try {
+      await loginUseCase(
+        mobileOrEmailID: input,
+      );
+
       final result = await sendOtpUseCase(input);
+
       emit(
         LoginSuccess(
           mobile: input,
@@ -36,7 +46,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         ),
       );
     } catch (e) {
-      emit(LoginFailure(error: e.toString()));
+      String errorMessage = e.toString().replaceAll("Exception: ", "");
+      emit(LoginFailure(error: errorMessage));
     }
   }
 }

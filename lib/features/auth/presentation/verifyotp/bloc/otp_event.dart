@@ -8,30 +8,30 @@ abstract class OtpEvent extends Equatable {
 }
 
 class VerifyOtpPressed extends OtpEvent {
-  final String mobile;
+  final String mobileOrEmail;
   final String otp;
 
   const VerifyOtpPressed({
-    required this.mobile,
+    required this.mobileOrEmail,
     required this.otp,
   });
 
   @override
   List<Object?> get props => [
-    mobile,
+    mobileOrEmail,
     otp,
   ];
 }
 
 class ResendOtpPressed extends OtpEvent {
-  final String mobile;
+  final String mobileOrEmail;
 
   const ResendOtpPressed({
-    required this.mobile,
+    required this.mobileOrEmail,
   });
 
   @override
   List<Object?> get props => [
-    mobile,
+    mobileOrEmail,
   ];
 }

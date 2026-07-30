@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../../../../core/utils/validators.dart';
-
 import '../../../../../core/constants/routes/route_names.dart';
 import '../../common/widgets/auth_footer.dart';
 import '../bloc/login_bloc.dart';
@@ -20,17 +19,15 @@ import '../widgets/mobile_input.dart';
 import '../widgets/on_boarding_link.dart';
 
 class LoginView extends StatefulWidget {
-  const LoginView({
-    super.key,
-  });
+  const LoginView({super.key});
 
   @override
   State<LoginView> createState() => _LoginViewState();
 }
 
 class _LoginViewState extends State<LoginView> {
-  final TextEditingController mobileController =
-  TextEditingController();
+  final TextEditingController mobileController = TextEditingController();
+  String? errorMessage;
 
   @override
   void dispose() {
@@ -51,16 +48,9 @@ class _LoginViewState extends State<LoginView> {
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state is LoginFailure) {
-            ScaffoldMessenger.of(context)
-                .hideCurrentSnackBar();
-
-            ScaffoldMessenger.of(context)
-                .showSnackBar(
-              SnackBar(
-                content: Text(state.error),
-                backgroundColor: colorScheme.error,
-              ),
-            );
+            setState(() {
+              errorMessage = state.error;
+            });
           } else if (state is LoginSuccess) {
             context.push(
               RouteNames.otpVerification,
@@ -74,9 +64,7 @@ class _LoginViewState extends State<LoginView> {
             final height = constraints.maxHeight;
 
             final bool isKeyboardVisible = keyboardHeight > 0;
-            final double imageSize = isKeyboardVisible
-                ? 110.0
-                : 300.0;
+            final double imageSize = isKeyboardVisible ? 110.0 : 300.0;
 
             return Container(
               width: double.infinity,
@@ -162,6 +150,7 @@ class _LoginViewState extends State<LoginView> {
                               ),
                               MobileInput(
                                 controller: mobileController,
+                                errorText: errorMessage,
                               ),
                               SizedBox(
                                 height: height * 0.02,
@@ -169,28 +158,22 @@ class _LoginViewState extends State<LoginView> {
                               AuthButton(
                                 title: "Send OTP →",
                                 onTap: () {
-                                  String input =
-                                  mobileController.text.trim();
+                                  String input = mobileController.text.trim();
 
                                   if (input.startsWith("+91 ")) {
                                     input = input.substring(4).trim();
                                   }
 
-                                  final error =
-                                  Validators.validateInput(
-                                    input,
-                                  );
+                                  final error = Validators.validateInput(input);
 
                                   if (error != null) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
-                                      SnackBar(
-                                        content: Text(error),
-                                        backgroundColor:
-                                        colorScheme.error,
-                                      ),
-                                    );
+                                    setState(() {
+                                      errorMessage = error;
+                                    });
                                   } else {
+                                    setState(() {
+                                      errorMessage = null;
+                                    });
                                     context.read<LoginBloc>().add(
                                       SendOtpPressed(
                                         mobile: input,

@@ -1,0 +1,59 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/usecases/verify_customer_usecase.dart';
+import '../../domain/usecases/manage_customer_usecase.dart';
+import '../../data/models/customer_request_model.dart';
+import 'customer_event.dart';
+import 'customer_state.dart';
+
+class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
+  final VerifyCustomerUseCase verifyCustomerUseCase;
+  final ManageCustomerUseCase manageCustomerUseCase;
+
+  CustomerBloc({
+    required this.verifyCustomerUseCase,
+    required this.manageCustomerUseCase,
+  }) : super(CustomerInitial()) {
+    on<KitVerifyRequested>(_onKitVerifyRequested);
+    on<ManageCustomerSubmitted>(_onManageCustomerSubmitted);
+  }
+
+  Future<void> _onKitVerifyRequested(
+      KitVerifyRequested event,
+      Emitter<CustomerState> emit,
+      ) async {
+    emit(CustomerLoading());
+
+    try {
+      final result = await verifyCustomerUseCase(primaryMobileNumber: event.primaryMobileNumber);
+      emit(CustomerSuccess(message: result.message.isNotEmpty ? result.message : "Verified Successfully!"));
+    } catch (e) {
+      emit(CustomerFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _onManageCustomerSubmitted(
+      ManageCustomerSubmitted event,
+      Emitter<CustomerState> emit,
+      ) async {
+    emit(CustomerLoading());
+
+    try {
+      final requestModel = CustomerRequestModel(
+        firstName: event.firstName,
+        lastName: event.lastName,
+        primaryMobileNumber: event.primaryMobileNumber,
+        alternateMobileNumber: event.alternateMobileNumber,
+        emailID: event.emailID,
+        currentAddress: event.currentAddress,
+        custPhotoFile: event.profileImage,
+      );
+
+      final result = await manageCustomerUseCase(requestModel);
+      emit(CustomerSuccess(
+        message: result.message.isNotEmpty ? result.message : "Customer Saved Successfully!",
+      ));
+    } catch (e) {
+      emit(CustomerFailure(error: e.toString()));
+    }
+  }
+}

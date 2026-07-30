@@ -1,123 +1,122 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/usecases/signup_usecase.dart';
+import '../../../domain/usecases/send_otp_usecase.dart';
+import '../../../data/datasource/auth_remote_datasource.dart';
 
 import 'signup_event.dart';
 import 'signup_state.dart';
 
-
-
-class SignupBloc
-    extends Bloc<SignupEvent, SignupState> {
-
-
+class SignupBloc extends Bloc<SignupEvent, SignupState> {
   final SignupUseCase signupUseCase;
-
-
+  final SendOtpUseCase sendOtpUseCase;
+  final AuthRemoteDatasource authRemoteDatasource;
 
   SignupBloc({
-
     required this.signupUseCase,
-
+    required this.sendOtpUseCase,
+    required this.authRemoteDatasource,
   }) : super(SignupInitial()) {
-
-
-
     on<SignupSubmitted>(_signup);
-
-
+    on<SendOtpRequested>(_sendOtp);
   }
 
+  Future<void> _sendOtp(
+      SendOtpRequested event,
+      Emitter<SignupState> emit,
+      ) async {
+    try {
+      emit(SignupLoading());
 
+      final response =
+      await sendOtpUseCase(event.mobileOrEmailID);
 
+      if (event.mobileOrEmailID.length == 10) {
+        await authRemoteDatasource.sendSmsForVerifyMob(
+          mobnumber: event.mobileOrEmailID,
+          customerName: event.customerName ?? "User",
+          otp: event.otp ?? "1234",
+        );
+      }
 
+      emit(
+        OtpSentSuccess(
+          message: response.message,
+        ),
+      );
+    } catch (e) {
+      String error = e.toString();
 
+      if (error.startsWith("Exception: ")) {
+        error = error.replaceFirst("Exception: ", "");
+      }
 
+      emit(SignupFailure(error: error));
+    }
+  }
 
   Future<void> _signup(
-
       SignupSubmitted event,
-
       Emitter<SignupState> emit,
-
       ) async {
-
 
     try {
 
-
-      emit(
-
-        SignupLoading(),
-
-      );
+      emit(SignupLoading());
 
 
+      print("------ SIGNUP BLOC START ------");
 
 
+      final response = await signupUseCase(
 
-      final response =
+        businessName: event.businessName,
 
-      await signupUseCase(
+        businessType: event.businessType,
 
-        businessName:
-        event.businessName,
+        gstNumber: event.gstNumber ?? "",
 
+        firstName: event.firstName,
 
-        businessType:
-        event.businessType,
+        lastName: event.lastName,
 
+        mobileNumber: event.mobile,
 
-        gstType:
-        event.gstType,
-
+        emailID: event.email,
 
       );
 
 
-
-
-
+      print(
+        "SIGNUP SUCCESS MESSAGE : ${response.message}",
+      );
 
 
       emit(
-
         SignupSuccess(
-
-          message:
-          response.message,
-
+          message: response.message,
         ),
-
       );
 
 
+      print("SIGNUP SUCCESS EMITTED");
 
 
+    } catch(e){
 
-    }
 
-    catch(e){
-
+      print(
+        "SIGNUP ERROR : $e",
+      );
 
 
       emit(
-
         SignupFailure(
-
-          error:
-          e.toString(),
-
+          error: e.toString(),
         ),
-
       );
 
-
     }
-
 
   }
-
-
-
 }

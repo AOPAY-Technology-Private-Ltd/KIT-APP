@@ -1,33 +1,16 @@
 class VerifyOtpRequestModel {
-
-
-  final String mobile;
-
-  final String otp;
-
-
+  final String mobileOrEmail;
+  final String enteredOTP;
 
   VerifyOtpRequestModel({
-
-    required this.mobile,
-
-    required this.otp,
-
+    required this.mobileOrEmail,
+    required this.enteredOTP,
   });
 
-
-
   Map<String, dynamic> toJson() {
-
     return {
-
-      "mobile": mobile,
-
-      "otp": otp,
-
+      "mobileOrEmail": mobileOrEmail,
+      "enteredOTP": enteredOTP,
     };
-
   }
-
-
 }

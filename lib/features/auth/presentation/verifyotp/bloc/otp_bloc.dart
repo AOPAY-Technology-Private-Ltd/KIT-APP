@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
 import '../../../domain/usecases/send_otp_usecase.dart';
 import '../../../domain/usecases/verify_otp_usecase.dart';
 import 'otp_event.dart';
@@ -26,7 +25,7 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
 
     try {
       final response = await verifyOtpUseCase(
-        mobile: event.mobile,
+        mobile: event.mobileOrEmail,
         otp: event.otp,
       );
 
@@ -51,8 +50,7 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
     emit(OtpLoading());
 
     try {
-      final response =
-      await sendOtpUseCase(event.mobile);
+      final response = await sendOtpUseCase(event.mobileOrEmail);
 
       emit(
         OtpSuccess(

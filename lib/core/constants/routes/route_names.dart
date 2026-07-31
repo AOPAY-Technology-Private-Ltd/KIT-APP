@@ -11,4 +11,9 @@ class RouteNames {
   static const String createCustomer = "/create-customer";
   static const String selectDevice = "/select-device";
   static const String customerList = "/customer-list";
+  static const String customerDetails = "/customer-details";
+  static const String deviceStatusSuccess = "/device-status-success";
+  static const String history = "/history";
+
+  static const String inventory = "/inventory";
 }

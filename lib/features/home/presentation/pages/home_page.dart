@@ -55,6 +55,9 @@ class HomePage extends StatelessWidget {
                 AvailableKitsCard(
                   available: data.availableKits,
                   total: data.totalKits,
+                  onViewInventory: () {
+                    context.push(RouteNames.inventory);
+                  },
                 ),
                 const SizedBox(height: 14),
                 StatsGrid(

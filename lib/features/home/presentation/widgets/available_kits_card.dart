@@ -122,7 +122,12 @@ class AvailableKitsCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         decoration: ShapeDecoration(
                           color: Colors.white.withValues(alpha: 0.14),
+                          // Yahan glass border add kiya gaya hai
                           shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.3), // Glass border color
+                              width: 1, // Border thickness
+                            ),
                             borderRadius: BorderRadius.circular(40),
                           ),
                         ),
@@ -139,7 +144,6 @@ class AvailableKitsCard extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   Material(
                     color: Colors.transparent,
                     child: InkWell(

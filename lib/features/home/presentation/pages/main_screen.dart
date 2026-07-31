@@ -1,465 +1,130 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/di/injection.dart';
 import '../../../customer_list/presentation/pages/customer_list_view.dart';
-import 'home_page.dart';
-import '../widgets/home_header.dart';
 
+import '../../../history/presentation/bloc/history_bloc.dart';
+import '../../../history/presentation/bloc/history_event.dart';
+import '../../../history/presentation/pages/history_page.dart';
+import 'home_page.dart';
 
 class MainScreen extends StatefulWidget {
-
-  const MainScreen({
-    super.key,
-  });
-
+  const MainScreen({super.key});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
-
 }
 
-
-
 class _MainScreenState extends State<MainScreen> {
-
-
   int _currentIndex = 0;
 
+  late final List<Widget> _pages;
 
-
-  final List<Widget> _pages = const [
-
-    HomePage(),
-
-    CustomerListView(),
-
-    HomePage(),
-
-    HomePage(),
-
-  ];
-
-
-
-
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const HomePage(),
+      const CustomerListView(),
+      // History Page wrapped with its BLoC Provider and Load Event
+      BlocProvider(
+        create: (_) => sl<HistoryBloc>()..add(LoadHistoryEvent()),
+        child: const HistoryPage(),
+      ),
+      const HomePage(), // Profile page placeholder
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
-
-
-    final size = MediaQuery.of(context).size;
-
-
-    final double bottomHeight = size.height * 0.085;
-
-
     return Scaffold(
-
-
-
       backgroundColor: const Color(0xFFF7F9FC),
-
-
       body: IndexedStack(
-
         index: _currentIndex,
-
         children: _pages,
-
       ),
-
-
-
-
-
-      bottomNavigationBar: Container(
-
-
-        height: bottomHeight + 18,
-
-
-
-        decoration: BoxDecoration(
-
-
-          color: Colors.white,
-
-
-
-          borderRadius: const BorderRadius.only(
-
-            topLeft: Radius.circular(20),
-
-            topRight: Radius.circular(20),
-
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            decoration: ShapeDecoration(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                side: BorderSide(
+                  width: 1,
+                  color: Colors.black.withValues(alpha: 0.16),
+                ),
+                borderRadius: BorderRadius.circular(70),
+              ),
+              shadows: const [
+                BoxShadow(
+                  color: Color(0x66000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 1),
+                  spreadRadius: 0,
+                )
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(0, 'Home', Icons.home_outlined),
+                _buildNavItem(1, 'Customer', Icons.group_outlined),
+                _buildNavItem(2, 'History', Icons.history_outlined),
+                _buildNavItem(3, 'Profile', Icons.person_outline),
+              ],
+            ),
           ),
-
-
-
-          boxShadow: [
-
-
-            BoxShadow(
-
-              color: Colors.black.withOpacity(0.16),
-
-              blurRadius: 8,
-
-              offset: const Offset(0, -1),
-
-            ),
-
-          ],
-
-
         ),
-
-
-
-
-
-        child: Stack(
-
-
-          clipBehavior: Clip.none,
-
-
-          alignment: Alignment.center,
-
-
-
-          children: [
-
-
-
-
-            Positioned(
-
-              left: 0,
-
-              right: 0,
-
-              bottom: 0,
-
-
-
-              child: SafeArea(
-
-
-                child: SizedBox(
-
-
-                  height: bottomHeight,
-
-
-                  child: Align(
-
-
-                    alignment: Alignment.center,
-
-
-                    child: BottomNavigationBar(
-
-
-
-                      currentIndex: _currentIndex,
-
-
-
-
-                      onTap: (index){
-
-
-
-                        if(index == 2){
-
-                          return;
-
-                        }
-
-
-
-                        setState(() {
-
-
-                          _currentIndex =
-                          index > 2
-                              ? index - 1
-                              : index;
-
-
-                        });
-
-
-                      },
-
-
-
-
-                      type: BottomNavigationBarType.fixed,
-
-
-
-                      backgroundColor: Colors.transparent,
-
-
-
-                      elevation: 0,
-
-
-
-
-                      selectedItemColor:
-                      const Color(0xFF2563EB),
-
-
-
-
-                      unselectedItemColor:
-                      Colors.black54,
-
-
-
-
-                      selectedFontSize: 9,
-
-                      unselectedFontSize: 9,
-
-
-
-                      iconSize: 24,
-
-
-
-                      items: const [
-
-
-
-
-                        BottomNavigationBarItem(
-
-                          icon: Icon(
-                            Icons.home_outlined,
-                          ),
-
-                          label: "Home",
-
-                        ),
-
-
-
-
-
-                        BottomNavigationBarItem(
-
-                          icon: Icon(
-                            Icons.group_outlined,
-                          ),
-
-                          label: "Customer",
-
-                        ),
-
-
-                        BottomNavigationBarItem(
-
-                          icon: SizedBox(
-
-                            height: 35,
-
-                          ),
-
-                          label: "",
-
-                        ),
-
-
-
-
-
-
-                        BottomNavigationBarItem(
-
-                          icon: Icon(
-                            Icons.history_outlined,
-                          ),
-
-                          label: "History",
-
-                        ),
-
-
-
-
-
-
-                        BottomNavigationBarItem(
-
-                          icon: Icon(
-                            Icons.person_outline,
-                          ),
-
-                          label: "Profile",
-
-                        ),
-
-
-
-                      ],
-
-
-                    ),
-
-
-                  ),
-
-
-                ),
-
-
-              ),
-
-
-            ),
-
-
-
-
-
-
-            Positioned(
-
-
-              top: -18,
-
-
-              left: (size.width / 2) - 23,
-
-
-
-              child: Container(
-
-
-                width: 46,
-
-                height: 46,
-
-
-
-                decoration: ShapeDecoration(
-
-
-
-                  color: const Color(0xFF2563EB),
-
-
-
-                  shape: RoundedRectangleBorder(
-
-
-
-                    side: const BorderSide(
-
-
-                      width: 3,
-
-
-                      strokeAlign:
-                      BorderSide.strokeAlignOutside,
-
-
-                      color: Color(0xFF2563EB),
-
-
-                    ),
-
-
-
-
-                    borderRadius:
-                    BorderRadius.circular(40),
-
-
-
-                  ),
-
-
-
-                  shadows: [
-
-
-
-                    BoxShadow(
-
-
-                      color:
-                      Colors.black.withOpacity(0.15),
-
-
-                      blurRadius: 8,
-
-
-                      offset:
-                      const Offset(0,3),
-
-
-                    ),
-
-
-                  ],
-
-
-
-                ),
-
-
-
-
-                child: const Center(
-
-
-
-                  child: Icon(
-
-
-
-                    Icons.add,
-
-
-
-                    color: Colors.white,
-
-
-
-                    size: 26,
-
-
-
-                  ),
-
-
-                ),
-
-
-              ),
-
-
-            ),
-
-
-
-          ],
-
-
-        ),
-
-
       ),
-
-
     );
-
-
   }
 
+  Widget _buildNavItem(int index, String label, IconData icon) {
+    final bool isSelected = _currentIndex == index;
 
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: ShapeDecoration(
+          color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(40),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 22,
+              color: isSelected ? Colors.white : Colors.black.withValues(alpha: 0.60),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.black.withValues(alpha: 0.60),
+                fontSize: 9,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -12,12 +12,19 @@ import '../../../features/auth/presentation/verifyotp/bloc/otp_bloc.dart';
 import '../../../features/auth/presentation/verifyotp/pages/otp_verification_view.dart';
 import '../../../features/create_customer/presentation/pages/create_customer_view.dart';
 import '../../../features/create_customer/presentation/pages/customer_info_view.dart';
+import '../../../features/customer_detail/presentation/pages/customer_information_view.dart';
+import '../../../features/customer_detail/presentation/widgets/device_status_success_view.dart';
 import '../../../features/customer_list/presentation/pages/customer_list_view.dart';
 import '../../../features/device_list/presentation/pages/device_list_view.dart';
+import '../../../features/history/presentation/bloc/history_bloc.dart';
+import '../../../features/history/presentation/bloc/history_event.dart';
+import '../../../features/history/presentation/pages/history_page.dart';
 import '../../../features/home/presentation/bloc/home_bloc.dart';
 import '../../../features/home/presentation/bloc/home_event.dart';
 import '../../../features/home/presentation/pages/main_screen.dart';
 
+import '../../../features/inventory/presentation/bloc/inventory_bloc.dart';
+import '../../../features/inventory/presentation/pages/inventory_screen.dart';
 import '../../../features/splash/presentation/pages/splash_page.dart';
 import '../../di/injection.dart';
 import 'route_names.dart';
@@ -127,6 +134,52 @@ final GoRouter appRouter = GoRouter(
       path: RouteNames.createCustomer,
       builder: (context, state) {
         return const CreateCustomerView();
+      },
+    ),
+
+    GoRoute(
+      path: '${RouteNames.customerDetails}/:id',
+      builder: (context, state) {
+        final customerId = state.pathParameters['id'] ?? '';
+        return CustomerInformationView(customerId: customerId);
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.deviceStatusSuccess,
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>? ?? {};
+        return DeviceStatusSuccessView(
+          isLocked: data['isLocked'] ?? true,
+          customerName: data['customerName'] ?? 'Customer',
+          deviceName: data['deviceName'] ?? 'Device',
+          reason: data['reason'] ?? 'EMI Overdue',
+          time: data['time'] ?? 'Today, 9:42 AM',
+          actionBy: data['actionBy'] ?? 'Retailer',
+          onDonePressed: () {
+            context.go(RouteNames.home);
+          },
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.history,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<HistoryBloc>()..add(LoadHistoryEvent()),
+          child: const HistoryPage(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.inventory,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<InventoryBloc>(),
+          child:  InventoryScreen(),
+        );
       },
     ),
   ],

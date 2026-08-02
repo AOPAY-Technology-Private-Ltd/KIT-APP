@@ -1,14 +1,19 @@
 import '../entities/entities.dart';
 
 abstract class AuthRepository {
-
   Future<AuthEntity> login({
     required String mobileOrEmailID,
   });
+
   Future<AuthEntity> sendOtp(String mobile);
 
+  Future<AuthEntity> kitVerifyOtp({
+    required String mobileOrEmail,
+    required String otp,
+  });
+
   Future<AuthEntity> verifyOtp({
-    required String mobile,
+    required String mobileOrEmail,
     required String otp,
   });
 

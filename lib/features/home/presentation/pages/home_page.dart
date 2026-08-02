@@ -12,20 +12,12 @@ import '../widgets/recent_customers_section.dart';
 import '../widgets/home_header.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({
-    super.key,
-  });
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
-
-      appBar: const HomeHeader(
-        name: "Retailer Name",
-        code: "Retailer Code",
-      ),
-
+      backgroundColor: const Color(0xFFECEDEF),
       body: BlocBuilder<HomeBloc, HomeState>(
         builder: (context, state) {
           if (state is HomeLoadingState) {
@@ -45,40 +37,59 @@ class HomePage extends StatelessWidget {
 
             return ListView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(
-                16,
-                12,
-                16,
-                20,
-              ),
+              padding: EdgeInsets.zero,
               children: [
-                AvailableKitsCard(
-                  available: data.availableKits,
-                  total: data.totalKits,
-                  onViewInventory: () {
-                    context.push(RouteNames.inventory);
-                  },
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const HomeHeader(
+                      name: "Gupta’s Mobiles",
+                      code: "Retailer ID · LK-40921 · Andheri West",
+                    ),
+                    Positioned(
+                      top: 145,
+                      left: 24,
+                      right: 24,
+                      child: AvailableKitsCard(
+                        available: 128,
+                        total: 200,
+                        onViewInventory: () {
+                          context.push(RouteNames.inventory);
+                        },
+                        onBuyMore: () {
+                          context.push(RouteNames.buyKits);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 14),
-                StatsGrid(
-                  totalInstalled: data.totalInstalled,
-                  locked: data.locked,
-                  todayInstalled: data.todayInstalled,
-                  overdue: data.overdue,
-                ),
-                const SizedBox(height: 14),
 
-                QuickActionsSection(
-                  onAddCustomerPressed: () {
-                    context.push(RouteNames.createCustomer);
-                  },
-                ),
+                const SizedBox(height: 60),
 
-                const SizedBox(height: 14),
-                RecentCustomersSection(
-                  customers: data.recentCustomers,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      StatsGrid(
+                        totalInstalled: data.totalInstalled,
+                        locked: data.locked,
+                        todayInstalled: data.todayInstalled,
+                      ),
+                      const SizedBox(height: 14),
+                      QuickActionsSection(
+                        onAddCustomerPressed: () {
+                          context.push(RouteNames.createCustomer);
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                      RecentCustomersSection(
+                        customers: data.recentCustomers,
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
               ],
             );
           }

@@ -279,6 +279,7 @@ class _OtpVerificationViewState
                                       VerifyOtpPressed(
                                         mobileOrEmail: widget.mobile,
                                         otp: otp,
+                                        isLogin: true,
                                       ),
                                     );
                                   },

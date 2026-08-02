@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../../../../core/constants/apiconstants/api_constants.dart';
+import '../../../../core/services/session_manager.dart';
 import '../../domain/entities/entities.dart';
 import '../models/login_response_model.dart';
 import '../models/signup_request_model.dart';
@@ -24,6 +25,11 @@ abstract class AuthRemoteDatasource {
   Future<void> sendSmsForVerifyMob({
     required String mobnumber,
     required String customerName,
+    required String otp,
+  });
+
+  Future<LoginResponseModel> kitVerifyOtp({
+    required String mobileOrEmail,
     required String otp,
   });
 }
@@ -143,7 +149,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       enteredOTP: otp,
     );
 
-    print('--- VERIFY OTP REQUEST ---');
+    print('--- VERIFY OTP REQUEST (SIGNUP) ---');
     print('URL: $uri');
     print('Request Body: ${jsonEncode(requestModel.toJson())}');
 
@@ -156,7 +162,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       body: jsonEncode(requestModel.toJson()),
     );
 
-    print('--- VERIFY OTP RESPONSE ---');
+    print('--- VERIFY OTP RESPONSE (SIGNUP) ---');
     print('Status Code: ${response.statusCode}');
     print('Response Body: ${response.body}');
 
@@ -174,6 +180,8 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       throw Exception("Failed to verify OTP: ${response.body}");
     }
   }
+
+
   @override
   Future<void> sendSmsForVerifyMob({
     required String mobnumber,
@@ -206,6 +214,60 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     }
   }
 
+  @override
+  Future<LoginResponseModel> kitVerifyOtp({
+    required String mobileOrEmail,
+    required String otp,
+  }) async {
+    final uri = Uri.parse(ApiConstants.kitVerifyOtp);
+
+    final requestBody = {
+      "mobileOrEmail": mobileOrEmail,
+      "enteredOTP": otp,
+    };
+
+    print('--- KIT VERIFY OTP REQUEST ---');
+    print('URL: $uri');
+    print('Request Body: ${jsonEncode(requestBody)}');
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'accept': '*/*',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    print('--- KIT VERIFY OTP RESPONSE ---');
+    print('Status Code: ${response.statusCode}');
+    print('Response Body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final responseData = jsonDecode(response.body);
+
+      if (responseData['status'] == false ||
+          responseData['status'] == 'False' ||
+          responseData['statuss'] == 'False' ||
+          responseData['statuss'] == false) {
+        throw Exception(responseData['message'] ?? 'OTP verification failed.');
+      }
+
+      final loginResponse = LoginResponseModel.fromJson(responseData);
+
+      if (loginResponse.retailerCode != null && loginResponse.retailerCode!.isNotEmpty) {
+        await SessionManager.createSession(
+          retailerCode: loginResponse.retailerCode!,
+          mobileNo: loginResponse.mobileNo ?? mobileOrEmail,
+          firstName: loginResponse.firstName,
+        );
+      }
+
+      return loginResponse;
+    } else {
+      throw Exception("Failed to verify OTP: ${response.body}");
+    }
+  }
   @override
   Future<LoginResponseModel> signup(SignupRequestModel request) async {
     final uri = Uri.parse(ApiConstants.signup);
@@ -271,13 +333,30 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
         throw Exception(body['message'] ?? "Signup failed");
       }
 
+      final customerCode = body['customerCode'];
+      final mobileNumber = body['mobileNumber'] ?? request.mobileNumber;
+      final firstName = body['firstName'] ?? request.firstName;
+
+      if (customerCode != null && customerCode.toString().isNotEmpty) {
+        await SessionManager.createSession(
+          retailerCode: customerCode,
+          mobileNo: mobileNumber,
+          firstName: firstName,
+        );
+      }
+      // ------------------------------------
+
       return LoginResponseModel(
         message: body['message'] ?? "Account Created Successfully",
       );
-    } else {
+    }
+
+    else {
       throw Exception("Server Error ${response.statusCode}: ${response.body}");
     }
   }}
+
+
 
 class ConstantClass {
   static const String smsApiKey = "KBSxc26XqjoiR7SA";

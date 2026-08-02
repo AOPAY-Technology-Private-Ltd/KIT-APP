@@ -431,7 +431,10 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                                         profileImage: profileImage,
                                       ),
                                     );
-                                    context.push(RouteNames.selectDevice);
+
+                                    // context.push(RouteNames.selectDevice);
+                                    context.push(RouteNames.imeiNumber);
+
                                   }
                                 }
                                     : null,

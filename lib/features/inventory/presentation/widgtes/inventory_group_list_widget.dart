@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../domain/entities/inventory_entity.dart';
 
 class InventoryGroupListWidget extends StatelessWidget {
@@ -14,14 +13,21 @@ class InventoryGroupListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      children: groupedItems.entries.map((entry) {
+    final entries = groupedItems.entries.toList();
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+      itemCount: entries.length,
+      itemBuilder: (context, groupIndex) {
+        final entry = entries[groupIndex];
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: EdgeInsets.only(
+                top: groupIndex == 0 ? 4 : 12,
+                bottom: 8,
+              ),
               child: Text(
                 entry.key,
                 style: TextStyle(
@@ -41,6 +47,7 @@ class InventoryGroupListWidget extends StatelessWidget {
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
                 itemCount: entry.value.length,
                 separatorBuilder: (context, index) => Divider(
                   height: 1,
@@ -54,10 +61,9 @@ class InventoryGroupListWidget extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 12),
           ],
         );
-      }).toList(),
+      },
     );
   }
 
@@ -65,7 +71,7 @@ class InventoryGroupListWidget extends StatelessWidget {
     final displayIndex = '#${(index + 1).toString().padLeft(2, '0')}';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -93,6 +99,7 @@ class InventoryGroupListWidget extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   item.serialNumber,
@@ -101,11 +108,12 @@ class InventoryGroupListWidget extends StatelessWidget {
                     fontSize: 13,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w600,
+                    height: 1.1,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1),
                 Text(
                   item.assignedUser,
                   style: TextStyle(
@@ -113,6 +121,7 @@ class InventoryGroupListWidget extends StatelessWidget {
                     fontSize: 10,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w400,
+                    height: 1.1,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -123,6 +132,7 @@ class InventoryGroupListWidget extends StatelessWidget {
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Installed On',
@@ -131,9 +141,10 @@ class InventoryGroupListWidget extends StatelessWidget {
                   fontSize: 8,
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w400,
+                  height: 1.1,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 1),
               Text(
                 '${item.installedDate.day} ${_getMonthName(item.installedDate.month)}, ${item.installedDate.year}',
                 style: TextStyle(
@@ -141,6 +152,7 @@ class InventoryGroupListWidget extends StatelessWidget {
                   fontSize: 10,
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w600,
+                  height: 1.1,
                 ),
               ),
             ],

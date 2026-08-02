@@ -58,15 +58,18 @@ class _PersonalDetailsViewState
   @override
   void initState() {
     super.initState();
+
     mobileController.addListener(() {
       setState(() {
         isMobileFilled = mobileController.text.trim().isNotEmpty;
+        isMobileVerified = false;
       });
     });
 
     emailController.addListener(() {
       setState(() {
         isEmailFilled = emailController.text.trim().isNotEmpty;
+        isEmailVerified = false;
       });
     });
   }
@@ -242,6 +245,7 @@ class _PersonalDetailsViewState
                                             .text
                                             .trim(),
                                         otp: otp,
+                                        isLogin: false,
                                       ),
                                     );
                                   },
@@ -530,12 +534,11 @@ class _PersonalDetailsViewState
                                     return;
                                   }
 
-                                  // Yahan && ki jagah || lagana hai taaki agar ek bhi verify na ho toh rok le
                                   if (!isMobileVerified || !isEmailVerified) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
-                                          "Please verify both mobile number and email before submit", // <--- Message bhi update kar diya
+                                          "Please verify both mobile number and email before submit",
                                         ),
                                         backgroundColor: Colors.red,
                                       ),
@@ -545,16 +548,13 @@ class _PersonalDetailsViewState
 
                                   final fullName = fullNameController.text.trim();
 
-                                  final firstName = fullName;
-                                  final lastName = fullName;
-
                                   context.read<SignupBloc>().add(
                                     SignupSubmitted(
                                       businessName: widget.businessName,
                                       businessType: widget.businessType,
                                       gstNumber: widget.gstNumber,
-                                      firstName: firstName,
-                                      lastName: lastName,
+                                      firstName: fullName,
+                                      lastName: fullName,
                                       mobile: mobileController.text.trim(),
                                       email: emailController.text.trim(),
                                     ),

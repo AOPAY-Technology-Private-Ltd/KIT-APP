@@ -70,12 +70,23 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<AuthEntity> kitVerifyOtp({
+    required String mobileOrEmail,
+    required String otp,
+  }) async {
+    return await datasource.kitVerifyOtp(
+      mobileOrEmail: mobileOrEmail,
+      otp: otp,
+    );
+  }
+
+  @override
   Future<AuthEntity> verifyOtp({
-    required String mobile,
+    required String mobileOrEmail,
     required String otp,
   }) async {
     return await datasource.verifyOtp(
-      mobileOrEmail: mobile,
+      mobileOrEmail: mobileOrEmail,
       otp: otp,
     );
   }

@@ -43,7 +43,6 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // 🎥 GIF Widget Added Here
                 SizedBox(
                   width: 64,
                   height: 64,

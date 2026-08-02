@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/routes/route_names.dart';
 
 class QuickActionsSection extends StatelessWidget {
   final VoidCallback? onAddCustomerPressed;
@@ -24,51 +26,74 @@ class QuickActionsSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: _buildActionItem(
-                "Alerts",
-                Icons.error_outline,
-                const Color(0xFF6B4EE6),
-                const Color(0xFFECE6FF),
-              ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: ShapeDecoration(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
             ),
-            Expanded(
-              child: _buildActionItem(
-                "Lock",
-                Icons.lock_outline,
-                Colors.red,
-                Colors.red.shade50,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        context.push(RouteNames.inventory);
+                      },
+                      child: _buildActionItem(
+                        "Inventory",
+                        Icons.inventory_2_outlined,
+                        const Color(0xFF6B4EE6),
+                        const Color(0xFFECE6FF),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildActionItem(
+                      "Lock",
+                      Icons.lock_outline,
+                      Colors.red,
+                      Colors.red.shade50,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildActionItem(
+                      "Unlock",
+                      Icons.lock_open,
+                      Colors.green,
+                      Colors.green.shade50,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildActionItem(
+                      "Reports",
+                      Icons.bar_chart,
+                      const Color(0xFF4A90E2),
+                      const Color(0xFFE8F1FC),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            Expanded(
-              child: _buildActionItem(
-                "Unlock",
-                Icons.lock_open,
-                Colors.green,
-                Colors.green.shade50,
-              ),
-            ),
-            Expanded(
-              child: _buildActionItem(
-                "Reports",
-                Icons.bar_chart,
-                const Color(0xFF4A90E2),
-                const Color(0xFFE8F1FC),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-
-        const SizedBox(height: 12),
-
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
-              child: _button("Buy Kits"),
+              child: _button(
+                "Buy Kits",
+                onPressed: () {
+                  context.push(RouteNames.buyKits);
+                },
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(

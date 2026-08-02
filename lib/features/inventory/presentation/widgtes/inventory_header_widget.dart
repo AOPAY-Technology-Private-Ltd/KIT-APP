@@ -11,10 +11,10 @@ class InventoryHeaderWidget extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 50, 16, 20),
       decoration: const BoxDecoration(
-        color: Color(0xFF2563EB),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment(0.50, -0.00),
+          end: Alignment(0.50, 1.00),
+          colors: [Color(0xFF2563EB), Color(0xFF143885)],
         ),
       ),
       child: Column(
@@ -25,12 +25,20 @@ class InventoryHeaderWidget extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
+                    height: 22,
+                    width: 22,
+                    decoration: ShapeDecoration(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 16),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Color(0xFF143885),
+                        size: 14,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
@@ -48,66 +56,118 @@ class InventoryHeaderWidget extends StatelessWidget {
               ),
               Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none, color: Colors.white),
-                    onPressed: () {},
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(
+                        Icons.notifications_none,
+                        color: Color(0xFF143885),
+                        size: 14,
+                      ),
+                      onPressed: () {},
+                    ),
                   ),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: const Icon(Icons.search, color: Colors.white),
-                    onPressed: () {},
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(
+                        Icons.search,
+                        color: Color(0xFF143885),
+                        size: 14,
+                      ),
+                      onPressed: () {},
+                    ),
                   ),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 20),
-          Row(
-            children: [
-              _buildStatCard('Total', '${counts['total'] ?? 0}'),
-              const SizedBox(width: 8),
-              _buildStatCard('Available', '${counts['available'] ?? 0}'),
-              const SizedBox(width: 8),
-              _buildStatCard('Used', '${counts['used'] ?? 0}'),
-              const SizedBox(width: 8),
-              _buildStatCard('Closed', '${counts['closed'] ?? 0}'),
-            ],
+          Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: ShapeDecoration(
+              color: Colors.black.withValues(alpha: 0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildStatCard('${counts['total'] ?? 0}', 'Total'),
+                _buildStatCard('${counts['available'] ?? 0}', 'Available'),
+                _buildStatCard('${counts['used'] ?? 0}', 'Used'),
+                _buildStatCard('${counts['closed'] ?? 0}', 'Closed'),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard(String title, String count) {
+  Widget _buildStatCard(String count, String title) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
+          color: Colors.white.withValues(alpha: 0.10),
+          border: Border.all(
+            width: 1,
+            color: Colors.white.withValues(alpha: 0.20),
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              count,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              title,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.80),
-                fontSize: 10,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w400,
-              ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  child: Text(
+                    count,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.80),
+                    fontSize: 12,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

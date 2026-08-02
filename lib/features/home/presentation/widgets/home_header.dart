@@ -14,124 +14,159 @@ class HomeHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final bool isTablet = constraints.maxWidth > 600;
-
-        final double horizontalPadding = isTablet ? constraints.maxWidth * 0.06 : constraints.maxWidth * 0.04;
-        final double avatarRadius = isTablet ? 30 : 25;
-
-        final double nameFontSize = isTablet ? 22 : 18;
-        final double nameWidth = isTablet ? 180 : 132;
-
-        final double codeFontSize = isTablet ? 14 : 11;
-        final double codeWidth = isTablet ? 180 : 132;
-
-        final double iconSize = isTablet ? 20 : 16;
-        final double iconContainerSize = isTablet ? 38 : 32;
-
-        return Container(
-          height: 145,
-          width: double.infinity,
-          padding: EdgeInsets.only(
-            top: topPadding + 12,
-            left: horizontalPadding,
-            right: horizontalPadding,
-            bottom: 12,
+    return Container(
+      height: 200,
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: topPadding + 12,
+        left: 16,
+        right: 16,
+        bottom: 24,
+      ),
+      decoration: const ShapeDecoration(
+        gradient: LinearGradient(
+          begin: Alignment(0.50, -0.00),
+          end: Alignment(0.50, 1.00),
+          colors: [Color(0xFF2563EB), Color(0xFF002576)],
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(60),
+            bottomRight: Radius.circular(60),
           ),
-          decoration: const BoxDecoration(
-            color: Color(0xFF2563EB),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: avatarRadius,
-                          backgroundColor: Colors.white,
-                          backgroundImage: const NetworkImage(
-                            "https://placehold.co/50x50",
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: nameWidth,
-                                child: Text(
-                                  name.isEmpty ? "Retailer Name" : name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: nameFontSize,
-                                    fontFamily: 'Inter',
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              SizedBox(
-                                width: codeWidth,
-                                child: Text(
-                                  code.isEmpty ? "Retailer Code" : code,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: codeFontSize,
-                                    fontFamily: 'Inter',
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CircleAvatar(
+                  radius: 22,
+                  backgroundColor: Colors.white,
+                  backgroundImage: NetworkImage(
+                    "https://placehold.co/50x50",
                   ),
-                  Row(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      _iconButton(Icons.notifications_none, iconSize, iconContainerSize),
-                      const SizedBox(width: 8),
-                      _iconButton(Icons.search, iconSize, iconContainerSize),
+                      const Text(
+                        'Welcome',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        name.isEmpty ? "Retailer Name" : name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        code.isEmpty ? "Retailer Code" : code,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.70),
+                          fontSize: 10,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 4),
+                ),
+              ],
+            ),
+          ),
+          Row(
+            children: [
+              _iconButton(Icons.notifications_none, () {}),
+              const SizedBox(width: 8),
+              _iconButton(Icons.search, () {}),
             ],
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  Widget _iconButton(IconData icon, double iconSize, double containerSize) {
-    return Container(
-      height: containerSize,
-      width: containerSize,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        icon,
-        size: iconSize,
-        color: const Color(0xFF2563EB),
+  Widget _iconButton(IconData icon, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: CustomPaint(
+        painter: const GlassBorderPainter(borderRadius: 50),
+        child: Container(
+          height: 38,
+          width: 38,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0x33D9D9D9),
+            borderRadius: BorderRadius.circular(50),
+          ),
+          child: Center(
+            child: Icon(
+              icon,
+              size: 18,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(145);
+  Size get preferredSize => const Size.fromHeight(220);
+}
+
+class GlassBorderPainter extends CustomPainter {
+  final double borderRadius;
+  const GlassBorderPainter({this.borderRadius = 0});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final RRect rRect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
+
+    final paint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colors.white.withValues(alpha: 0.8),
+          Colors.white.withValues(alpha: 0.05),
+          Colors.white.withValues(alpha: 0.4),
+        ],
+        stops: const [0.0, 0.5, 1.0],
+      ).createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    if (borderRadius > 0) {
+      canvas.drawRRect(rRect, paint);
+    } else {
+      canvas.drawOval(rect, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

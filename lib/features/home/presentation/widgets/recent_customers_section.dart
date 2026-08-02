@@ -12,6 +12,7 @@ class RecentCustomersSection extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -43,11 +44,12 @@ class RecentCustomersSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           ListView.builder(
             itemCount: customers.length,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
             itemBuilder: (context, index) {
               final customer = customers[index];
               return Container(

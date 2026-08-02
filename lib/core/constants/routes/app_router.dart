@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../features/auth/presentation/Login/bloc/login_bloc.dart';
 import '../../../features/auth/presentation/Login/pages/login_page.dart';
 
@@ -10,8 +9,10 @@ import '../../../features/auth/presentation/signup/pages/personal_details_page.d
 
 import '../../../features/auth/presentation/verifyotp/bloc/otp_bloc.dart';
 import '../../../features/auth/presentation/verifyotp/pages/otp_verification_view.dart';
+import '../../../features/create_customer/presentation/bloc/customer_bloc.dart';
 import '../../../features/create_customer/presentation/pages/create_customer_view.dart';
 import '../../../features/create_customer/presentation/pages/customer_info_view.dart';
+import '../../../features/create_customer/presentation/pages/imei_number_view.dart';
 import '../../../features/customer_detail/presentation/pages/customer_information_view.dart';
 import '../../../features/customer_detail/presentation/widgets/device_status_success_view.dart';
 import '../../../features/customer_list/presentation/pages/customer_list_view.dart';
@@ -25,6 +26,14 @@ import '../../../features/home/presentation/pages/main_screen.dart';
 
 import '../../../features/inventory/presentation/bloc/inventory_bloc.dart';
 import '../../../features/inventory/presentation/pages/inventory_screen.dart';
+import '../../../features/kits_plans/presentation/bloc/buy_kits_bloc.dart';
+import '../../../features/kits_plans/presentation/pages/buy_kits_screen.dart';
+import '../../../features/notification/presentation/bloc/notification_bloc.dart';
+import '../../../features/notification/presentation/bloc/notification_event.dart';
+import '../../../features/notification/presentation/pages/notification_view.dart';
+import '../../../features/profile/presentation/bloc/profile_bloc.dart';
+import '../../../features/profile/presentation/bloc/profile_event.dart';
+import '../../../features/profile/presentation/pages/profile_screen.dart';
 import '../../../features/splash/presentation/pages/splash_page.dart';
 import '../../di/injection.dart';
 import 'route_names.dart';
@@ -179,6 +188,45 @@ final GoRouter appRouter = GoRouter(
         return BlocProvider(
           create: (_) => sl<InventoryBloc>(),
           child:  InventoryScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.buyKits,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<BuyKitsBloc>(),
+          child:  BuyKitsScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: RouteNames.profile,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<ProfileBloc>()..add(FetchProfileEvent()),
+          child: const ProfileScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.imeiNumber,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<CustomerBloc>(),
+          child: const ImeiNumberView(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.notification,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<NotificationBloc>()..add(FetchNotificationsEvent()),
+          child:  NotificationView(),
         );
       },
     ),

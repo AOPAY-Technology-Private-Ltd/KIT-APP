@@ -8,6 +8,7 @@ import '../../features/auth/domain/usecases/login_usecase.dart';
 import '../../features/auth/domain/usecases/send_otp_usecase.dart';
 import '../../features/auth/domain/usecases/signup_usecase.dart';
 import '../../features/auth/domain/usecases/verify_otp_usecase.dart';
+import '../../features/auth/domain/usecases/kit_verify_otp_usecase.dart';
 
 import '../../features/auth/presentation/Login/bloc/login_bloc.dart';
 import '../../features/auth/presentation/signup/bloc/signup_bloc.dart';
@@ -20,6 +21,13 @@ import '../../features/device_list/domain/usecases/get_devices_usecase.dart';
 import '../../features/device_list/presentation/bloc/device_bloc.dart';
 import '../../features/inventory/data/datasources/inventory_data_source.dart';
 import '../../features/inventory/domain/usecaes/get_inventory_usecase.dart';
+import '../../features/notification/data/datasources/notification_remote_data_source.dart';
+import '../../features/notification/data/repositories/notification_repository_impl.dart';
+import '../../features/notification/domain/repositories/notification_repository.dart';
+import '../../features/notification/domain/usecaes/get_notifications_usecase.dart';
+import '../../features/notification/presentation/bloc/notification_bloc.dart';
+import '../../features/profile/data/datasources/profile_remote_data_source.dart';
+import '../../features/profile/domain/usecaes/get_profile_usecase.dart';
 import '../../features/splash/presentation/bloc/splash_bloc.dart';
 
 import '../../features/home/data/datasources/home_remote_datasource.dart';
@@ -47,18 +55,20 @@ import '../../features/customer_detail/domain/repositories/customer_detail_repos
 import '../../features/customer_detail/domain/usecases/get_customer_detail_usecase.dart';
 import '../../features/customer_detail/presentation/bloc/customer_detail_bloc.dart';
 
-// --- HISTORY FEATURE IMPORTS ---
 import '../../features/history/data/datasources/history_local_data_source.dart';
 import '../../features/history/data/repositories/history_repository_impl.dart';
 import '../../features/history/domain/repositories/history_repository.dart';
 import '../../features/history/domain/usecases/get_history_invoices.dart';
 import '../../features/history/presentation/bloc/history_bloc.dart';
 
-// --- INVENTORY FEATURE IMPORTS ---
 import '../../features/inventory/data/repositories/inventory_repository_impl.dart';
 import '../../features/inventory/domain/repositories/inventory_repository.dart';
 import '../../features/inventory/presentation/bloc/inventory_bloc.dart';
 import '../../features/inventory/presentation/bloc/inventory_event.dart';
+
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/domain/repositories/profile_repository.dart';
+import '../../features/profile/presentation/bloc/profile_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -73,18 +83,25 @@ Future<void> init() async {
       AuthRemoteDatasourceImpl());
   sl.registerLazySingleton<AuthRepository>(() =>
       AuthRepositoryImpl(datasource: sl()));
+
   sl.registerLazySingleton<LoginUseCase>(() => LoginUseCase(sl()));
   sl.registerLazySingleton<SendOtpUseCase>(() => SendOtpUseCase(sl()));
   sl.registerLazySingleton<SignupUseCase>(() => SignupUseCase(sl()));
   sl.registerLazySingleton<VerifyOtpUseCase>(() => VerifyOtpUseCase(sl()));
+  sl.registerLazySingleton<KitVerifyOtpUseCase>(() => KitVerifyOtpUseCase(sl()));
 
   sl.registerFactory(() => LoginBloc(loginUseCase: sl(), sendOtpUseCase: sl()));
   sl.registerFactory(() =>
       SignupBloc(signupUseCase: sl(),
           sendOtpUseCase: sl(),
           authRemoteDatasource: sl()));
+
   sl.registerFactory(() =>
-      OtpBloc(verifyOtpUseCase: sl(), sendOtpUseCase: sl()));
+      OtpBloc(
+        verifyOtpUseCase: sl(),
+        kitVerifyOtpUseCase: sl(),
+        sendOtpUseCase: sl(),
+      ));
 
   sl.registerLazySingleton<HomeRemoteDataSource>(() =>
       HomeRemoteDataSourceImpl());
@@ -95,19 +112,15 @@ Future<void> init() async {
   sl.registerLazySingleton<CustomerRemoteDataSource>(
         () => CustomerRemoteDataSourceImpl(client: sl()),
   );
-
   sl.registerLazySingleton<CustomerRepository>(
         () => CustomerRepositoryImpl(remoteDataSource: sl()),
   );
-
   sl.registerLazySingleton<VerifyCustomerUseCase>(
         () => VerifyCustomerUseCase(sl()),
   );
-
   sl.registerLazySingleton<ManageCustomerUseCase>(
         () => ManageCustomerUseCase(sl()),
   );
-
   sl.registerFactory(
         () =>
         CustomerBloc(
@@ -119,15 +132,12 @@ Future<void> init() async {
   sl.registerLazySingleton<CustomerListRemoteDataSource>(
         () => CustomerListRemoteDataSourceImpl(client: sl()),
   );
-
   sl.registerLazySingleton<CustomerListRepository>(
         () => CustomerListRepositoryImpl(remoteDataSource: sl()),
   );
-
   sl.registerLazySingleton<GetCustomerListUseCase>(
         () => GetCustomerListUseCase(sl()),
   );
-
   sl.registerFactory(
         () =>
         CustomerListBloc(
@@ -138,15 +148,12 @@ Future<void> init() async {
   sl.registerLazySingleton<CustomerDetailRemoteDataSource>(
         () => CustomerDetailRemoteDataSourceImpl(client: sl()),
   );
-
   sl.registerLazySingleton<CustomerDetailRepository>(
         () => CustomerDetailRepositoryImpl(remoteDataSource: sl()),
   );
-
   sl.registerLazySingleton<GetCustomerDetailUseCase>(
         () => GetCustomerDetailUseCase(sl()),
   );
-
   sl.registerFactory(
         () =>
         CustomerDetailBloc(
@@ -157,15 +164,12 @@ Future<void> init() async {
   sl.registerLazySingleton<DeviceRemoteDataSource>(
         () => DeviceRemoteDataSourceImpl(client: sl()),
   );
-
   sl.registerLazySingleton<DeviceRepository>(
         () => DeviceRepositoryImpl(remoteDataSource: sl()),
   );
-
   sl.registerLazySingleton<GetDevicesUseCase>(
         () => GetDevicesUseCase(sl()),
   );
-
   sl.registerFactory(
         () =>
         DeviceBloc(
@@ -173,19 +177,15 @@ Future<void> init() async {
         ),
   );
 
-  // ================= HISTORY FEATURE DEPENDENCIES =================
   sl.registerLazySingleton<HistoryLocalDataSource>(
         () => HistoryLocalDataSourceImpl(),
   );
-
   sl.registerLazySingleton<HistoryRepository>(
         () => HistoryRepositoryImpl(sl()),
   );
-
   sl.registerLazySingleton<GetHistoryInvoices>(
         () => GetHistoryInvoices(sl()),
   );
-
   sl.registerFactory(
         () =>
         HistoryBloc(
@@ -193,25 +193,50 @@ Future<void> init() async {
         ),
   );
 
-  // ================= INVENTORY FEATURE DEPENDENCIES =================
-  // ================= INVENTORY FEATURE DEPENDENCIES =================
   sl.registerLazySingleton<InventoryDataSource>(
         () => InventoryMockDataSource(),
   );
-
   sl.registerLazySingleton<InventoryRepository>(
         () => InventoryRepositoryImpl(sl()),
   );
-
   sl.registerLazySingleton<GetInventoryUseCase>(
         () => GetInventoryUseCase(sl()),
   );
-
   sl.registerFactory(
         () =>
     InventoryBloc(
       sl(),
     )
       ..add(LoadInventoryEvent()),
+  );
+
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+        () => ProfileRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<ProfileRepository>(
+        () => ProfileRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<GetProfileUseCase>(
+        () => GetProfileUseCase(sl()),
+  );
+  sl.registerFactory(
+        () => ProfileBloc(
+      getProfileUseCase: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<NotificationRemoteDataSource>(
+        () => NotificationRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<NotificationRepository>(
+        () => NotificationRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<GetNotificationsUseCase>(
+        () => GetNotificationsUseCase(sl()),
+  );
+  sl.registerFactory(
+        () => NotificationBloc(
+      getNotificationsUseCase: sl(),
+    ),
   );
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../../data/models/customer_response_model.dart';
 
 abstract class CustomerState {}

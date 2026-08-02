@@ -93,7 +93,6 @@ class _CustomerInformationContent extends StatelessWidget {
                             ),
                           ),
 
-                    // 🎯 Signature & Documents buttons for Tab 0 only
                     if (state.selectedTabIdx == 0) ...[
                       const SizedBox(height: 26),
                       Row(

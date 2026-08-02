@@ -6,6 +6,11 @@ import '../../../customer_list/presentation/pages/customer_list_view.dart';
 import '../../../history/presentation/bloc/history_bloc.dart';
 import '../../../history/presentation/bloc/history_event.dart';
 import '../../../history/presentation/pages/history_page.dart';
+
+import '../../../profile/presentation/bloc/profile_bloc.dart';
+import '../../../profile/presentation/bloc/profile_event.dart';
+import '../../../profile/presentation/pages/profile_screen.dart';
+
 import 'home_page.dart';
 
 class MainScreen extends StatefulWidget {
@@ -26,12 +31,14 @@ class _MainScreenState extends State<MainScreen> {
     _pages = [
       const HomePage(),
       const CustomerListView(),
-      // History Page wrapped with its BLoC Provider and Load Event
       BlocProvider(
         create: (_) => sl<HistoryBloc>()..add(LoadHistoryEvent()),
         child: const HistoryPage(),
       ),
-      const HomePage(), // Profile page placeholder
+      BlocProvider(
+        create: (_) => sl<ProfileBloc>()..add(FetchProfileEvent()),
+        child: const ProfileScreen(),
+      ),
     ];
   }
 

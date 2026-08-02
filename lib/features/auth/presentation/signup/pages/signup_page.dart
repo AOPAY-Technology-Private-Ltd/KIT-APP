@@ -203,7 +203,7 @@ class _SignupViewState extends State<SignupView> {
                       ),
                     AnimatedPositioned(
                       duration: const Duration(milliseconds: 200),
-                      top: isKeyboardVisible ? height * 0.01 : height * 0.16,
+                      top: isKeyboardVisible ? height * 0.01 : height * 0.14,
                       left: (width - imageSize) / 2,
                       child: SizedBox(
                         width: imageSize,
@@ -217,7 +217,7 @@ class _SignupViewState extends State<SignupView> {
                       bottom: isKeyboardVisible ? keyboardHeight - 10 : -10,
                       child: SizedBox(
                         width: width * 1.84,
-                        height: height * 0.60,
+                        height: height * 0.62,
                         child: const CurvedTopContainer(
                           curveHeight: 0.34,
                           child: SizedBox(),

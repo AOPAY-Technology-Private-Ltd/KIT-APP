@@ -7,11 +7,11 @@ class VerifyOtpUseCase {
   VerifyOtpUseCase(this.repository);
 
   Future<AuthEntity> call({
-    required String mobile,
+    required String mobileOrEmail,
     required String otp,
   }) async {
     return await repository.verifyOtp(
-      mobile: mobile,
+      mobileOrEmail: mobileOrEmail,
       otp: otp,
     );
   }

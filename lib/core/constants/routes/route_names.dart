@@ -16,4 +16,12 @@ class RouteNames {
   static const String history = "/history";
 
   static const String inventory = "/inventory";
+
+  static const String buyKits = "/buy-kits";
+
+  static const String profile = "/profile";
+
+  static const String imeiNumber = "/imei-number";
+
+  static const String notification = "/notification";
 }

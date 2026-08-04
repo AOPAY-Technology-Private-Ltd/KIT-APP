@@ -11,7 +11,7 @@ import '../../../features/auth/presentation/verifyotp/bloc/otp_bloc.dart';
 import '../../../features/auth/presentation/verifyotp/pages/otp_verification_view.dart';
 import '../../../features/create_customer/presentation/bloc/customer_bloc.dart';
 import '../../../features/create_customer/presentation/pages/create_customer_view.dart';
-import '../../../features/create_customer/presentation/pages/customer_info_view.dart';
+import '../../../features/create_customer/presentation/pages/customer_info_view.dart' hide CreateCustomerView;
 import '../../../features/create_customer/presentation/pages/imei_number_view.dart';
 import '../../../features/customer_detail/presentation/pages/customer_information_view.dart';
 import '../../../features/customer_detail/presentation/widgets/device_status_success_view.dart';
@@ -142,15 +142,15 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: RouteNames.createCustomer,
       builder: (context, state) {
-        return const CreateCustomerView();
+        return  CreateCustomerView();
       },
     ),
 
     GoRoute(
-      path: '${RouteNames.customerDetails}/:id',
+      path: '${RouteNames.customerDetails}/:mobile',
       builder: (context, state) {
-        final customerId = state.pathParameters['id'] ?? '';
-        return CustomerInformationView(customerId: customerId);
+        final customerMobile = state.pathParameters['mobile'] ?? '';
+        return CustomerInformationView(customerMobile: customerMobile);
       },
     ),
 

@@ -15,6 +15,7 @@ class CustomerRequestModel {
   final String? stateName;
   final String? cityName;
   final String? imeiNumber1;
+  final String? imeiNumber2;
   final String? dob;
   final String? panNumber;
   final String? aadhaarNumber;
@@ -24,6 +25,10 @@ class CustomerRequestModel {
   final File? custAadhaarBackPhotoFile;
   final File? custPanNumberPhotoFile;
   final File? custPhotoFile;
+  final File? imeiNumberPhotoFile;
+  final File? imeiNumber1SealPhotoFile;
+  final File? imeiNumber2SealPhotoFile;
+  final File? invoiceFile;
 
   CustomerRequestModel({
     this.mode,
@@ -40,6 +45,7 @@ class CustomerRequestModel {
     this.stateName,
     this.cityName,
     this.imeiNumber1,
+    this.imeiNumber2,
     this.dob,
     this.panNumber,
     this.aadhaarNumber,
@@ -48,18 +54,33 @@ class CustomerRequestModel {
     this.custAadhaarBackPhotoFile,
     this.custPanNumberPhotoFile,
     this.custPhotoFile,
+    this.imeiNumberPhotoFile,
+    this.imeiNumber1SealPhotoFile,
+    this.imeiNumber2SealPhotoFile,
+    this.invoiceFile,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'primaryMobileNumber': primaryMobileNumber ?? '',
-      'FirstName': firstName ?? '',
-      'LastName': lastName ?? '',
-      'AlternateMobileNumber': alternateMobileNumber ?? '',
-      'EMailID': emailID ?? '',
-      'CurrentAddress': currentAddress ?? '',
-      'PANNumber': panNumber ?? '',
-      'AadhaarNumber': aadhaarNumber ?? '',
+      'Mode': mode,
+      'FirstName': firstName,
+      'LastName': lastName,
+      'PrimaryMobileNumber': primaryMobileNumber,
+      'AlternateMobileNumber': alternateMobileNumber,
+      'PrimaryMobileVerified': primaryMobileVerified,
+      'PrimaryOTP': primaryOTP,
+      'EMailID': emailID,
+      'CurrentAddress': currentAddress,
+      'PinCode': pinCode,
+      'Country': country,
+      'StateName': stateName,
+      'CityName': cityName,
+      'IMEINumber1': imeiNumber1,
+      'IMEINumber2': imeiNumber2,
+      'DOB': dob,
+      'PANNumber': panNumber,
+      'AadhaarNumber': aadhaarNumber,
+      'ForceInsert': forceInsert,
     };
   }
 }

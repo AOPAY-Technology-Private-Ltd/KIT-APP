@@ -49,7 +49,7 @@ class CustomerTextField extends StatelessWidget {
           validator: validator,
           onTap: onTap,
           readOnly: readOnly,
-          inputFormatters: inputFormatters, // Passed here
+          inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),

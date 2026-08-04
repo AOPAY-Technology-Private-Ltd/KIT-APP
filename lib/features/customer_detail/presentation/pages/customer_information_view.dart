@@ -13,16 +13,16 @@ import '../widgets/customer_detail_info_card.dart';
 import '../widgets/customer_device_info_card.dart';
 
 class CustomerInformationView extends StatelessWidget {
-  final String customerId;
+  final String customerMobile;
 
-  const CustomerInformationView({super.key, required this.customerId});
+  const CustomerInformationView({super.key, required this.customerMobile});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
         final bloc = CustomerDetailBloc(getCustomerDetailUseCase: sl());
-        Future.microtask(() => bloc.add(FetchCustomerDetailEvent(customerId)));
+        Future.microtask(() => bloc.add(FetchCustomerDetailEvent(customerMobile)));
         return bloc;
       },
       child: const _CustomerInformationContent(),

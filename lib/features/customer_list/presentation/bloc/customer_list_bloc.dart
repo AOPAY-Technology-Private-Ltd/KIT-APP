@@ -9,10 +9,13 @@ class CustomerListBloc extends Bloc<CustomerListEvent, CustomerListState> {
   final GetCustomerListUseCase getCustomerListUseCase;
 
   List<CustomerItemEntity> _allCustomers = [];
+  CustomerTabType _currentTab = CustomerTabType.all;
+  String _searchQuery = '';
 
   CustomerListBloc({required this.getCustomerListUseCase}) : super(CustomerListInitial()) {
     on<FetchCustomerListEvent>(_onFetchCustomerList);
     on<FilterCustomerTabEvent>(_onFilterCustomerTab);
+    on<SearchCustomerEvent>(_onSearchCustomer);
   }
 
   Future<void> _onFetchCustomerList(
@@ -22,11 +25,14 @@ class CustomerListBloc extends Bloc<CustomerListEvent, CustomerListState> {
     emit(CustomerListLoading());
     try {
       final customers = await getCustomerListUseCase();
-
       _allCustomers = customers;
+      _currentTab = CustomerTabType.all;
+      _searchQuery = '';
+
       emit(CustomerListLoaded(
         displayedCustomers: _allCustomers,
-        selectedTab: CustomerTabType.all,
+        selectedTab: _currentTab,
+        searchQuery: _searchQuery,
       ));
     } catch (e) {
       emit(CustomerListError(e.toString()));
@@ -37,28 +43,40 @@ class CustomerListBloc extends Bloc<CustomerListEvent, CustomerListState> {
       FilterCustomerTabEvent event,
       Emitter<CustomerListState> emit,
       ) {
-    List<CustomerItemEntity> filteredList = [];
+    _currentTab = event.tabType;
+    _emitFilteredList(emit);
+  }
 
-    switch (event.tabType) {
-      case CustomerTabType.all:
-        filteredList = _allCustomers;
-        break;
-      case CustomerTabType.overdue:
-        filteredList = _allCustomers.where((c) => c.scheduleLockStatus.toUpperCase() == 'ON').toList();
-        break;
-      case CustomerTabType.locked:
-      // Locked tab ke liye filtering logic (e.g., c.isLocked == true)
-        filteredList = _allCustomers.where((c) => c.isLocked).toList();
-        break;
-      case CustomerTabType.upcoming:
-      // Upcoming tab ke liye apna logic lagayein
-        filteredList = _allCustomers.where((c) => !c.isLocked).toList();
-        break;
+  void _onSearchCustomer(
+      SearchCustomerEvent event,
+      Emitter<CustomerListState> emit,
+      ) {
+    _searchQuery = event.query.toLowerCase();
+    _emitFilteredList(emit);
+  }
+
+  void _emitFilteredList(Emitter<CustomerListState> emit) {
+    List<CustomerItemEntity> list = _allCustomers;
+
+    if (_currentTab == CustomerTabType.locked) {
+      list = list.where((c) => c.isLocked).toList();
+    }
+
+    if (_searchQuery.isNotEmpty) {
+      list = list.where((c) {
+        return c.name.toLowerCase().contains(_searchQuery) ||
+            c.mobile.toLowerCase().contains(_searchQuery) ||
+            c.email.toLowerCase().contains(_searchQuery) ||
+            c.customerIdCode.toLowerCase().contains(_searchQuery) ||
+            c.imei1.toLowerCase().contains(_searchQuery) ||
+            c.imei2.toLowerCase().contains(_searchQuery);
+      }).toList();
     }
 
     emit(CustomerListLoaded(
-      displayedCustomers: filteredList,
-      selectedTab: event.tabType,
+      displayedCustomers: list,
+      selectedTab: _currentTab,
+      searchQuery: _searchQuery,
     ));
   }
 }

@@ -28,23 +28,38 @@ class HomeModel extends HomeEntity {
     required super.locked,
     required super.todayInstalled,
     required super.overdue,
+    required super.totalPurchasedKits,
+    required super.usedKits,
+    required super.lockedDevices,
+    required super.unlockedDevices,
     required super.recentCustomers,
   });
 
   factory HomeModel.fromJson(Map<String, dynamic> json) {
-    var customersFromJson = json['recentCustomers'] as List? ?? [];
-    List<CustomerModel> customerList =
-    customersFromJson.map((i) => CustomerModel.fromJson(i)).toList();
+    final data = json['data'] ?? {};
+
+    var customersFromJson = data['recentCustomers'] ?? [
+      {"name": "Rahul Verma", "details": "Redmi Note 13, EMI Paid: 1/6", "time": "2min ago", "initials": "RV"},
+      {"name": "Priya Sharma", "details": "Redmi Note 13, EMI Paid: 1/6", "time": "2min ago", "initials": "PS"},
+    ];
+
+    List<CustomerModel> customerList = (customersFromJson as List)
+        .map((i) => CustomerModel.fromJson(i))
+        .toList();
 
     return HomeModel(
-      retailerName: json['retailerName'] ?? '',
-      retailerCode: json['retailerCode'] ?? '',
-      availableKits: json['availableKits'] ?? 0,
-      totalKits: json['totalKits'] ?? 0,
-      totalInstalled: json['totalInstalled'] ?? 0,
-      locked: json['locked'] ?? 0,
-      todayInstalled: json['todayInstalled'] ?? 0,
-      overdue: json['overdue'] ?? 0,
+      retailerName: "Gupta’s Mobiles",
+      retailerCode: "",
+      availableKits: data['availableKits'] ?? 0,
+      totalKits: data['totalKits'] ?? 0,
+      totalInstalled: data['usedKits'] ?? 0,
+      locked: data['lockedDevices'] ?? 0,
+      todayInstalled: data['unlockedDevices'] ?? 0,
+      overdue: 0,
+      totalPurchasedKits: data['totalPurchasedKits'] ?? 0,
+      usedKits: data['usedKits'] ?? 0,
+      lockedDevices: data['lockedDevices'] ?? 0,
+      unlockedDevices: data['unlockedDevices'] ?? 0,
       recentCustomers: customerList,
     );
   }

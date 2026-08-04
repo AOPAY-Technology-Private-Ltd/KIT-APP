@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum CustomerTabType { all, overdue, locked, upcoming }
+enum CustomerTabType { all, locked }
 
 class CustomerListTabs extends StatelessWidget {
   final CustomerTabType selectedTab;
@@ -14,34 +14,22 @@ class CustomerListTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _buildTabButton(
+    return Row(
+      children: [
+        Expanded(
+          child: _buildTabButton(
             title: 'All',
             tabType: CustomerTabType.all,
           ),
-          const SizedBox(width: 8),
-
-          _buildTabButton(
-            title: 'Overdue',
-            tabType: CustomerTabType.overdue,
-          ),
-          const SizedBox(width: 8),
-
-          _buildTabButton(
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildTabButton(
             title: 'Locked',
             tabType: CustomerTabType.locked,
           ),
-          const SizedBox(width: 8),
-
-          _buildTabButton(
-            title: 'Upcoming',
-            tabType: CustomerTabType.upcoming,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -54,7 +42,8 @@ class CustomerListTabs extends StatelessWidget {
     return GestureDetector(
       onTap: () => onTabChanged(tabType),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        alignment: Alignment.center,
         decoration: ShapeDecoration(
           color: isSelected ? const Color(0xFF2563EB) : Colors.white,
           shape: RoundedRectangleBorder(
@@ -65,21 +54,14 @@ class CustomerListTabs extends StatelessWidget {
             ),
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                color: isSelected ? Colors.white : const Color(0xFF2563EB),
-                fontSize: 12,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? Colors.white : const Color(0xFF2563EB),
+            fontSize: 12,
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );

@@ -21,6 +21,12 @@ class HomeEntity {
   final int locked;
   final int todayInstalled;
   final int overdue;
+
+  final int totalPurchasedKits;
+  final int usedKits;
+  final int lockedDevices;
+  final int unlockedDevices;
+
   final List<CustomerEntity> recentCustomers;
 
   const HomeEntity({
@@ -32,6 +38,10 @@ class HomeEntity {
     required this.locked,
     required this.todayInstalled,
     required this.overdue,
+    required this.totalPurchasedKits,
+    required this.usedKits,
+    required this.lockedDevices,
+    required this.unlockedDevices,
     required this.recentCustomers,
   });
 }

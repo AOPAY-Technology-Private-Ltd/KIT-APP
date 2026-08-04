@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/routes/route_names.dart';
+import '../../../../core/services/session_manager.dart';
 import '../bloc/home_bloc.dart';
+import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
 import '../widgets/available_kits_card.dart';
 import '../widgets/stats_grid.dart';
@@ -11,8 +13,34 @@ import '../widgets/quick_actions_section.dart';
 import '../widgets/recent_customers_section.dart';
 import '../widgets/home_header.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String _fullName = "";
+  String _retailerCode = "";
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<HomeBloc>().add(LoadHomeDataEvent());
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final firstName = await SessionManager.getFirstName() ?? "";
+    final lastName = await SessionManager.getLastName() ?? "";
+    final retailerCode = await SessionManager.getRetailerCode() ?? "";
+
+    setState(() {
+      _fullName = "$firstName $lastName".trim();
+      _retailerCode = retailerCode;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +48,7 @@ class HomePage extends StatelessWidget {
       backgroundColor: const Color(0xFFECEDEF),
       body: BlocBuilder<HomeBloc, HomeState>(
         builder: (context, state) {
-          if (state is HomeLoadingState) {
+          if (state is HomeLoadingState || state is HomeInitialState) {
             return const Center(
               child: CircularProgressIndicator(),
             );
@@ -28,12 +56,39 @@ class HomePage extends StatelessWidget {
 
           if (state is HomeErrorState) {
             return Center(
-              child: Text(state.message),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red, fontSize: 14),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<HomeBloc>().add(LoadHomeDataEvent());
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
             );
           }
 
           if (state is HomeLoadedState) {
             final data = state.homeData;
+
+            final displayName = _fullName.isNotEmpty
+                ? _fullName
+                : (data.retailerName.isNotEmpty ? data.retailerName : "Retailer Name");
+
+            final activeRetailerCode = _retailerCode.isNotEmpty
+                ? _retailerCode
+                : (data.retailerCode.isNotEmpty ? data.retailerCode : 'LK-40921');
 
             return ListView(
               physics: const BouncingScrollPhysics(),
@@ -42,17 +97,17 @@ class HomePage extends StatelessWidget {
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    const HomeHeader(
-                      name: "Gupta’s Mobiles",
-                      code: "Retailer ID · LK-40921 · Andheri West",
+                    HomeHeader(
+                      name: displayName,
+                      code: "Retailer ID · $activeRetailerCode · Andheri West",
                     ),
                     Positioned(
                       top: 145,
                       left: 24,
                       right: 24,
                       child: AvailableKitsCard(
-                        available: 128,
-                        total: 200,
+                        available: data.availableKits,
+                        total: data.totalKits,
                         onViewInventory: () {
                           context.push(RouteNames.inventory);
                         },
@@ -72,9 +127,9 @@ class HomePage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       StatsGrid(
-                        totalInstalled: data.totalInstalled,
-                        locked: data.locked,
-                        todayInstalled: data.todayInstalled,
+                        totalInstalled: data.usedKits,
+                        locked: data.lockedDevices,
+                        todayInstalled: data.unlockedDevices,
                       ),
                       const SizedBox(height: 14),
                       QuickActionsSection(

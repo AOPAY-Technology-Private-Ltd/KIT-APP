@@ -104,7 +104,7 @@ Future<void> init() async {
       ));
 
   sl.registerLazySingleton<HomeRemoteDataSource>(() =>
-      HomeRemoteDataSourceImpl());
+      HomeRemoteDataSourceImpl(client: sl()));
   sl.registerLazySingleton<HomeRepository>(() => HomeRepositoryImpl(sl()));
   sl.registerLazySingleton<GetHomeDataUseCase>(() => GetHomeDataUseCase(sl()));
   sl.registerFactory(() => HomeBloc(getHomeDataUseCase: sl()));

@@ -39,13 +39,28 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
 
     try {
       final requestModel = CustomerRequestModel(
+        mode: "INSERT",
         firstName: event.firstName,
         lastName: event.lastName,
         primaryMobileNumber: event.primaryMobileNumber,
         alternateMobileNumber: event.alternateMobileNumber,
+        primaryMobileVerified: "yes",
         emailID: event.emailID,
         currentAddress: event.currentAddress,
+        country: "India",
+        panNumber: event.panNumber,
+        aadhaarNumber: event.aadharNumber,
+        imeiNumber1: event.imeiNumber1,
+        imeiNumber2: event.imeiNumber2,
+        forceInsert: false,
         custPhotoFile: event.profileImage,
+        custPanNumberPhotoFile: event.panImage,
+        custAadhaarFrontPhotoFile: event.aadharFrontImage,
+        custAadhaarBackPhotoFile: event.aadharBackImage,
+        imeiNumberPhotoFile: event.imeiNumberPhotoFile,
+        imeiNumber1SealPhotoFile: event.imeiNumber1SealPhotoFile,
+        imeiNumber2SealPhotoFile: event.imeiNumber2SealPhotoFile,
+        invoiceFile: event.invoiceFile,
       );
 
       final result = await manageCustomerUseCase(requestModel);

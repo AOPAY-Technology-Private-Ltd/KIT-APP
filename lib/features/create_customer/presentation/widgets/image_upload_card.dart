@@ -5,64 +5,133 @@ import 'package:image_picker/image_picker.dart';
 class ImageUploadCard extends StatelessWidget {
   final String label;
   final File? selectedImage;
-  final Function(File) onImageSelected;
+  final Function(File?) onImageSelected;
 
   const ImageUploadCard({
     super.key,
     required this.label,
-    required this.selectedImage,
+    this.selectedImage,
     required this.onImageSelected,
   });
 
-  Future<void> _pickImage(BuildContext context) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      onImageSelected(File(pickedFile.path));
-    }
+  void _showPicker(BuildContext context) {
+    final ImagePicker picker = ImagePicker();
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    final XFile? image = await picker.pickImage(
+                      source: ImageSource.camera,
+                      imageQuality: 85,
+                    );
+                    if (image != null) {
+                      onImageSelected(File(image.path));
+                    }
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.camera_alt, color: Color(0xFF2563EB)),
+                        SizedBox(width: 16),
+                        Text('Take Photo from Camera', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    final XFile? image = await picker.pickImage(
+                      source: ImageSource.gallery,
+                      imageQuality: 85,
+                    );
+                    if (image != null) {
+                      onImageSelected(File(image.path));
+                    }
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.photo_library, color: Color(0xFF2563EB)),
+                        SizedBox(width: 16),
+                        Text('Choose from Gallery', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _pickImage(context),
+    return InkWell(
+      onTap: () => _showPicker(context),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         height: 110,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFCBD5E1)),
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selectedImage != null ? Colors.green : Colors.grey.shade300,
+            width: selectedImage != null ? 1.5 : 1,
+          ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: selectedImage != null
+            ? Stack(
+          alignment: Alignment.topRight,
           children: [
-            selectedImage != null
-                ? ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
               child: Image.file(
                 selectedImage!,
-                height: 48,
-                width: 48,
+                width: double.infinity,
+                height: double.infinity,
                 fit: BoxFit.cover,
               ),
-            )
-                : const Icon(
-              Icons.camera_alt_outlined,
-              color: Color(0xFF2563EB),
-              size: 32,
             ),
+            Container(
+              margin: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.green,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check, size: 12, color: Colors.white),
+            ),
+          ],
+        )
+            : Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.camera_alt_outlined, color: Color(0xFF2563EB), size: 28),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
                 label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: Color(0xFF2563EB),
+                  color: Color(0xFF64748B),
                   fontSize: 12,
-                  fontFamily: 'Inter',
                   fontWeight: FontWeight.w500,
                 ),
               ),

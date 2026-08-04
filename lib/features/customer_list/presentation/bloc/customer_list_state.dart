@@ -10,10 +10,12 @@ class CustomerListLoading extends CustomerListState {}
 class CustomerListLoaded extends CustomerListState {
   final List<CustomerItemEntity> displayedCustomers;
   final CustomerTabType selectedTab;
+  final String searchQuery;
 
   CustomerListLoaded({
     required this.displayedCustomers,
     required this.selectedTab,
+    required this.searchQuery,
   });
 }
 

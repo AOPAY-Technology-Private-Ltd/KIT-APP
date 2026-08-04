@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../../../core/constants/apiconstants/api_constants.dart';
 import '../models/customer_request_model.dart';
 import '../models/customer_response_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class CustomerRemoteDataSource {
   Future<CustomerResponseModel> verifyCustomerKit(CustomerRequestModel requestModel);
@@ -14,8 +16,10 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
   CustomerRemoteDataSourceImpl({required this.client});
 
   @override
-  Future<CustomerResponseModel> verifyCustomerKit(CustomerRequestModel requestModel) async {
-    final uri = Uri.parse('https://uatapi.aopay.co.in/api/V1/AopayFinance/KitVerifyCustomer');
+  Future<CustomerResponseModel> verifyCustomerKit(
+      CustomerRequestModel requestModel) async {
+    final uri = Uri.parse(
+        ApiConstants.verifyCustomerKit);
 
     print('--- KIT VERIFY CUSTOMER REQUEST ---');
     print('URL: $uri');
@@ -43,28 +47,66 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
   }
 
   @override
-  Future<CustomerResponseModel> manageCustomer(CustomerRequestModel requestModel) async {
-    final uri = Uri.parse('https://uatapi.aopay.co.in/api/V1/AopayFinance/KitManageCustomer').replace(
-      queryParameters: {
-        'Mode': requestModel.mode ?? 'INSERT',
-        'FirstName': requestModel.firstName ?? '',
-        'LastName': requestModel.lastName ?? '',
-        'PrimaryMobileNumber': requestModel.primaryMobileNumber ?? '',
-        'AlternateMobileNumber': requestModel.alternateMobileNumber ?? '',
-        'PrimaryMobileVerified': requestModel.primaryMobileVerified ?? 'yes',
-        'PrimaryOTP': requestModel.primaryOTP ?? '',
-        'EMailID': requestModel.emailID ?? '',
-        'CurrentAddress': requestModel.currentAddress ?? '',
-        'PinCode': requestModel.pinCode ?? '',
-        'Country': requestModel.country ?? 'India',
-        'StateName': requestModel.stateName ?? '',
-        'CityName': requestModel.cityName ?? '',
-        'IMEINumber1': requestModel.imeiNumber1 ?? '',
-        'DOB': requestModel.dob ?? '',
-        'PANNumber': requestModel.panNumber ?? '',
-        'AadhaarNumber': requestModel.aadhaarNumber ?? '',
-        'ForceInsert': requestModel.forceInsert?.toString() ?? 'false',
-      },
+
+  Future<CustomerResponseModel> manageCustomer(
+      CustomerRequestModel requestModel) async {
+
+    final prefs = await SharedPreferences.getInstance();
+    final retailerCode = prefs.getString('retailer_code');
+
+    final queryParams = <String, String>{
+      'Mode': requestModel.mode ?? 'INSERT',
+      'PrimaryMobileVerified': requestModel.primaryMobileVerified ?? 'yes',
+      'ForceInsert': requestModel.forceInsert?.toString() ?? 'false',
+    };
+
+    if (retailerCode != null && retailerCode.isNotEmpty) {
+      queryParams['RetailerCode'] = retailerCode;
+    }
+
+    if (requestModel.firstName != null && requestModel.firstName!.isNotEmpty) {
+      queryParams['FirstName'] = requestModel.firstName!;
+    }
+    if (requestModel.lastName != null && requestModel.lastName!.isNotEmpty) {
+      queryParams['LastName'] = requestModel.lastName!;
+    }
+    if (requestModel.primaryMobileNumber != null &&
+        requestModel.primaryMobileNumber!.isNotEmpty) {
+      queryParams['PrimaryMobileNumber'] = requestModel.primaryMobileNumber!;
+    }
+    if (requestModel.alternateMobileNumber != null &&
+        requestModel.alternateMobileNumber!.isNotEmpty) {
+      queryParams['AlternateMobileNumber'] =
+      requestModel.alternateMobileNumber!;
+    }
+    if (requestModel.emailID != null && requestModel.emailID!.isNotEmpty) {
+      queryParams['EMailID'] = requestModel.emailID!;
+    }
+    if (requestModel.currentAddress != null &&
+        requestModel.currentAddress!.isNotEmpty) {
+      queryParams['CurrentAddress'] = requestModel.currentAddress!;
+    }
+    if (requestModel.imeiNumber1 != null &&
+        requestModel.imeiNumber1!.isNotEmpty) {
+      queryParams['IMEINumber1'] = requestModel.imeiNumber1!;
+    }
+    if (requestModel.imeiNumber2 != null &&
+        requestModel.imeiNumber2!.isNotEmpty) {
+      queryParams['IMEINumber2'] = requestModel.imeiNumber2!;
+    }
+    if (requestModel.panNumber != null && requestModel.panNumber!.isNotEmpty) {
+      queryParams['PANNumber'] = requestModel.panNumber!;
+    }
+    if (requestModel.aadhaarNumber != null &&
+        requestModel.aadhaarNumber!.isNotEmpty) {
+      queryParams['AadhaarNumber'] = requestModel.aadhaarNumber!;
+    }
+
+    final uri = Uri
+        .parse(
+        ApiConstants.manageCustomer)
+        .replace(
+      queryParameters: queryParams,
     );
 
     print('--- MANAGE CUSTOMER REQUEST ---');
@@ -99,6 +141,40 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
         requestModel.custPhotoFile!.path,
       ));
     }
+    if (requestModel.imeiNumberPhotoFile != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'IMEINumberPhotoFile',
+        requestModel.imeiNumberPhotoFile!.path,
+      ));
+    }
+    if (requestModel.imeiNumber1SealPhotoFile != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'IMEINumber1_SealPhotoFile',
+        requestModel.imeiNumber1SealPhotoFile!.path,
+      ));
+    }
+    if (requestModel.imeiNumber2SealPhotoFile != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'IMEINumber2_SealPhotoFile',
+        requestModel.imeiNumber2SealPhotoFile!.path,
+      ));
+    }
+    if (requestModel.invoiceFile != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'InvoiceFile',
+        requestModel.invoiceFile!.path,
+      ));
+    }
+
+    print('--- ATTACHED FILES DETAILS ---');
+    if (request.files.isEmpty) {
+      print('No files attached to this request.');
+    } else {
+      for (var file in request.files) {
+        print('Field Name: ${file.field} | File Path: ${file.filename ?? file.field}');
+      }
+    }
+    print('--------------------------------');
 
     final streamedResponse = await client.send(request);
     final response = await http.Response.fromStream(streamedResponse);

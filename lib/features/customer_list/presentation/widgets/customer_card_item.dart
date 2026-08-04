@@ -12,7 +12,8 @@ class CustomerCardItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        context.push('${RouteNames.customerDetails}/${customer.id}');
+        // customer.id ki jagah customer.mobile pass kiya ja raha hai taaki API me sahi mobile number jaye
+        context.push('${RouteNames.customerDetails}/${customer.mobile}');
       },
       borderRadius: BorderRadius.circular(10),
       child: Container(
@@ -50,14 +51,19 @@ class CustomerCardItem extends StatelessWidget {
                         Container(
                           width: 30,
                           height: 30,
-                          decoration: ShapeDecoration(
-                            image: DecorationImage(
-                              image: customer.imageUrl.isNotEmpty
-                                  ? NetworkImage(customer.imageUrl)
-                                  : const NetworkImage("https://placehold.co/30x30"),
+                          decoration: const ShapeDecoration(
+                            color: Colors.white24,
+                            shape: OvalBorder(),
+                          ),
+                          child: ClipOval(
+                            child: customer.imageUrl.isNotEmpty
+                                ? Image.network(
+                              customer.imageUrl,
                               fit: BoxFit.cover,
-                            ),
-                            shape: const OvalBorder(),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildDefaultAvatar(),
+                            )
+                                : _buildDefaultAvatar(),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -156,6 +162,14 @@ class CustomerCardItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDefaultAvatar() {
+    return const Icon(
+      Icons.person,
+      size: 18,
+      color: Colors.white,
     );
   }
 

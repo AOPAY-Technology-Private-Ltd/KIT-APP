@@ -17,13 +17,27 @@ class CustomerListView extends StatelessWidget {
       create: (context) => CustomerListBloc(
         getCustomerListUseCase: sl(),
       )..add(FetchCustomerListEvent()),
-      child: const _CustomerListViewContent(),
+      child: const CustomerListContent(),
     );
   }
 }
 
-class _CustomerListViewContent extends StatelessWidget {
-  const _CustomerListViewContent();
+class CustomerListContent extends StatefulWidget {
+  const CustomerListContent({super.key});
+
+  @override
+  State<CustomerListContent> createState() => _CustomerListContentState();
+}
+
+class _CustomerListContentState extends State<CustomerListContent> {
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +49,62 @@ class _CustomerListViewContent extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              const CustomHeader(title: 'Customer List'),
+
+              CustomHeader(
+                title: 'Customer List',
+                onSearchTap: () {
+                  setState(() {
+                    _isSearching = !_isSearching;
+                    if (!_isSearching) {
+                      _searchController.clear();
+                      context.read<CustomerListBloc>().add(SearchCustomerEvent(''));
+                    }
+                  });
+                },
+              ),
               const SizedBox(height: 18),
+
+              if (_isSearching) ...[
+                TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  onChanged: (query) {
+                    context.read<CustomerListBloc>().add(SearchCustomerEvent(query));
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search by name, mobile, IMEI...',
+                    hintStyle: const TextStyle(
+                      color: Colors.black45,
+                      fontSize: 12,
+                      fontFamily: 'Inter',
+                    ),
+                    prefixIcon: const Icon(Icons.search, color: Color(0xFF2563EB)),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.close, size: 18, color: Colors.black54),
+                      onPressed: () {
+                        _searchController.clear();
+                        context.read<CustomerListBloc>().add(SearchCustomerEvent(''));
+                      },
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF3F6FF),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+              ],
 
               BlocBuilder<CustomerListBloc, CustomerListState>(
                 builder: (context, state) {
@@ -62,7 +130,7 @@ class _CustomerListViewContent extends StatelessWidget {
                       return const Center(child: CircularProgressIndicator(color: Color(0xFF1D61E7)));
                     } else if (state is CustomerListLoaded) {
                       if (state.displayedCustomers.isEmpty) {
-                        return const Center(child: Text('No customers found'));
+                        return _buildEmptyState();
                       }
                       return ListView.separated(
                         physics: const BouncingScrollPhysics(),
@@ -82,6 +150,52 @@ class _CustomerListViewContent extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Color(0xFFEAF0FF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.search_off_rounded,
+                size: 48,
+                color: Color(0xFF2563EB),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'No Customers Found',
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 16,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'No results match your search or selected filter.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: 12,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
         ),
       ),
     );

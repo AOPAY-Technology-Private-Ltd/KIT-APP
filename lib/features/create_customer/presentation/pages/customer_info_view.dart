@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../../../core/constants/routes/route_names.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/utils/validators.dart';
@@ -11,8 +13,6 @@ import '../bloc/customer_event.dart';
 import '../bloc/customer_state.dart';
 import '../widgets/custom_header.dart';
 import '../widgets/customer_text_field.dart';
-import 'package:go_router/go_router.dart';
-
 
 class CustomerInfoView extends StatelessWidget {
   const CustomerInfoView({super.key});
@@ -38,6 +38,9 @@ class _CustomerInfoViewContent extends StatefulWidget {
 
 class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
   bool isChecked = false;
+  bool isMobileVerifiedOrAvailable = true;
+  String? mobileErrorText;
+
   final _formKey = GlobalKey<FormState>();
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
@@ -59,6 +62,13 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
     final text = mobileController.text.trim();
     if (text.length == 10) {
       context.read<CustomerBloc>().add(KitVerifyRequested(primaryMobileNumber: text));
+    } else {
+      if (!isMobileVerifiedOrAvailable) {
+        setState(() {
+          isMobileVerifiedOrAvailable = true;
+          mobileErrorText = null;
+        });
+      }
     }
   }
 
@@ -145,8 +155,8 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, dynamic>? previousData = GoRouterState.of(context).extra as Map<String, dynamic>?;
     final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 360;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -154,12 +164,31 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
       body: BlocConsumer<CustomerBloc, CustomerState>(
         listener: (context, state) {
           if (state is CustomerSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.green),
-            );
+            if (state.message.contains("already exists") || state.message.toLowerCase().contains("exists")) {
+              setState(() {
+                isMobileVerifiedOrAvailable = false;
+                mobileErrorText = state.message;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            } else {
+              setState(() {
+                isMobileVerifiedOrAvailable = true;
+                mobileErrorText = null;
+              });
+            }
           } else if (state is CustomerFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.error), backgroundColor: Colors.red),
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+              ),
             );
           }
         },
@@ -226,26 +255,7 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                           ),
                           const SizedBox(height: 30),
 
-                          isSmallScreen
-                              ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomerTextField(
-                                controller: firstNameController,
-                                label: 'First Name *',
-                                hintText: 'Enter First Name',
-                                validator: (val) => val == null || val.trim().isEmpty ? "First Name is required" : null,
-                              ),
-                              const SizedBox(height: 12),
-                              CustomerTextField(
-                                controller: lastNameController,
-                                label: 'Last Name *',
-                                hintText: 'Enter Last Name',
-                                validator: (val) => val == null || val.trim().isEmpty ? "Last Name is required" : null,
-                              ),
-                            ],
-                          )
-                              : Row(
+                          Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
@@ -269,43 +279,7 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                           ),
                           const SizedBox(height: 16),
 
-                          isSmallScreen
-                              ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomerTextField(
-                                controller: mobileController,
-                                label: 'Mobile Number *',
-                                hintText: 'Enter Mobile Number',
-                                keyboardType: TextInputType.phone,
-                                inputFormatters: [
-                                  LengthLimitingTextInputFormatter(10),
-                                ],
-                                suffixIcon: isVerifying
-                                    ? const Padding(
-                                  padding: EdgeInsets.all(10.0),
-                                  child: SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  ),
-                                )
-                                    : null,
-                                validator: (val) => Validators.validateMobile(val ?? ''),
-                              ),
-                              const SizedBox(height: 12),
-                              CustomerTextField(
-                                controller: altMobileController,
-                                label: 'Alternate Number (Optional)',
-                                hintText: 'Enter Alternate Number',
-                                keyboardType: TextInputType.phone,
-                                inputFormatters: [
-                                  LengthLimitingTextInputFormatter(10),
-                                ],
-                              ),
-                            ],
-                          )
-                              : Row(
+                          Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
@@ -314,9 +288,7 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                                   label: 'Mobile Number *',
                                   hintText: 'Enter Mobile Number',
                                   keyboardType: TextInputType.phone,
-                                  inputFormatters: [
-                                    LengthLimitingTextInputFormatter(10),
-                                  ],
+                                  inputFormatters: [LengthLimitingTextInputFormatter(10)],
                                   suffixIcon: isVerifying
                                       ? const Padding(
                                     padding: EdgeInsets.all(10.0),
@@ -326,8 +298,17 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                                       child: CircularProgressIndicator(strokeWidth: 2),
                                     ),
                                   )
-                                      : null,
-                                  validator: (val) => Validators.validateMobile(val ?? ''),
+                                      : (!isMobileVerifiedOrAvailable
+                                      ? const Icon(Icons.error, color: Colors.red, size: 20)
+                                      : null),
+                                  validator: (val) {
+                                    String? basicVal = Validators.validateMobile(val ?? '');
+                                    if (basicVal != null) return basicVal;
+                                    if (!isMobileVerifiedOrAvailable) {
+                                      return mobileErrorText ?? "Mobile number already exists";
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -337,9 +318,7 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                                   label: 'Alternate Number (Optional)',
                                   hintText: 'Enter Alternate Number',
                                   keyboardType: TextInputType.phone,
-                                  inputFormatters: [
-                                    LengthLimitingTextInputFormatter(10),
-                                  ],
+                                  inputFormatters: [LengthLimitingTextInputFormatter(10)],
                                 ),
                               ),
                             ],
@@ -351,9 +330,7 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                             label: 'Email ID (Optional)',
                             hintText: 'Enter e-mail',
                             validator: (val) {
-                              if (val != null && val.trim().isEmpty) {
-                                return null;
-                              }
+                              if (val != null && val.trim().isEmpty) return null;
                               return Validators.validateEmail(val ?? '');
                             },
                           ),
@@ -396,14 +373,14 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                             height: 48,
                             child: Container(
                               decoration: ShapeDecoration(
-                                gradient: isChecked
+                                gradient: (isChecked && isMobileVerifiedOrAvailable)
                                     ? const LinearGradient(
                                   begin: Alignment(1.00, 0.50),
                                   end: Alignment(0.00, 0.50),
                                   colors: [Color(0xFF022062), Color(0xFF008EFD)],
                                 )
                                     : null,
-                                color: isChecked ? null : Colors.grey.shade300,
+                                color: (isChecked && isMobileVerifiedOrAvailable) ? null : Colors.grey.shade300,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
@@ -417,31 +394,34 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                 ),
-                                onPressed: isChecked
+                                onPressed: (isChecked && isMobileVerifiedOrAvailable)
                                     ? () {
                                   if (_formKey.currentState!.validate()) {
-                                    context.read<CustomerBloc>().add(
-                                      ManageCustomerSubmitted(
-                                        firstName: firstNameController.text.trim(),
-                                        lastName: lastNameController.text.trim(),
-                                        primaryMobileNumber: mobileController.text.trim(),
-                                        alternateMobileNumber: altMobileController.text.trim(),
-                                        emailID: emailController.text.trim(),
-                                        currentAddress: addressController.text.trim(),
-                                        profileImage: profileImage,
-                                      ),
+                                    context.push(
+                                      RouteNames.imeiNumber,
+                                      extra: {
+                                        'dob': previousData?['dob'],
+                                        'panNumber': previousData?['panNumber'],
+                                        'panImage': previousData?['panImage'],
+                                        'aadharNumber': previousData?['aadharNumber'],
+                                        'aadharFrontImage': previousData?['aadharFrontImage'],
+                                        'aadharBackImage': previousData?['aadharBackImage'],
+                                        'firstName': firstNameController.text.trim(),
+                                        'lastName': lastNameController.text.trim(),
+                                        'primaryMobileNumber': mobileController.text.trim(),
+                                        'alternateMobileNumber': altMobileController.text.trim(),
+                                        'emailID': emailController.text.trim(),
+                                        'currentAddress': addressController.text.trim(),
+                                        'profileImage': profileImage,
+                                      },
                                     );
-
-                                    // context.push(RouteNames.selectDevice);
-                                    context.push(RouteNames.imeiNumber);
-
                                   }
                                 }
                                     : null,
                                 child: Text(
                                   'Next',
                                   style: TextStyle(
-                                    color: isChecked ? Colors.white : Colors.grey.shade600,
+                                    color: (isChecked && isMobileVerifiedOrAvailable) ? Colors.white : Colors.grey.shade600,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
                                   ),

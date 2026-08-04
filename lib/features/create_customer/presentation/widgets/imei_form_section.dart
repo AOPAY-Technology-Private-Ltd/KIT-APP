@@ -9,7 +9,8 @@ class ImeiFormSection extends StatelessWidget {
   final File? sealBack;
   final File? imeiPhoto;
   final File? invoicePhoto;
-  final Function(File, String) onImageChanged;
+
+  final Function(File? file, String type) onImageChanged;
 
   const ImeiFormSection({
     super.key,
@@ -39,12 +40,13 @@ class ImeiFormSection extends StatelessWidget {
         const SizedBox(height: 6),
         TextFormField(
           controller: imei1Controller,
+          keyboardType: TextInputType.number,
           validator: (val) {
             if (val == null || val.trim().isEmpty) {
               return "IMEI 1 is required";
             }
             if (val.trim().length < 15) {
-              return "Please enter a valid IMEI number";
+              return "Please enter a valid 15-digit IMEI number";
             }
             return null;
           },
@@ -71,6 +73,7 @@ class ImeiFormSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
+
         const Text(
           'IMEI 2*',
           style: TextStyle(
@@ -83,12 +86,13 @@ class ImeiFormSection extends StatelessWidget {
         const SizedBox(height: 6),
         TextFormField(
           controller: imei2Controller,
+          keyboardType: TextInputType.number,
           validator: (val) {
             if (val == null || val.trim().isEmpty) {
               return "IMEI 2 is required";
             }
             if (val.trim().length < 15) {
-              return "Please enter a valid IMEI number";
+              return "Please enter a valid 15-digit IMEI number";
             }
             return null;
           },
@@ -115,13 +119,20 @@ class ImeiFormSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
+
         Row(
           children: [
             Expanded(
               child: ImageUploadCard(
                 label: 'Seal Phone Front (Optional)',
                 selectedImage: sealFront,
-                onImageSelected: (file) => onImageChanged(file, 'sealFront'),
+                onImageSelected: ([dynamic file]) {
+                  if (file is File) {
+                    onImageChanged(file, 'sealFront');
+                  } else {
+                    onImageChanged(null, 'sealFront');
+                  }
+                },
               ),
             ),
             const SizedBox(width: 12),
@@ -129,19 +140,32 @@ class ImeiFormSection extends StatelessWidget {
               child: ImageUploadCard(
                 label: 'Seal Phone Back (Optional)',
                 selectedImage: sealBack,
-                onImageSelected: (file) => onImageChanged(file, 'sealBack'),
+                onImageSelected: ([dynamic file]) {
+                  if (file is File) {
+                    onImageChanged(file, 'sealBack');
+                  } else {
+                    onImageChanged(null, 'sealBack');
+                  }
+                },
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
+
         Row(
           children: [
             Expanded(
               child: ImageUploadCard(
-                label: 'IMEI Number (Optional)',
+                label: 'Box Sticker Photo',
                 selectedImage: imeiPhoto,
-                onImageSelected: (file) => onImageChanged(file, 'imeiPhoto'),
+                onImageSelected: ([dynamic file]) {
+                  if (file is File) {
+                    onImageChanged(file, 'imeiPhoto');
+                  } else {
+                    onImageChanged(null, 'imeiPhoto');
+                  }
+                },
               ),
             ),
             const SizedBox(width: 12),
@@ -149,7 +173,13 @@ class ImeiFormSection extends StatelessWidget {
               child: ImageUploadCard(
                 label: 'Invoice (Optional)',
                 selectedImage: invoicePhoto,
-                onImageSelected: (file) => onImageChanged(file, 'invoicePhoto'),
+                onImageSelected: ([dynamic file]) {
+                  if (file is File) {
+                    onImageChanged(file, 'invoicePhoto');
+                  } else {
+                    onImageChanged(null, 'invoicePhoto');
+                  }
+                },
               ),
             ),
           ],

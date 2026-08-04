@@ -9,8 +9,6 @@ import '../widgets/customer_text_field.dart';
 import '../widgets/upload_box.dart';
 import 'package:go_router/go_router.dart';
 
-
-
 class CreateCustomerView extends StatefulWidget {
   const CreateCustomerView({super.key});
 
@@ -58,10 +56,10 @@ class _CreateCustomerViewState extends State<CreateCustomerView> {
                       });
                     }
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(Icons.camera_alt, color: Color(0xFF2563EB)),
                         SizedBox(width: 16),
                         Text(
@@ -87,10 +85,10 @@ class _CreateCustomerViewState extends State<CreateCustomerView> {
                       });
                     }
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(Icons.photo_library, color: Color(0xFF2563EB)),
                         SizedBox(width: 16),
                         Text(
@@ -243,7 +241,17 @@ class _CreateCustomerViewState extends State<CreateCustomerView> {
                         title: 'Next',
                         onTap: () {
                           if (_formKey.currentState!.validate()) {
-                            context.push(RouteNames.customerInfo);
+                            context.push(
+                              RouteNames.customerInfo,
+                              extra: {
+                                'dob': dobController.text.trim(),
+                                'panNumber': panController.text.trim(),
+                                'panImage': panImage,
+                                'aadharNumber': aadharController.text.trim(),
+                                'aadharFrontImage': aadharFrontImage,
+                                'aadharBackImage': aadharBackImage,
+                              },
+                            );
                           }
                         },
                       ),

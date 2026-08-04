@@ -1,4 +1,5 @@
 import '../../domain/entities/customer_item_entity.dart';
+import '../../../../core/constants/apiconstants/api_constants.dart';
 
 class CustomerItemModel extends CustomerItemEntity {
   const CustomerItemModel({
@@ -17,19 +18,36 @@ class CustomerItemModel extends CustomerItemEntity {
   });
 
   factory CustomerItemModel.fromJson(Map<String, dynamic> json) {
+    String rawPath = json['custPhoto_path'] ?? json['imageUrl'] ?? json['custPhoto'] ?? '';
+    String fullImageUrl = '';
+
+    if (rawPath.isNotEmpty) {
+      if (rawPath.startsWith('http')) {
+        fullImageUrl = rawPath;
+      } else {
+        fullImageUrl = '${ApiConstants.mainBaseUrl}${rawPath.startsWith('/') ? '' : '/'}$rawPath';
+      }
+    }
+
+    String firstName = json['firstName'] ?? '';
+    String lastName = json['lastName'] ?? '';
+    String fullName = json['name'] ?? (firstName.isNotEmpty ? '$firstName $lastName' : 'Customer');
+
+    bool lockedStatus = json['isDeviceLocked'] ?? json['isLocked'] ?? false;
+
     return CustomerItemModel(
-      id: json['id']?.toString() ?? '',
-      name: json['name'] ?? 'Pinki Sethi',
-      customerIdCode: json['customerIdCode'] ?? 'PS1234567809',
-      email: json['email'] ?? 'pyaazaloo@gmai.com',
-      imageUrl: json['imageUrl'] ?? '',
-      mobile: json['mobile'] ?? '8929898901',
-      imei1: json['imei1'] ?? '869663047581173',
-      imei2: json['imei2'] ?? '869663047581165',
-      serialNumber: json['serialNumber'] ?? '1781092325834',
-      purchaseDate: json['purchaseDate'] ?? '10-06-2026, 05:22 PM',
-      scheduleLockStatus: json['scheduleLockStatus'] ?? 'ON',
-      isLocked: json['isLocked'] ?? false,
+      id: json['id']?.toString() ?? json['srNo']?.toString() ?? '',
+      name: fullName,
+      customerIdCode: json['customerCodes'] ?? json['customerIdCode'] ?? json['code'] ?? '',
+      email: json['eMailID'] ?? json['email'] ?? '',
+      imageUrl: fullImageUrl,
+      mobile: json['primaryMobileNumber'] ?? json['mobile'] ?? '',
+      imei1: json['imeiNumber1'] ?? json['imei1'] ?? '',
+      imei2: json['imeiNumber2'] ?? json['imei2'] ?? '',
+      serialNumber: json['serialNumber'] ?? json['serialNo'] ?? '',
+      purchaseDate: json['purchaseDate'] ?? json['createdDate'] ?? '',
+      scheduleLockStatus: lockedStatus ? 'ON' : 'OFF',
+      isLocked: lockedStatus,
     );
   }
 }

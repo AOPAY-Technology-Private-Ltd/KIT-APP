@@ -11,34 +11,27 @@ class InventoryModel extends InventoryItem {
   });
 
   factory InventoryModel.fromJson(Map<String, dynamic> json) {
-    // 👉 Aapke naye Swagger JSON response ke fields ke mutabiq mapping
-    final purchaseCodeStr = json['purchaseCode']?.toString() ?? json['transactionNo']?.toString() ?? '';
-    final planNameStr = json['planName']?.toString() ?? 'Unknown Plan';
-
-    final purchaseDateStr = json['purchaseDate']?.toString();
+    final installedOnStr = json['installedOn'];
     DateTime parsedDate = DateTime.now();
-    if (purchaseDateStr != null && purchaseDateStr.isNotEmpty) {
+    if (installedOnStr != null && installedOnStr.toString().isNotEmpty) {
       try {
-        parsedDate = DateTime.parse(purchaseDateStr);
+        parsedDate = DateTime.parse(installedOnStr);
       } catch (_) {}
     }
 
     String groupMonthStr = 'This Month';
     try {
-      const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
       groupMonthStr = '${months[parsedDate.month - 1]}, ${parsedDate.year}';
     } catch (_) {}
 
-    final paymentStatusStr = (json['paymentStatus'] ?? 'SUCCESS').toString().toLowerCase();
+    final rawStatus = (json['kitStatus'] ?? 'AVAILABLE').toString().toLowerCase();
 
     return InventoryModel(
-      id: purchaseCodeStr,
-      serialNumber: purchaseCodeStr, // List me serial number ki jagah purchase code dikhega
-      assignedUser: planNameStr,      // List me customer name ki jagah plan name dikhega
-      status: paymentStatusStr,       // Status me payment status (success) aayega
+      id: json['serialNo']?.toString() ?? '1',
+      serialNumber: json['serialNumber'] ?? '',
+      assignedUser: json['customerName'] ?? json['deviceName'] ?? '',
+      status: rawStatus,
       installedDate: parsedDate,
       groupMonth: groupMonthStr,
     );

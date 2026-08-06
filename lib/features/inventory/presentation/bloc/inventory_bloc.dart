@@ -7,9 +7,12 @@ import 'inventory_state.dart';
 class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   final GetInventoryUseCase getInventoryUseCase;
 
+  String _currentSearchQuery = '';
+
   InventoryBloc(this.getInventoryUseCase) : super(const InventoryInitial()) {
     on<LoadInventoryEvent>(_onLoadInventory);
     on<FilterInventoryEvent>(_onFilterInventory);
+    on<SearchInventoryEvent>(_onSearchInventory);
   }
 
   Future<void> _onLoadInventory(
@@ -18,13 +21,13 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
       ) async {
     emit(const InventoryLoading());
     try {
+      _currentSearchQuery = '';
       final items = await getInventoryUseCase();
 
       final counts = {
         'total': items.length,
         'available': items.where((i) => i.status == 'available').length,
         'used': items.where((i) => i.status == 'used').length,
-        'closed': items.where((i) => i.status == 'closed').length,
       };
 
       emit(InventoryLoaded(
@@ -38,28 +41,53 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     }
   }
 
-
   void _onFilterInventory(
       FilterInventoryEvent event,
       Emitter<InventoryState> emit,
       ) {
     final currentState = state;
     if (currentState is InventoryLoaded) {
-      List<InventoryItem> filtered;
-
-      if (event.status == 'all') {
-        filtered = currentState.allItems;
-      } else {
-        filtered = currentState.allItems
-            .where((i) => i.status == event.status)
-            .toList();
-      }
-
-      emit(InventoryLoaded(
-        allItems: currentState.allItems,
-        filteredItems: filtered,
-        currentFilter: event.status,
-        counts: currentState.counts,
-      ));
+      _applyFilterAndSearch(emit, currentState, status: event.status);
     }
-  }}
+  }
+
+  void _onSearchInventory(
+      SearchInventoryEvent event,
+      Emitter<InventoryState> emit,
+      ) {
+    final currentState = state;
+    if (currentState is InventoryLoaded) {
+      _currentSearchQuery = event.query;
+      _applyFilterAndSearch(emit, currentState, searchQuery: event.query);
+    }
+  }
+
+  void _applyFilterAndSearch(
+      Emitter<InventoryState> emit,
+      InventoryLoaded currentState, {
+        String? status,
+        String? searchQuery,
+      }) {
+    final activeStatus = status ?? currentState.currentFilter;
+    final query = (searchQuery ?? _currentSearchQuery).toLowerCase();
+
+    List<InventoryItem> tempItems = currentState.allItems;
+
+    if (activeStatus != 'all') {
+      tempItems = tempItems.where((i) => i.status == activeStatus).toList();
+    }
+
+    if (query.isNotEmpty) {
+      tempItems = tempItems.where((item) =>
+      item.serialNumber.toLowerCase().contains(query) ||
+          item.assignedUser.toLowerCase().contains(query)).toList();
+    }
+
+    emit(InventoryLoaded(
+      allItems: currentState.allItems,
+      filteredItems: tempItems,
+      currentFilter: activeStatus,
+      counts: currentState.counts,
+    ));
+  }
+}

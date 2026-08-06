@@ -33,7 +33,6 @@ class InventoryFiltersWidget extends StatelessWidget {
               _buildFilterTab(context, 'All', 'all', currentFilter),
               _buildFilterTab(context, 'Available', 'available', currentFilter),
               _buildFilterTab(context, 'Used', 'used', currentFilter),
-              _buildFilterTab(context, 'Closed', 'closed', currentFilter),
             ],
           ),
         ),

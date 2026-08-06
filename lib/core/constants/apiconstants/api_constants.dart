@@ -22,6 +22,18 @@ class ApiConstants {
 
   static const String getCustomerList = '$mainBaseUrl/api/V1/AopayFinance/KitManageCustomer';
 
+  static const String fetchPlans = '$mainBaseUrl/api/V1/AopayFinance/GetRetailerKitPlans';
+
+  static const String savePurchaseHistory = '$mainBaseUrl/api/V1/AopayFinance/SavePurchaseHistory';
+
+
+  static const String getRecentCustomers = '$mainBaseUrl/api/V1/AopayFinance/GetRecentKitCustomers';
+
+  static const String getKitInventory = '$mainBaseUrl/api/V1/AopayFinance/GetKitInventory';
+
+  static const String getPurchaseHistory = '$mainBaseUrl/api/V1/AopayFinance/GetPurchaseHistory';
+
+
 
 
 

@@ -8,6 +8,7 @@ class CustomHeader extends StatelessWidget {
   final VoidCallback? onNotificationTap;
   final bool showSearch;
   final bool showNotification;
+  final bool showBackButton;
 
   const CustomHeader({
     super.key,
@@ -17,31 +18,33 @@ class CustomHeader extends StatelessWidget {
     this.onNotificationTap,
     this.showSearch = true,
     this.showNotification = true,
+    this.showBackButton = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: onBackPressed ?? () => context.pop(),
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: const Color(0xFF2563EB),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.arrow_back_ios_new,
-              color: Colors.white,
-              size: 16,
+        if (showBackButton) ...[
+          InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: onBackPressed ?? () => context.pop(),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+                size: 16,
+              ),
             ),
           ),
-        ),
-
-        const SizedBox(width: 12),
+          const SizedBox(width: 12),
+        ],
 
         Expanded(
           child: Text(

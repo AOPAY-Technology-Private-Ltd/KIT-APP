@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/routes/route_names.dart';
+import '../../../create_customer/presentation/widgets/custom_header.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
@@ -50,68 +51,10 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF2563EB),
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 16),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ),
-                        const Text(
-                          'Profile',
-                          style: TextStyle(
-                            color: Color(0xFF2563EB),
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF2563EB),
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                icon: const Icon(Icons.notifications_none, color: Colors.white, size: 20),
-                                onPressed: () {
-                                  context.push(RouteNames.notification);
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF2563EB),
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                icon: const Icon(Icons.search, color: Colors.white, size: 20),
-                                onPressed: () {},
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    CustomHeader(
+                      title: 'Profile',
+                      showBackButton: false,
+                      showSearch: true,
                     ),
                     const SizedBox(height: 20),
 

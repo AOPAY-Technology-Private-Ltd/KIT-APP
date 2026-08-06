@@ -13,3 +13,15 @@ class SelectPaymentMethodEvent extends BuyKitsEvent {
   final String paymentMethodId;
   SelectPaymentMethodEvent(this.paymentMethodId);
 }
+
+class SubmitPaymentEvent extends BuyKitsEvent {
+  final String phoneNo;
+  final String customerCode;
+  final String customerName;
+
+  SubmitPaymentEvent({
+    required this.phoneNo,
+    required this.customerCode,
+    required this.customerName,
+  });
+}

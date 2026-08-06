@@ -1,64 +1,147 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../../../../core/constants/apiconstants/api_constants.dart';
+import '../../../../core/services/session_manager.dart';
 import '../../domain/entities/plan_entity.dart';
+import '../models/payment_gateway_request_model.dart';
+import '../models/plan_model.dart';
+import '../models/save_purchase_history_request_model.dart';
 
 abstract class BuyKitsRemoteDataSource {
   Future<List<PlanEntity>> fetchPlans();
   Future<List<PaymentMethodEntity>> fetchPaymentMethods();
+  Future<Map<String, dynamic>> triggerPaymentGateway(PaymentGatewayRequestModel requestModel);
+
+  Future<Map<String, dynamic>> savePurchaseHistory(SavePurchaseHistoryRequestModel requestModel);
 }
 
 class BuyKitsRemoteDataSourceImpl implements BuyKitsRemoteDataSource {
+  final http.Client client;
+  final String apiUrl;
+
+  BuyKitsRemoteDataSourceImpl({
+    required this.client,
+    this.apiUrl = ApiConstants.fetchPlans,
+  });
+
   @override
   Future<List<PlanEntity>> fetchPlans() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return const [
-      PlanEntity(
-        id: '1',
-        kitsCount: 1,
-        price: 999,
-        pricePerKit: 999,
-        discountLabel: null,
-        isMostPopular: false,
-      ),
-      PlanEntity(
-        id: '2',
-        kitsCount: 3,
-        price: 2499,
-        pricePerKit: 833,
-        discountLabel: 'Save 15%',
-        isMostPopular: true,
-      ),
-      PlanEntity(
-        id: '3',
-        kitsCount: 5,
-        price: 3999,
-        pricePerKit: 800,
-        discountLabel: 'Save 20%',
-        isMostPopular: false,
-      ),
-    ];
+    try {
+      final retailerCode = await SessionManager.getRetailerCode() ?? '';
+
+      final uri = Uri.parse(apiUrl);
+
+      print('--- GET RETAILER KIT PLANS REQUEST ---');
+      print('URL: $uri');
+      print('Request Body: {"companyCode": "CMP0005", "retailerCode": "$retailerCode"}');
+
+      final response = await client.post(
+        uri,
+        headers: {
+          'accept': '*/*',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          "companyCode": "CMP0005",
+          "retailerCode": retailerCode,
+        }),
+      );
+
+      print('--- GET RETAILER KIT PLANS RESPONSE ---');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final decodedData = jsonDecode(response.body);
+
+        List<dynamic> rawList = [];
+        if (decodedData is Map<String, dynamic>) {
+          rawList = decodedData['data'] ?? [];
+        } else if (decodedData is List) {
+          rawList = decodedData;
+        }
+
+        return rawList
+            .map((json) => PlanModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception("Failed to load plans: ${response.body}");
+      }
+    } catch (e) {
+      print('Error fetching plans: $e');
+      throw Exception('Error fetching plans: $e');
+    }
   }
 
   @override
   Future<List<PaymentMethodEntity>> fetchPaymentMethods() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return const [
-      PaymentMethodEntity(
-        id: 'upi',
-        name: 'UPI / QR Code',
-        description: 'Google Pay, PhonePe, Paytm & more',
-        icon: 'assets/icons/upi.png',
-      ),
-      PaymentMethodEntity(
-        id: 'card',
-        name: 'Credit / Debit Card',
-        description: 'Visa, MasterCard, RuPay & others',
-        icon: 'assets/icons/card.png',
-      ),
-      PaymentMethodEntity(
-        id: 'netbanking',
-        name: 'Net Banking',
-        description: 'All major Indian banks supported',
-        icon: 'assets/icons/netbanking.png',
-      ),
-    ];
+    return PlanModel.getMockPaymentMethods();
   }
+
+  @override
+  Future<Map<String, dynamic>> triggerPaymentGateway(PaymentGatewayRequestModel requestModel) async {
+    try {
+      const String endpoint = "https://api.aopay.in/api/AOPay/Finance/LockKit/V1/PaymentGateway";
+      final uri = Uri.parse(endpoint);
+
+      print('--- PAYMENT GATEWAY REQUEST ---');
+      print('URL: $uri');
+      print('Body: ${jsonEncode(requestModel.toJson())}');
+
+      final response = await client.post(
+        uri,
+        headers: {
+          'accept': '*/*',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestModel.toJson()),
+      );
+
+      print('--- PAYMENT GATEWAY RESPONSE ---');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to trigger payment gateway: ${response.body}");
+      }
+    } catch (e) {
+      print('Error in payment gateway: $e');
+      throw Exception('Error in payment gateway: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> savePurchaseHistory(SavePurchaseHistoryRequestModel requestModel) async {
+    const url = ApiConstants.savePurchaseHistory;
+
+    print('--- SAVE PURCHASE HISTORY REQUEST ---');
+    print('URL: $url');
+    print('Body: ${jsonEncode(requestModel.toJson())}');
+
+    try {
+      final response = await client.post(
+        Uri.parse(url),
+        headers: {
+          'accept': '*/*',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestModel.toJson()),
+      );
+
+      print('--- SAVE PURCHASE HISTORY RESPONSE ---');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to save purchase history: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in savePurchaseHistory: $e');
+      rethrow;
+    }
+  }
+
 }

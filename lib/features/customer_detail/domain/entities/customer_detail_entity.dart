@@ -20,6 +20,10 @@ class CustomerDetailEntity {
   final String? model;
   final String? purchaseDate;
   final String? serialNumber;
+  final String? deviceName;
+  final String? osVersion;
+  final String? sdkVersion;
+  final String? appVersion;
 
   const CustomerDetailEntity({
     required this.id,
@@ -42,5 +46,9 @@ class CustomerDetailEntity {
     this.model,
     this.purchaseDate,
     this.serialNumber,
+    this.deviceName,
+    this.osVersion,
+    this.sdkVersion,
+    this.appVersion,
   });
 }

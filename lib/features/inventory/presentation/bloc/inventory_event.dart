@@ -1,12 +1,13 @@
-abstract class InventoryEvent {
-  const InventoryEvent();
-}
+abstract class InventoryEvent {}
 
-class LoadInventoryEvent extends InventoryEvent {
-  const LoadInventoryEvent();
-}
+class LoadInventoryEvent extends InventoryEvent {}
 
 class FilterInventoryEvent extends InventoryEvent {
   final String status;
-  const FilterInventoryEvent(this.status);
+  FilterInventoryEvent(this.status);
+}
+
+class SearchInventoryEvent extends InventoryEvent {
+  final String query;
+  SearchInventoryEvent(this.query);
 }

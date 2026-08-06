@@ -6,7 +6,6 @@ import '../bloc/customer_detail_bloc.dart';
 import '../bloc/customer_detail_event.dart';
 import '../bloc/customer_detail_state.dart';
 import '../widgets/customer_actionInfo_card.dart';
-import '../widgets/customer_loanInfo_card.dart';
 import '../widgets/customer_profile_card.dart';
 import '../widgets/customer_info_tabs.dart';
 import '../widgets/customer_detail_info_card.dart';
@@ -75,23 +74,21 @@ class _CustomerInformationContent extends StatelessWidget {
                           actionToggles: state.actionToggles,
                           selectedSubItems: state.selectedSubItems,
                         )
-                      else if (state.selectedTabIdx == 3)
-                          CustomerLoanInfoCard(customer: customer)
-                        else
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(32),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
-                            ),
-                            child: Text(
-                              'Content for Tab ${state.selectedTabIdx} coming soon',
-                              style: const TextStyle(color: Colors.grey, fontSize: 14),
-                            ),
+                      else
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(32),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
+                          child: Text(
+                            'Content for Tab ${state.selectedTabIdx} coming soon',
+                            style: const TextStyle(color: Colors.grey, fontSize: 14),
+                          ),
+                        ),
 
                     if (state.selectedTabIdx == 0) ...[
                       const SizedBox(height: 26),

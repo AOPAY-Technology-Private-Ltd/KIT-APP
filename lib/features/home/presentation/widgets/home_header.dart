@@ -99,8 +99,7 @@ class HomeHeader extends StatelessWidget implements PreferredSizeWidget {
           Row(
             children: [
               _iconButton(Icons.notifications_none, () {}),
-              const SizedBox(width: 8),
-              _iconButton(Icons.search, () {}),
+
             ],
           ),
         ],

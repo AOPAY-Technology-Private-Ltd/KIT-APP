@@ -19,21 +19,27 @@ class CustomerDeviceInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _DeviceFieldRow(label: 'Device Name', value: customer.deviceName ?? 'N/A'),
+          const SizedBox(height: 12),
           _DeviceFieldRow(label: 'Brand', value: customer.brand ?? 'Realme'),
           const SizedBox(height: 12),
           _DeviceFieldRow(label: 'Manufacturer', value: customer.manufacturer ?? 'Realme'),
           const SizedBox(height: 12),
-          _DeviceFieldRow(label: 'FRP', value: customer.frp ?? 'it@oqsolution.in'),
+          _DeviceFieldRow(label: 'Model', value: customer.model ?? 'Realme RMX5256'),
           const SizedBox(height: 12),
           _DeviceFieldRow(label: 'IMEI Slot 1', value: customer.imeiSlot1 ?? customer.imei),
           const SizedBox(height: 12),
           _DeviceFieldRow(label: 'IMEI Slot 2', value: customer.imeiSlot2 ?? '-'),
           const SizedBox(height: 12),
-          _DeviceFieldRow(label: 'Model', value: customer.model ?? 'Realme RMX5256'),
+          _DeviceFieldRow(label: 'Serial Number', value: customer.serialNumber ?? 'N/A'),
           const SizedBox(height: 12),
-          _DeviceFieldRow(label: 'Purchase Date', value: customer.purchaseDate ?? '09-06-2026, 17:18:28'),
+          _DeviceFieldRow(label: 'OS Version', value: customer.osVersion ?? 'N/A'),
           const SizedBox(height: 12),
-          _DeviceFieldRow(label: 'Serial Number', value: customer.serialNumber ?? '3L364Q00EJJ00000'),
+          _DeviceFieldRow(label: 'SDK Version', value: customer.sdkVersion ?? 'N/A'),
+          const SizedBox(height: 12),
+          _DeviceFieldRow(label: 'App Version', value: customer.appVersion ?? 'N/A'),
+          // const SizedBox(height: 12),
+          // _DeviceFieldRow(label: 'Purchase Date', value: customer.purchaseDate ?? '09-06-2026, 17:18:28'),
           const SizedBox(height: 12),
           _DeviceActionRow(
             label: 'Device Pin',
@@ -82,7 +88,7 @@ class _DeviceFieldRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 110,
+          width: 130,
           child: Text(
             label,
             style: TextStyle(
@@ -122,7 +128,7 @@ class _DeviceActionRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(
-          width: 110,
+          width: 130,
           child: Text(
             label,
             style: TextStyle(

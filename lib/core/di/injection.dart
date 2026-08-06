@@ -193,8 +193,9 @@ Future<void> init() async {
         ),
   );
 
+  // 👉 InventoryMockDataSource ko InventoryRemoteDataSource se replace kiya gaya hai
   sl.registerLazySingleton<InventoryDataSource>(
-        () => InventoryMockDataSource(),
+        () => InventoryRemoteDataSource(client: sl()),
   );
   sl.registerLazySingleton<InventoryRepository>(
         () => InventoryRepositoryImpl(sl()),
@@ -207,7 +208,7 @@ Future<void> init() async {
     InventoryBloc(
       sl(),
     )
-      ..add(LoadInventoryEvent()),
+      ..add( LoadInventoryEvent()),
   );
 
   sl.registerLazySingleton<ProfileRemoteDataSource>(

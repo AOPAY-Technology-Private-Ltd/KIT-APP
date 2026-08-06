@@ -3,8 +3,13 @@ import '../../domain/entities/home_entity.dart';
 
 class RecentCustomersSection extends StatelessWidget {
   final List<CustomerEntity> customers;
+  final VoidCallback? onSeeAllPressed;
 
-  const RecentCustomersSection({super.key, required this.customers});
+  const RecentCustomersSection({
+    super.key,
+    required this.customers,
+    this.onSeeAllPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +32,7 @@ class RecentCustomersSection extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: onSeeAllPressed,
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
@@ -39,19 +44,41 @@ class RecentCustomersSection extends StatelessWidget {
                     color: Color(0xFF4A90E2),
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
+                    fontFamily: 'Inter',
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          ListView.builder(
+          customers.isEmpty
+              ? const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: Text(
+                "No recent customers found.",
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 13,
+                  fontFamily: 'Inter',
+                ),
+              ),
+            ),
+          )
+              : ListView.builder(
             itemCount: customers.length,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding: EdgeInsets.zero,
             itemBuilder: (context, index) {
               final customer = customers[index];
+              final displayName = customer.name.trim().isEmpty
+                  ? 'Unknown Customer'
+                  : customer.name;
+              final displayDetails = customer.details.trim().isEmpty
+                  ? 'No Details'
+                  : customer.details;
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),
@@ -66,7 +93,7 @@ class RecentCustomersSection extends StatelessWidget {
                       radius: 20,
                       backgroundColor: const Color(0xFF133682),
                       child: Text(
-                        customer.initials,
+                        customer.initials.trim().isEmpty ? 'C' : customer.initials,
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -80,7 +107,7 @@ class RecentCustomersSection extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            customer.name,
+                            displayName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -92,7 +119,7 @@ class RecentCustomersSection extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            customer.details,
+                            displayDetails,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(

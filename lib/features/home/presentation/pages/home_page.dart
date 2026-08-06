@@ -12,6 +12,8 @@ import '../widgets/stats_grid.dart';
 import '../widgets/quick_actions_section.dart';
 import '../widgets/recent_customers_section.dart';
 import '../widgets/home_header.dart';
+import 'all_customers_screen.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -140,6 +142,14 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 14),
                       RecentCustomersSection(
                         customers: data.recentCustomers,
+                        onSeeAllPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>  AllCustomersScreen(),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 20),
                     ],

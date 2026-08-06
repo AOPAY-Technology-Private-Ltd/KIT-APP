@@ -227,20 +227,20 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('EMI : ₹${widget.customer.emiAmount}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w400,
-                            )),
-                        Text('EMI Date : ${widget.customer.emiDate}',
-                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
-                      ],
-                    ),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     Text('EMI : ₹${widget.customer.emiAmount}',
+                    //         style: const TextStyle(
+                    //           color: Colors.white,
+                    //           fontSize: 10,
+                    //           fontFamily: 'Inter',
+                    //           fontWeight: FontWeight.w400,
+                    //         )),
+                    //     Text('EMI Date : ${widget.customer.emiDate}',
+                    //         style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+                    //   ],
+                    // ),
                   ],
                 ),
               ),

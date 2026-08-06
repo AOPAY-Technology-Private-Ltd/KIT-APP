@@ -19,8 +19,6 @@ class CustomerInfoTabsWidget extends StatelessWidget {
           _buildTabItem(context, 'Device', 1, selectedTabIdx),
           const SizedBox(width: 12),
           _buildTabItem(context, 'Action', 2, selectedTabIdx),
-          const SizedBox(width: 12),
-          _buildTabItem(context, 'Loan', 3, selectedTabIdx),
         ],
       ),
     );

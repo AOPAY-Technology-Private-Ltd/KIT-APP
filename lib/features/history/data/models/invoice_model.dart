@@ -1,4 +1,3 @@
-
 import '../../domain/entities/entities.dart' show Invoice;
 
 class InvoiceModel extends Invoice {
@@ -13,12 +12,12 @@ class InvoiceModel extends Invoice {
 
   factory InvoiceModel.fromJson(Map<String, dynamic> json) {
     return InvoiceModel(
-      id: json['id'],
-      invoiceNumber: json['invoiceNumber'],
-      date: json['date'],
-      kitsInfo: json['kitsInfo'],
-      amount: json['amount'],
-      sectionCategory: json['sectionCategory'],
+      id: json['purchaseCode']?.toString() ?? json['id']?.toString() ?? '',
+      invoiceNumber: json['purchaseCode'] ?? json['invoiceNumber'] ?? json['invoiceNo'] ?? 'N/A',
+      date: json['purchaseDate'] ?? json['date'] ?? json['createdDate'] ?? '',
+      kitsInfo: json['planName'] ?? json['kitsInfo'] ?? json['kits'] ?? '',
+      amount: (json['netAmount'] ?? json['amount'] ?? json['totalAmount'] ?? 0.0).toDouble(),
+      sectionCategory: json['sectionCategory'] ?? json['category'] ?? 'Recent',
     );
   }
 

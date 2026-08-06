@@ -28,6 +28,7 @@ import '../../../features/inventory/presentation/bloc/inventory_bloc.dart';
 import '../../../features/inventory/presentation/pages/inventory_screen.dart';
 import '../../../features/kits_plans/presentation/bloc/buy_kits_bloc.dart';
 import '../../../features/kits_plans/presentation/pages/buy_kits_screen.dart';
+import '../../../features/kits_plans/presentation/pages/payment_success_screen.dart';
 import '../../../features/notification/presentation/bloc/notification_bloc.dart';
 import '../../../features/notification/presentation/bloc/notification_event.dart';
 import '../../../features/notification/presentation/pages/notification_view.dart';
@@ -227,6 +228,19 @@ final GoRouter appRouter = GoRouter(
         return BlocProvider(
           create: (_) => sl<NotificationBloc>()..add(FetchNotificationsEvent()),
           child:  NotificationView(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.paymentSuccess,
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>? ?? {};
+        return PaymentSuccessScreen(
+          orderId: data['orderId'] ?? 'INV-00000',
+          kitsCount: data['kitsCount'] ?? 0,
+          totalPaid: data['totalPaid'] ?? 0.0,
+          paymentMethod: data['paymentMethod'] ?? 'UPI',
         );
       },
     ),

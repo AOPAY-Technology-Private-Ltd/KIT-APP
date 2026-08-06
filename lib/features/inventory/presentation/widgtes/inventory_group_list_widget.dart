@@ -13,6 +13,48 @@ class InventoryGroupListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (filteredItems.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB).withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.inventory_2_outlined,
+                size: 48,
+                color: Color(0xFF2563EB),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'No Inventory Found',
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 16,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'There are no items available for this filter.',
+              style: TextStyle(
+                color: Colors.black.withValues(alpha: 0.5),
+                fontSize: 12,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final entries = groupedItems.entries.toList();
 
     return ListView.builder(

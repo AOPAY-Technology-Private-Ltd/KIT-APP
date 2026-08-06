@@ -21,7 +21,6 @@ class PaymentMethodCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          // Agar selected hai toh naya background color, warna white
           color: isSelected ? const Color(0xFFE7EFFF) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(

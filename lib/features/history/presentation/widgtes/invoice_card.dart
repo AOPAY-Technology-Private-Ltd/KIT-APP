@@ -97,7 +97,6 @@ class InvoiceCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Dynamic Amount
                         Text(
                           '₹${invoice.amount.toStringAsFixed(0)}',
                           style: TextStyle(

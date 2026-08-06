@@ -52,6 +52,7 @@ class _CustomerListContentState extends State<CustomerListContent> {
 
               CustomHeader(
                 title: 'Customer List',
+                showBackButton: false,
                 onSearchTap: () {
                   setState(() {
                     _isSearching = !_isSearching;

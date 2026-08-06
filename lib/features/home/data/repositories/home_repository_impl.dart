@@ -10,6 +10,29 @@ class HomeRepositoryImpl implements HomeRepository {
   @override
   Future<HomeEntity> getHomeData() async {
     final homeModel = await remoteDataSource.fetchHomeData();
-    return homeModel;
+
+    List<CustomerEntity> recentCustomersList = homeModel.recentCustomers;
+
+    try {
+      recentCustomersList = await remoteDataSource.fetchRecentCustomers();
+    } catch (e) {
+      print("Failed to fetch recent customers API, using fallback: $e");
+    }
+
+    return HomeEntity(
+      retailerName: homeModel.retailerName,
+      retailerCode: homeModel.retailerCode,
+      availableKits: homeModel.availableKits,
+      totalKits: homeModel.totalKits,
+      totalInstalled: homeModel.totalInstalled,
+      locked: homeModel.locked,
+      todayInstalled: homeModel.todayInstalled,
+      overdue: homeModel.overdue,
+      totalPurchasedKits: homeModel.totalPurchasedKits,
+      usedKits: homeModel.usedKits,
+      lockedDevices: homeModel.lockedDevices,
+      unlockedDevices: homeModel.unlockedDevices,
+      recentCustomers: recentCustomersList,
+    );
   }
 }

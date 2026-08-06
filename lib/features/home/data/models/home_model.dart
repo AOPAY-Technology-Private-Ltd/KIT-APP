@@ -9,11 +9,44 @@ class CustomerModel extends CustomerEntity {
   });
 
   factory CustomerModel.fromJson(Map<String, dynamic> json) {
+    final name = json['customerName'] ?? json['name'] ?? '';
+
+    final mobile = json['mobileNo'] ?? '';
+    final details = mobile.isNotEmpty ? "Mobile: $mobile" : (json['details'] ?? '');
+
+    final rawDate = json['createdDate'] ?? json['time'] ?? '';
+    String timeAgo = "Just now";
+    if (rawDate.toString().isNotEmpty) {
+      try {
+        final parsedDate = DateTime.parse(rawDate);
+        final difference = DateTime.now().difference(parsedDate);
+        if (difference.inMinutes < 60) {
+          timeAgo = "${difference.inMinutes}min ago";
+        } else if (difference.inHours < 24) {
+          timeAgo = "${difference.inHours}h ago";
+        } else {
+          timeAgo = "${difference.inDays}d ago";
+        }
+      } catch (_) {
+        timeAgo = "Recently";
+      }
+    }
+
+    String initials = "C";
+    if (name.isNotEmpty) {
+      List<String> nameParts = name.trim().split(' ');
+      if (nameParts.length > 1) {
+        initials = "${nameParts[0][0]}${nameParts[1][0]}".toUpperCase();
+      } else if (nameParts[0].isNotEmpty) {
+        initials = nameParts[0][0].toUpperCase();
+      }
+    }
+
     return CustomerModel(
-      name: json['name'] ?? '',
-      details: json['details'] ?? '',
-      time: json['time'] ?? '',
-      initials: json['initials'] ?? '',
+      name: name,
+      details: details,
+      time: timeAgo,
+      initials: initials,
     );
   }
 }
@@ -38,13 +71,15 @@ class HomeModel extends HomeEntity {
   factory HomeModel.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? {};
 
-    var customersFromJson = data['recentCustomers'] ?? [
-      {"name": "Rahul Verma", "details": "Redmi Note 13, EMI Paid: 1/6", "time": "2min ago", "initials": "RV"},
-      {"name": "Priya Sharma", "details": "Redmi Note 13, EMI Paid: 1/6", "time": "2min ago", "initials": "PS"},
-    ];
+    var customersFromJson = data['recentCustomers'];
 
-    List<CustomerModel> customerList = (customersFromJson as List)
-        .map((i) => CustomerModel.fromJson(i))
+    List<dynamic> rawList = [];
+    if (customersFromJson is List) {
+      rawList = customersFromJson;
+    }
+
+    List<CustomerModel> customerList = rawList
+        .map((i) => CustomerModel.fromJson(i as Map<String, dynamic>))
         .toList();
 
     return HomeModel(

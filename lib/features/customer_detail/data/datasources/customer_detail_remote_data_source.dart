@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/constants/apiconstants/api_constants.dart';
 import '../models/customer_detail_model.dart';
 
 abstract class CustomerDetailRemoteDataSource {
@@ -13,7 +14,7 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
 
   CustomerDetailRemoteDataSourceImpl({
     required this.client,
-    this.apiUrl = 'https://uatapi.aopay.co.in/api/V1/AopayFinance/KitManageCustomer',
+    this.apiUrl = ApiConstants.manageCustomer,
   });
 
   @override

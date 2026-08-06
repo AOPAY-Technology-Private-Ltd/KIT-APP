@@ -23,6 +23,10 @@ class CustomerDetailModel extends CustomerDetailEntity {
     super.model,
     super.purchaseDate,
     super.serialNumber,
+    super.deviceName,
+    super.osVersion,
+    super.sdkVersion,
+    super.appVersion,
   });
 
   factory CustomerDetailModel.fromJson(Map<String, dynamic> json) {
@@ -64,7 +68,7 @@ class CustomerDetailModel extends CustomerDetailEntity {
       customerCode: json['customerCodes'] ?? json['customerCode'] ?? '',
       email: json['eMailID'] ?? json['email'] ?? '',
       mobile: json['primaryMobileNumber'] ?? json['mobile'] ?? '',
-      imei: json['imeiNumber1'] ?? json['imei'] ?? '',
+      imei: json['imeiNumber1'] ?? json['imeiNumber'] ?? json['imei'] ?? '',
       address: formattedAddress,
       imageUrl: fullImageUrl,
       status: json['customerActiveStatus'] ?? json['status'] ?? 'Active',
@@ -78,7 +82,11 @@ class CustomerDetailModel extends CustomerDetailEntity {
       imeiSlot2: json['imeiNumber2'] ?? json['imeiSlot2'],
       model: json['modelName'] ?? json['model'],
       purchaseDate: json['purchaseDate'],
-      serialNumber: json['serialNumber'],
+      serialNumber: json['serialNumber'] == 'string' ? '' : json['serialNumber'],
+      deviceName: json['deviceName'] == 'string' ? '' : json['deviceName'],
+      osVersion: json['osVersion'] == 'string' ? '' : json['osVersion'],
+      sdkVersion: json['sdkVersion'] == 'string' ? '' : json['sdkVersion'],
+      appVersion: json['appVersion'] == 'string' ? '' : json['appVersion'],
     );
   }
 }

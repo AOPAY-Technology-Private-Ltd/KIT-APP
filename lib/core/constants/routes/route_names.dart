@@ -24,4 +24,6 @@ class RouteNames {
   static const String imeiNumber = "/imei-number";
 
   static const String notification = "/notification";
+
+  static const String paymentSuccess = '/payment-success';
 }

@@ -9,6 +9,10 @@ class BuyKitsState {
   final double subtotal;
   final double gstAmount;
   final double totalAmount;
+  final bool isLoading;
+  final bool isSubmitting;
+  final String? errorMessage;
+  final String? paymentFormHtml;
 
   BuyKitsState({
     required this.plans,
@@ -19,6 +23,10 @@ class BuyKitsState {
     required this.subtotal,
     required this.gstAmount,
     required this.totalAmount,
+    required this.isLoading,
+    required this.isSubmitting,
+    this.errorMessage,
+    this.paymentFormHtml,
   });
 
   factory BuyKitsState.initial() {
@@ -36,6 +44,10 @@ class BuyKitsState {
       subtotal: 0.0,
       gstAmount: 0.0,
       totalAmount: 0.0,
+      isLoading: false,
+      isSubmitting: false,
+      errorMessage: null,
+      paymentFormHtml: null,
     );
   }
 
@@ -48,6 +60,10 @@ class BuyKitsState {
     double? subtotal,
     double? gstAmount,
     double? totalAmount,
+    bool? isLoading,
+    bool? isSubmitting,
+    String? errorMessage,
+    String? paymentFormHtml,
   }) {
     return BuyKitsState(
       plans: plans ?? this.plans,
@@ -58,6 +74,10 @@ class BuyKitsState {
       subtotal: subtotal ?? this.subtotal,
       gstAmount: gstAmount ?? this.gstAmount,
       totalAmount: totalAmount ?? this.totalAmount,
+      isLoading: isLoading ?? this.isLoading,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+      errorMessage: errorMessage,
+      paymentFormHtml: paymentFormHtml,
     );
   }
 }

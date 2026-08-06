@@ -12,7 +12,6 @@ class CustomerCardItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        // customer.id ki jagah customer.mobile pass kiya ja raha hai taaki API me sahi mobile number jaye
         context.push('${RouteNames.customerDetails}/${customer.mobile}');
       },
       borderRadius: BorderRadius.circular(10),
@@ -149,13 +148,13 @@ class CustomerCardItem extends StatelessWidget {
                   const SizedBox(height: 6),
                   _buildInfoRow('Serial Number', customer.serialNumber),
                   const SizedBox(height: 6),
-                  _buildInfoRow('Purchase Date', customer.purchaseDate),
-                  const SizedBox(height: 6),
-                  _buildInfoRow(
-                    'Schedule Lock Status',
-                    customer.scheduleLockStatus,
-                    isStatus: true,
-                  ),
+                  // _buildInfoRow('Purchase Date', customer.purchaseDate),
+                  // const SizedBox(height: 6),
+                  // _buildInfoRow(
+                  //   'Schedule Lock Status',
+                  //   customer.scheduleLockStatus,
+                  //   isStatus: true,
+                  // ),
                 ],
               ),
             ),

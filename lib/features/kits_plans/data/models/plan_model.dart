@@ -1,6 +1,11 @@
 import '../../domain/entities/plan_entity.dart';
 
 class PlanModel extends PlanEntity {
+  final String mappingCode;
+  final String planCode;
+  final double discountPercent;
+  final double gstPercent;
+
   const PlanModel({
     required super.id,
     required super.kitsCount,
@@ -8,53 +13,25 @@ class PlanModel extends PlanEntity {
     required super.pricePerKit,
     super.discountLabel,
     super.isMostPopular,
+    required this.mappingCode,
+    required this.planCode,
+    required this.discountPercent,
+    required this.gstPercent,
   });
 
-  static List<PlanModel> getMockPlans() {
-    return [
-      const PlanModel(
-        id: '1',
-        kitsCount: 10,
-        price: 4999,
-        pricePerKit: 499,
-      ),
-      const PlanModel(
-        id: '2',
-        kitsCount: 25,
-        price: 12475,
-        pricePerKit: 499,
-        discountLabel: 'Save 6%',
-      ),
-      const PlanModel(
-        id: '3',
-        kitsCount: 50,
-        price: 24950,
-        pricePerKit: 499,
-        discountLabel: 'Save 13%',
-        isMostPopular: true,
-      ),
-      const PlanModel(
-        id: '4',
-        kitsCount: 100,
-        price: 49900,
-        pricePerKit: 499,
-        discountLabel: 'Save 20%',
-      ),
-      const PlanModel(
-        id: '5',
-        kitsCount: 150,
-        price: 74850,
-        pricePerKit: 499,
-        discountLabel: 'Save 23%',
-      ),
-      const PlanModel(
-        id: '6',
-        kitsCount: 200,
-        price: 99800,
-        pricePerKit: 499,
-        discountLabel: 'Save 25%',
-      ),
-    ];
+  factory PlanModel.fromJson(Map<String, dynamic> json) {
+    return PlanModel(
+      id: json['mappingCode']?.toString() ?? '',
+      kitsCount: json['noOfKits'] ?? 0,
+      price: (json['planAmount'] ?? 0.0).toDouble(),
+      pricePerKit: (json['pricePerKit'] ?? 0.0).toDouble(),
+      discountLabel: json['discountPercent'] != null ? 'Save ${json['discountPercent']}%' : null,
+      isMostPopular: json['isDefault'] ?? false,
+      mappingCode: json['mappingCode'] ?? '',
+      planCode: json['planCode'] ?? '',
+      discountPercent: (json['discountPercent'] ?? 0.0).toDouble(),
+      gstPercent: (json['gstPercent'] ?? 18.0).toDouble(),
+    );
   }
 
   static List<PaymentMethodEntity> getMockPaymentMethods() {

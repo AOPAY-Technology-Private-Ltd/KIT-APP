@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/routes/route_names.dart';
 import '../../../create_customer/presentation/widgets/custom_header.dart';
 import '../../domain/entities/entities.dart';
 import '../bloc/history_bloc.dart';
@@ -99,6 +101,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 title: 'History',
                 showBackButton: false,
                 showSearch: true,
+                onNotificationTap: () => context.push(RouteNames.notification),
                 onSearchTap: () {
                   setState(() {
                     _isSearching = true;
@@ -195,7 +198,6 @@ class _HistoryPageState extends State<HistoryPage> {
                       }).toList(),
                     );
                   } else if (state is HistoryError) {
-                    // 🔥 Internet / Error State with Retry Button
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/routes/route_names.dart';
 import '../bloc/inventory_bloc.dart';
 import '../bloc/inventory_event.dart';
 
@@ -115,7 +117,7 @@ class _InventoryHeaderWidgetState extends State<InventoryHeaderWidget> {
                   color: Color(0xFF143885),
                   size: 14,
                 ),
-                onPressed: () {},
+                onPressed: () => context.push(RouteNames.notification),
               ),
             ),
             const SizedBox(width: 8),

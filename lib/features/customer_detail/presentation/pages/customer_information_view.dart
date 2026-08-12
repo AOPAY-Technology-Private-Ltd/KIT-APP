@@ -113,6 +113,7 @@ class _CustomerInformationContent extends StatelessWidget {
                           child: CustomHeader(
                             title: 'Customer Information',
                             showSearch: false,
+                            onNotificationTap: () => context.push(RouteNames.notification),
                           ),
                         ),
                       ],

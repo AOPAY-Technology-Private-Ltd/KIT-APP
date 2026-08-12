@@ -55,6 +55,7 @@ class ProfileScreen extends StatelessWidget {
                       title: 'Profile',
                       showBackButton: false,
                       showSearch: true,
+                      onNotificationTap: () => context.push(RouteNames.notification),
                     ),
                     const SizedBox(height: 20),
 

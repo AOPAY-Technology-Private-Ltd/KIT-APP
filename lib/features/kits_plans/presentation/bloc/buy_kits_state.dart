@@ -13,6 +13,8 @@ class BuyKitsState {
   final bool isSubmitting;
   final String? errorMessage;
   final String? paymentFormHtml;
+  final String extractedOrderId;
+  final String searchQuery;
 
   BuyKitsState({
     required this.plans,
@@ -27,6 +29,8 @@ class BuyKitsState {
     required this.isSubmitting,
     this.errorMessage,
     this.paymentFormHtml,
+    required this.extractedOrderId,
+    required this.searchQuery,
   });
 
   factory BuyKitsState.initial() {
@@ -43,6 +47,8 @@ class BuyKitsState {
       isSubmitting: false,
       errorMessage: null,
       paymentFormHtml: null,
+      extractedOrderId: '',
+      searchQuery: '',
     );
   }
 
@@ -59,6 +65,8 @@ class BuyKitsState {
     bool? isSubmitting,
     String? errorMessage,
     String? paymentFormHtml,
+    String? extractedOrderId,
+    String? searchQuery,
   }) {
     return BuyKitsState(
       plans: plans ?? this.plans,
@@ -73,6 +81,8 @@ class BuyKitsState {
       isSubmitting: isSubmitting ?? this.isSubmitting,
       errorMessage: errorMessage,
       paymentFormHtml: paymentFormHtml,
+      extractedOrderId: extractedOrderId ?? this.extractedOrderId,
+      searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 }

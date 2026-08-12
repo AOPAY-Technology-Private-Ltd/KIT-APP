@@ -153,7 +153,11 @@ class _CreateCustomerViewState extends State<CreateCustomerView> {
           children: [
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: CustomHeader(title: 'Create Customer'),
+              child: CustomHeader(
+                title: 'Create Customer',
+                showSearch: false,
+                showNotification: false,
+              ),
             ),
             Expanded(
               child: Form(

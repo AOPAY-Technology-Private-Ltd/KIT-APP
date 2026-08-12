@@ -25,10 +25,34 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
   late final WebViewController _controller;
   bool _isLoading = true;
   bool _isSavingHistory = false;
+  late SavePurchaseHistoryRequestModel _updatedRequestModel;
 
   @override
   void initState() {
     super.initState();
+
+    _updatedRequestModel = widget.requestModel;
+    try {
+      final RegExp regExp = RegExp(r"name='txnid'\s+value='([^']+)'");
+      final match = regExp.firstMatch(widget.htmlFormContent);
+      if (match != null && match.group(1) != null) {
+        final String fullTxnId = match.group(1)!;
+        final String extractedSuffix = fullTxnId.contains('_')
+            ? fullTxnId.split('_').last
+            : fullTxnId;
+
+        _updatedRequestModel = widget.requestModel.copyWith(
+          purchaseCode: extractedSuffix,
+          transactionNo: extractedSuffix,
+          paymentReferenceNo: extractedSuffix,
+          invoiceNo: extractedSuffix,
+        );
+        print('Updated RequestModel with Suffix ID: $extractedSuffix');
+      }
+    } catch (e) {
+      print('Error extracting txnid from HTML: $e');
+    }
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -73,7 +97,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
 
     try {
       print('--- TRIGGERING SAVE PURCHASE HISTORY (POST) ---');
-      final response = await widget.savePurchaseHistoryUseCase.execute(widget.requestModel);
+      final response = await widget.savePurchaseHistoryUseCase.execute(_updatedRequestModel);
       print('Save Purchase History Response: $response');
 
       if (mounted) {
@@ -81,10 +105,10 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
           context,
           MaterialPageRoute(
             builder: (context) => PaymentSuccessScreen(
-              orderId: widget.requestModel.invoiceNo,
+              orderId: _updatedRequestModel.invoiceNo,
               kitsCount: 50,
-              totalPaid: widget.requestModel.netAmount,
-              paymentMethod: widget.requestModel.paymentMode,
+              totalPaid: _updatedRequestModel.netAmount,
+              paymentMethod: _updatedRequestModel.paymentMode,
             ),
           ),
         );

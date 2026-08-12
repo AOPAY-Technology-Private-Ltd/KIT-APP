@@ -25,3 +25,8 @@ class SubmitPaymentEvent extends BuyKitsEvent {
     required this.customerName,
   });
 }
+
+class SearchBuyKitsEvent extends BuyKitsEvent {
+  final String query;
+  SearchBuyKitsEvent(this.query);
+}

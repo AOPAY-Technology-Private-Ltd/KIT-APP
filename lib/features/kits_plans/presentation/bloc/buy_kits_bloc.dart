@@ -14,6 +14,8 @@ class BuyKitsBloc extends Bloc<BuyKitsEvent, BuyKitsState> {
   final GetBuyKitsDataUseCase getBuyKitsDataUseCase;
   final TriggerPaymentGatewayUseCase triggerPaymentGatewayUseCase;
 
+  List<PlanEntity> _allPlans = [];
+
   BuyKitsBloc(
       this.getBuyKitsDataUseCase,
       this.triggerPaymentGatewayUseCase,
@@ -22,24 +24,25 @@ class BuyKitsBloc extends Bloc<BuyKitsEvent, BuyKitsState> {
     on<SelectPlanEvent>(_onSelectPlan);
     on<SelectPaymentMethodEvent>(_onSelectPaymentMethod);
     on<SubmitPaymentEvent>(_onSubmitPayment);
+    on<SearchBuyKitsEvent>(_onSearchBuyKits);
   }
 
   Future<void> _onLoadBuyKitsData(LoadBuyKitsData event, Emitter<BuyKitsState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: null, paymentFormHtml: null));
     try {
       final data = await getBuyKitsDataUseCase.execute();
-      final plans = data['plans'] as List<PlanEntity>;
+      _allPlans = data['plans'] as List<PlanEntity>;
       final paymentMethods = data['paymentMethods'] as List<PaymentMethodEntity>;
 
-      if (plans.isNotEmpty) {
-        final initialPlan = plans.first;
+      if (_allPlans.isNotEmpty) {
+        final initialPlan = _allPlans.first;
         final subtotal = initialPlan.price;
         final gstAmount = subtotal * (state.gstPercentage / 100);
         final totalAmount = subtotal + gstAmount;
 
         emit(state.copyWith(
           isLoading: false,
-          plans: plans,
+          plans: _allPlans,
           paymentMethods: paymentMethods,
           selectedPlan: initialPlan,
           selectedPaymentMethodId: paymentMethods.isNotEmpty ? paymentMethods.first.id : '',
@@ -63,6 +66,20 @@ class BuyKitsBloc extends Bloc<BuyKitsEvent, BuyKitsState> {
         paymentMethods: [],
         errorMessage: e.toString(),
       ));
+    }
+  }
+
+  void _onSearchBuyKits(SearchBuyKitsEvent event, Emitter<BuyKitsState> emit) {
+    final query = event.query.toLowerCase();
+    if (query.isEmpty) {
+      emit(state.copyWith(plans: _allPlans, searchQuery: ''));
+    } else {
+      final filteredPlans = _allPlans.where((plan) {
+        final searchableText = plan.toString().toLowerCase();
+        return searchableText.contains(query);
+      }).toList();
+
+      emit(state.copyWith(plans: filteredPlans, searchQuery: query));
     }
   }
 
@@ -104,11 +121,19 @@ class BuyKitsBloc extends Bloc<BuyKitsEvent, BuyKitsState> {
 
       final result = await triggerPaymentGatewayUseCase.execute(requestModel);
 
+      final String pgOrderId = result['PGOrderID'] ?? '';
+      final String extractedOrderId = pgOrderId.contains('_')
+          ? pgOrderId.split('_').last
+          : pgOrderId;
+
+      print('Extracted Dynamic Order ID: $extractedOrderId');
+
       final String? htmlForm = result['PreparePOSTForm'];
 
       emit(state.copyWith(
         isSubmitting: false,
         paymentFormHtml: htmlForm,
+        extractedOrderId: extractedOrderId,
       ));
     } catch (e) {
       emit(state.copyWith(isSubmitting: false, errorMessage: e.toString()));

@@ -281,25 +281,25 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
             fontFamily: 'Inter',
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const CircleAvatar(
-              radius: 16,
-              backgroundColor: Color(0xFF2563EB),
-              child: Icon(Icons.notifications_none, color: Colors.white, size: 16),
-            ),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const CircleAvatar(
-              radius: 16,
-              backgroundColor: Color(0xFF2563EB),
-              child: Icon(Icons.search, color: Colors.white, size: 16),
-            ),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 8),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const CircleAvatar(
+        //       radius: 16,
+        //       backgroundColor: Color(0xFF2563EB),
+        //       child: Icon(Icons.notifications_none, color: Colors.white, size: 16),
+        //     ),
+        //     onPressed: () {},
+        //   ),
+        //   IconButton(
+        //     icon: const CircleAvatar(
+        //       radius: 16,
+        //       backgroundColor: Color(0xFF2563EB),
+        //       child: Icon(Icons.search, color: Colors.white, size: 16),
+        //     ),
+        //     onPressed: () {},
+        //   ),
+        //   const SizedBox(width: 8),
+        // ],
       ),
       body: BlocConsumer<CustomerBloc, CustomerState>(
         listener: (context, state) {

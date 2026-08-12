@@ -200,7 +200,11 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
               children: [
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: CustomHeader(title: 'Customer Info'),
+                  child: CustomHeader(
+                      title: 'Customer Info',
+                    showSearch: false,
+                    showNotification: false,
+                  ),
                 ),
                 Expanded(
                   child: Form(

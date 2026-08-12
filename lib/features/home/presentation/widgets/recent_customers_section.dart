@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/home_entity.dart';
 
 class RecentCustomersSection extends StatelessWidget {
@@ -58,8 +59,8 @@ class RecentCustomersSection extends StatelessWidget {
               child: Text(
                 "No recent customers found.",
                 style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 13,
+                  color: AppColors.primaryBlue,
+                  fontSize: 15,
                   fontFamily: 'Inter',
                 ),
               ),

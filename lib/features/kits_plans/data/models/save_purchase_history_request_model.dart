@@ -43,6 +43,52 @@ class SavePurchaseHistoryRequestModel {
     required this.createdBy,
   });
 
+  SavePurchaseHistoryRequestModel copyWith({
+    String? companyCode,
+    String? purchaseCode,
+    String? retailerCode,
+    String? mappingCode,
+    String? planCode,
+    double? planAmount,
+    double? discountAmount,
+    double? gstAmount,
+    double? netAmount,
+    String? paymentMode,
+    String? transactionNo,
+    String? paymentReferenceNo,
+    String? paymentStatus,
+    String? purchaseDate,
+    String? planStartDate,
+    String? planEndDate,
+    String? invoiceNo,
+    String? remarks,
+    bool? isActive,
+    String? createdBy,
+  }) {
+    return SavePurchaseHistoryRequestModel(
+      companyCode: companyCode ?? this.companyCode,
+      purchaseCode: purchaseCode ?? this.purchaseCode,
+      retailerCode: retailerCode ?? this.retailerCode,
+      mappingCode: mappingCode ?? this.mappingCode,
+      planCode: planCode ?? this.planCode,
+      planAmount: planAmount ?? this.planAmount,
+      discountAmount: discountAmount ?? this.discountAmount,
+      gstAmount: gstAmount ?? this.gstAmount,
+      netAmount: netAmount ?? this.netAmount,
+      paymentMode: paymentMode ?? this.paymentMode,
+      transactionNo: transactionNo ?? this.transactionNo,
+      paymentReferenceNo: paymentReferenceNo ?? this.paymentReferenceNo,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      purchaseDate: purchaseDate ?? this.purchaseDate,
+      planStartDate: planStartDate ?? this.planStartDate,
+      planEndDate: planEndDate ?? this.planEndDate,
+      invoiceNo: invoiceNo ?? this.invoiceNo,
+      remarks: remarks ?? this.remarks,
+      isActive: isActive ?? this.isActive,
+      createdBy: createdBy ?? this.createdBy,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       "companyCode": companyCode,
@@ -66,5 +112,30 @@ class SavePurchaseHistoryRequestModel {
       "isActive": isActive,
       "createdBy": createdBy,
     };
+  }
+
+  factory SavePurchaseHistoryRequestModel.fromJson(Map<String, dynamic> json) {
+    return SavePurchaseHistoryRequestModel(
+      companyCode: json['companyCode'] ?? '',
+      purchaseCode: json['purchaseCode'] ?? '',
+      retailerCode: json['retailerCode'] ?? '',
+      mappingCode: json['mappingCode'] ?? '',
+      planCode: json['planCode'] ?? '',
+      planAmount: (json['planAmount'] ?? 0.0).toDouble(),
+      discountAmount: (json['discountAmount'] ?? 0.0).toDouble(),
+      gstAmount: (json['gstAmount'] ?? 0.0).toDouble(),
+      netAmount: (json['netAmount'] ?? 0.0).toDouble(),
+      paymentMode: json['paymentMode'] ?? '',
+      transactionNo: json['transactionNo'] ?? '',
+      paymentReferenceNo: json['paymentReferenceNo'] ?? '',
+      paymentStatus: json['paymentStatus'] ?? '',
+      purchaseDate: json['purchaseDate'] ?? '',
+      planStartDate: json['planStartDate'] ?? '',
+      planEndDate: json['planEndDate'] ?? '',
+      invoiceNo: json['invoiceNo'] ?? '',
+      remarks: json['remarks'] ?? '',
+      isActive: json['isActive'] ?? true,
+      createdBy: json['createdBy'] ?? '',
+    );
   }
 }

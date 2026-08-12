@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     HomeHeader(
                       name: displayName,
-                      code: "Retailer ID · $activeRetailerCode · Andheri West",
+                      code: "Retailer ID · $activeRetailerCode ",
                     ),
                     Positioned(
                       top: 145,

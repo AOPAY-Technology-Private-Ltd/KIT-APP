@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/constants/routes/route_names.dart';
 
 class HomeHeader extends StatelessWidget implements PreferredSizeWidget {
   final String name;
@@ -47,8 +50,10 @@ class HomeHeader extends StatelessWidget implements PreferredSizeWidget {
                 const CircleAvatar(
                   radius: 22,
                   backgroundColor: Colors.white,
-                  backgroundImage: NetworkImage(
-                    "https://placehold.co/50x50",
+                  child: Icon(
+                    Icons.person,
+                    size: 26,
+                    color: Color(0xFF2563EB),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -98,8 +103,10 @@ class HomeHeader extends StatelessWidget implements PreferredSizeWidget {
           ),
           Row(
             children: [
-              _iconButton(Icons.notifications_none, () {}),
-
+              _iconButton(
+                Icons.notifications_none,
+                    () => context.push(RouteNames.notification),
+              ),
             ],
           ),
         ],

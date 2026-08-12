@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/routes/route_names.dart';
 import '../../../../core/di/injection.dart';
 import '../../../create_customer/presentation/widgets/custom_header.dart';
 import '../bloc/customer_list_bloc.dart';
@@ -58,6 +60,9 @@ class _CustomerListContentState extends State<CustomerListContent> {
               CustomHeader(
                 title: 'Customer List',
                 showBackButton: false,
+                onNotificationTap: () {
+                  context.push(RouteNames.notification);
+                },
                 onSearchTap: () {
                   setState(() {
                     _isSearching = !_isSearching;

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:logkit/features/kits_plans/presentation/pages/payment_webview_screen.dart';
+import '../../../../core/constants/routes/route_names.dart';
 import '../../../create_customer/presentation/widgets/custom_header.dart';
 import '../../data/datasources/buy_kits_remote_data_source.dart';
 import '../../data/models/plan_model.dart';
@@ -15,8 +17,22 @@ import '../widgtes/bill_breakdown_widget.dart';
 import '../widgtes/plan_card_widget.dart';
 import '../../../../core/services/session_manager.dart';
 
-class BuyKitsScreen extends StatelessWidget {
+class BuyKitsScreen extends StatefulWidget {
   const BuyKitsScreen({super.key});
+
+  @override
+  State<BuyKitsScreen> createState() => _BuyKitsScreenState();
+}
+
+class _BuyKitsScreenState extends State<BuyKitsScreen> {
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,157 +91,202 @@ class BuyKitsScreen extends StatelessWidget {
         },
         child: Scaffold(
           backgroundColor: Colors.white,
-          body: BlocBuilder<BuyKitsBloc, BuyKitsState>(
-            builder: (context, state) {
-              if (state.isLoading) {
-                return SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 10),
-                        const CustomHeader(title: 'Buy Lock Kits'),
-                        const Expanded(
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: Color(0xFF008EFD),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Builder(
+                builder: (context) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      CustomHeader(
+                        title: 'Buy Lock Kits',
+                        showSearch: true,
+                        onNotificationTap: () => context.push(RouteNames.notification),
+                        onSearchTap: () {
+                          setState(() {
+                            _isSearching = !_isSearching;
+                            if (!_isSearching) {
+                              _searchController.clear();
+                              context.read<BuyKitsBloc>().add(SearchBuyKitsEvent(''));
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      if (_isSearching) ...[
+                        TextField(
+                          controller: _searchController,
+                          autofocus: true,
+                          onChanged: (query) {
+                            context.read<BuyKitsBloc>().add(SearchBuyKitsEvent(query));
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Search plans...',
+                            hintStyle: const TextStyle(
+                              color: Colors.black45,
+                              fontSize: 12,
+                              fontFamily: 'Inter',
+                            ),
+                            prefixIcon: const Icon(Icons.search, color: Color(0xFF2563EB)),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.close, size: 18, color: Colors.black54),
+                              onPressed: () {
+                                _searchController.clear();
+                                context.read<BuyKitsBloc>().add(SearchBuyKitsEvent(''));
+                              },
+                            ),
+                            filled: true,
+                            fillColor: const Color(0xFFF3F6FF),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1),
                             ),
                           ),
                         ),
+                        const SizedBox(height: 14),
                       ],
-                    ),
-                  ),
-                );
-              }
 
-              if (state.plans.isEmpty) {
-                return SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 10),
-                        const CustomHeader(title: 'Buy Lock Kits'),
-                        Expanded(
-                          child: Center(
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF9FAFB),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-                              ),
+                      const SizedBox(height: 6),
+
+                      Expanded(
+                        child: BlocBuilder<BuyKitsBloc, BuyKitsState>(
+                          builder: (context, state) {
+                            if (state.isLoading) {
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFF008EFD),
+                                ),
+                              );
+                            }
+
+                            if (state.plans.isEmpty) {
+                              return Center(
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF9FAFB),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.search_off_rounded,
+                                        size: 55,
+                                        color: Color(0xff2563EB),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      const Text(
+                                        'No Plans Found',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          fontFamily: 'Inter',
+                                          color: Color(0xff2563EB),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'No results match your search or filter criteria.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontFamily: 'Inter',
+                                          color: Colors.black.withValues(alpha: 0.5),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+
+                            return SingleChildScrollView(
                               child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(
-                                    Icons.inbox_outlined,
-                                    size: 55,
-                                    color:Color(0xff2563EB),
-                                  ),
-                                  const SizedBox(height: 12),
                                   const Text(
-                                    'No Plans Available',
+                                    'Choose a Plan',
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      color: Colors.black,
+                                      fontSize: 24,
+                                      fontFamily: 'Inter',
                                       fontWeight: FontWeight.w600,
-                                      fontFamily: 'Inter',
-                                      color: Color(0xff2563EB),
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 10),
                                   Text(
-                                    'Please check back later or contact support.',
-                                    textAlign: TextAlign.center,
+                                    'Save more on bigger bundles. GST 18% included at checkout.',
                                     style: TextStyle(
-                                      fontSize: 13,
+                                      color: Colors.black.withValues(alpha: 0.50),
+                                      fontSize: 14,
                                       fontFamily: 'Inter',
-                                      color: Colors.black.withValues(alpha: 0.5),
+                                      fontWeight: FontWeight.w400,
                                     ),
                                   ),
+                                  const SizedBox(height: 16),
+                                  GridView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 12,
+                                      childAspectRatio: 1.45,
+                                    ),
+                                    itemCount: state.plans.length,
+                                    itemBuilder: (context, index) {
+                                      final plan = state.plans[index];
+                                      final isSelected = state.selectedPlan?.id == plan.id;
+                                      return PlanCardWidget(
+                                        plan: plan,
+                                        isSelected: isSelected,
+                                        onTap: () {
+                                          BlocProvider.of<BuyKitsBloc>(context).add(SelectPlanEvent(plan));
+                                        },
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 20),
+                                  if (state.selectedPlan != null)
+                                    BillBreakdownWidget(
+                                      selectedPlan: state.selectedPlan!,
+                                      gstPercentage: state.gstPercentage,
+                                      subtotal: state.subtotal,
+                                      gstAmount: state.gstAmount,
+                                      totalAmount: state.totalAmount,
+                                    ),
+                                  const SizedBox(height: 30),
                                 ],
                               ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 30),
-                    const CustomHeader(title: 'Buy Lock Kits'),
-                    const SizedBox(height: 18),
-                    const Text(
-                      'Choose a Plan',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 24,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Save more on bigger bundles. GST 18% included at checkout.',
-                      style: TextStyle(
-                        color: Colors.black.withValues(alpha: 0.50),
-                        fontSize: 14,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 1.45,
-                      ),
-                      itemCount: state.plans.length,
-                      itemBuilder: (context, index) {
-                        final plan = state.plans[index];
-                        final isSelected = state.selectedPlan?.id == plan.id;
-                        return PlanCardWidget(
-                          plan: plan,
-                          isSelected: isSelected,
-                          onTap: () {
-                            BlocProvider.of<BuyKitsBloc>(context).add(SelectPlanEvent(plan));
+                            );
                           },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    if (state.selectedPlan != null)
-                      BillBreakdownWidget(
-                        selectedPlan: state.selectedPlan!,
-                        gstPercentage: state.gstPercentage,
-                        subtotal: state.subtotal,
-                        gstAmount: state.gstAmount,
-                        totalAmount: state.totalAmount,
+                        ),
                       ),
-                    const SizedBox(height: 30),
-                  ],
-                ),
-              );
-            },
+                    ],
+                  );
+                },
+              ),
+            ),
           ),
           bottomNavigationBar: BlocBuilder<BuyKitsBloc, BuyKitsState>(
             builder: (context, state) {
-              if (state.plans.isEmpty) {
+              if (state.plans.isEmpty || state.isLoading) {
                 return const SizedBox.shrink();
               }
               return SafeArea(

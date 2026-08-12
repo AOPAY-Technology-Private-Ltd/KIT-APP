@@ -10,6 +10,7 @@ import '../../common/widgets/auth_footer.dart';
 import '../../common/widgets/auth_image_slider.dart';
 import '../../common/widgets/auth_logo.dart';
 import '../../common/widgets/curved_top_container.dart';
+import '../../common/widgets/no_internet_widget.dart';
 import '../bloc/otp_bloc.dart';
 import '../bloc/otp_event.dart';
 import '../bloc/otp_state.dart';
@@ -42,7 +43,7 @@ class _OtpVerificationViewState
     super.initState();
     startTimer();
     otpController.addListener(() {
-      if (errorMessage != null) {
+      if (errorMessage != null && !errorMessage!.contains('No internet connection')) {
         setState(() {
           errorMessage = null;
         });
@@ -205,87 +206,109 @@ class _OtpVerificationViewState
                                   ],
                                 ),
                                 const SizedBox(height: 20),
-                                OtpBoxes(
-                                  controller: otpController,
-                                ),
 
-                                const SizedBox(height: 6),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: errorMessage != null
-                                            ? Text(
-                                          errorMessage!,
-                                          style: TextStyle(
-                                            color: colorScheme.error,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500,
+                                if (errorMessage != null &&
+                                    errorMessage!.contains('No internet connection')) ...[
+                                  Expanded(
+                                    child: NoInternetWidget(
+                                      onRetry: () {
+                                        setState(() {
+                                          errorMessage = null;
+                                        });
+                                        final otp = otpController.text.trim();
+                                        context.read<OtpBloc>().add(
+                                          VerifyOtpPressed(
+                                            mobileOrEmail: widget.mobile,
+                                            otp: otp.isNotEmpty ? otp : "0000",
+                                            isLogin: true,
                                           ),
-                                        )
-                                            : const SizedBox.shrink(),
-                                      ),
-                                      GestureDetector(
-                                        onTap: _isResendButtonEnabled
-                                            ? () {
-                                          setState(() {
-                                            errorMessage = null;
-                                          });
-                                          context.read<OtpBloc>().add(
-                                            ResendOtpPressed(
-                                                mobileOrEmail:
-                                                widget.mobile),
-                                          );
-                                        }
-                                            : null,
-                                        child: Text(
-                                          _isResendButtonEnabled
-                                              ? "Resend OTP?"
-                                              : "Resend in ${_start}s",
-                                          style: TextStyle(
-                                            color: _isResendButtonEnabled
-                                                ? const Color(0xFF2563EB)
-                                                : Colors.grey,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ] else ...[
+                                  OtpBoxes(
+                                    controller: otpController,
+                                  ),
+
+                                  const SizedBox(height: 6),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: errorMessage != null
+                                              ? Text(
+                                            errorMessage!,
+                                            style: TextStyle(
+                                              color: colorScheme.error,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          )
+                                              : const SizedBox.shrink(),
+                                        ),
+                                        GestureDetector(
+                                          onTap: _isResendButtonEnabled
+                                              ? () {
+                                            setState(() {
+                                              errorMessage = null;
+                                            });
+                                            context.read<OtpBloc>().add(
+                                              ResendOtpPressed(
+                                                  mobileOrEmail:
+                                                  widget.mobile),
+                                            );
+                                          }
+                                              : null,
+                                          child: Text(
+                                            _isResendButtonEnabled
+                                                ? "Resend OTP?"
+                                                : "Resend in ${_start}s",
+                                            style: TextStyle(
+                                              color: _isResendButtonEnabled
+                                                  ? const Color(0xFF2563EB)
+                                                  : Colors.grey,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
 
-                                const SizedBox(height: 20),
-                                AuthButton(
-                                  title: "Continue",
-                                  onTap: () {
-                                    final otp = otpController.text.trim();
+                                  const SizedBox(height: 20),
+                                  AuthButton(
+                                    title: "Continue",
+                                    onTap: () {
+                                      final otp = otpController.text.trim();
 
-                                    if (otp.length != 4) {
+                                      if (otp.length != 4) {
+                                        setState(() {
+                                          errorMessage =
+                                          "Please enter 4 digit OTP";
+                                        });
+                                        return;
+                                      }
+
                                       setState(() {
-                                        errorMessage =
-                                        "Please enter 4 digit OTP";
+                                        errorMessage = null;
                                       });
-                                      return;
-                                    }
 
-                                    setState(() {
-                                      errorMessage = null;
-                                    });
-
-                                    context.read<OtpBloc>().add(
-                                      VerifyOtpPressed(
-                                        mobileOrEmail: widget.mobile,
-                                        otp: otp,
-                                        isLogin: true,
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(height: 12),
-                                const AuthFooter(),
+                                      context.read<OtpBloc>().add(
+                                        VerifyOtpPressed(
+                                          mobileOrEmail: widget.mobile,
+                                          otp: otp,
+                                          isLogin: true,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const AuthFooter(),
+                                ],
                               ],
                             ),
                           ),

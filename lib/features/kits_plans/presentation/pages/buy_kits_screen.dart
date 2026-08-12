@@ -44,7 +44,7 @@ class BuyKitsScreen extends StatelessWidget {
                     companyCode: "CMP0005",
                     purchaseCode: "PUR000001",
                     retailerCode: retailerCode,
-                    mappingCode: "MAP0001",
+                    mappingCode: plan.mappingCode,
                     planCode: plan.planCode,
                     planAmount: state.subtotal,
                     discountAmount: 0.0,
@@ -77,9 +77,7 @@ class BuyKitsScreen extends StatelessWidget {
           backgroundColor: Colors.white,
           body: BlocBuilder<BuyKitsBloc, BuyKitsState>(
             builder: (context, state) {
-              final bool isReallyLoading = state.plans.isEmpty && state.paymentMethods.isEmpty;
-
-              if (isReallyLoading) {
+              if (state.isLoading) {
                 return SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -126,8 +124,8 @@ class BuyKitsScreen extends StatelessWidget {
                                 children: [
                                   Icon(
                                     Icons.inbox_outlined,
-                                    size: 48,
-                                    color: Colors.black.withValues(alpha: 0.3),
+                                    size: 55,
+                                    color:Color(0xff2563EB),
                                   ),
                                   const SizedBox(height: 12),
                                   const Text(
@@ -136,7 +134,7 @@ class BuyKitsScreen extends StatelessWidget {
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                       fontFamily: 'Inter',
-                                      color: Colors.black,
+                                      color: Color(0xff2563EB),
                                     ),
                                   ),
                                   const SizedBox(height: 6),
@@ -200,7 +198,7 @@ class BuyKitsScreen extends StatelessWidget {
                       itemCount: state.plans.length,
                       itemBuilder: (context, index) {
                         final plan = state.plans[index];
-                        final isSelected = state.selectedPlan.id == plan.id;
+                        final isSelected = state.selectedPlan?.id == plan.id;
                         return PlanCardWidget(
                           plan: plan,
                           isSelected: isSelected,
@@ -211,13 +209,14 @@ class BuyKitsScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 20),
-                    BillBreakdownWidget(
-                      selectedPlan: state.selectedPlan,
-                      gstPercentage: state.gstPercentage,
-                      subtotal: state.subtotal,
-                      gstAmount: state.gstAmount,
-                      totalAmount: state.totalAmount,
-                    ),
+                    if (state.selectedPlan != null)
+                      BillBreakdownWidget(
+                        selectedPlan: state.selectedPlan!,
+                        gstPercentage: state.gstPercentage,
+                        subtotal: state.subtotal,
+                        gstAmount: state.gstAmount,
+                        totalAmount: state.totalAmount,
+                      ),
                     const SizedBox(height: 30),
                   ],
                 ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../../../core/constants/apiconstants/api_constants.dart';
+import '../../../../core/helper/api_client.dart';
 import '../../../../core/services/session_manager.dart';
 import '../../../create_customer/presentation/widgets/custom_header.dart';
 
@@ -23,7 +23,13 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
   @override
   void initState() {
     super.initState();
-    _futureCustomers = _fetchAllCustomers();
+    _loadCustomers();
+  }
+
+  void _loadCustomers() {
+    setState(() {
+      _futureCustomers = _fetchAllCustomers();
+    });
   }
 
   Future<List<dynamic>> _fetchAllCustomers() async {
@@ -36,7 +42,7 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
         },
       );
 
-      final response = await http.get(uri, headers: {'accept': '*/*'});
+      final response = await ApiClient.get(uri, headers: {'accept': '*/*'});
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -49,10 +55,11 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
       }
       return [];
     } catch (e) {
-      print("Error fetching all customers: $e");
-      return [];
+      debugPrint("Error fetching all customers: $e");
+      rethrow;
     }
   }
+
   void _filterSearch(String query) {
     setState(() {
       if (query.isEmpty) {
@@ -97,7 +104,6 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                 },
               ),
             ),
-
             if (_isSearching)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -127,7 +133,6 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                   ),
                 ),
               ),
-
             Expanded(
               child: FutureBuilder<List<dynamic>>(
                 future: _futureCustomers,
@@ -137,8 +142,40 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                       child: CircularProgressIndicator(color: Color(0xFF2563EB)),
                     );
                   } else if (snapshot.hasError) {
+                    final errorMessage = snapshot.error.toString().replaceAll("Exception: ", "");
                     return Center(
-                      child: Text('Error: ${snapshot.error}', style: const TextStyle(fontFamily: 'Inter')),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.redAccent),
+                            const SizedBox(height: 12),
+                            Text(
+                              errorMessage,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                                fontFamily: 'Inter',
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2563EB),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: _loadCustomers,
+                              icon: const Icon(Icons.refresh, size: 16),
+                              label: const Text('Retry', style: TextStyle(fontFamily: 'Inter')),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   } else if (_filteredCustomers.isEmpty) {
                     return Center(

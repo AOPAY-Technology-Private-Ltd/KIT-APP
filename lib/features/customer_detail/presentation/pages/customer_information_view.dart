@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/routes/route_names.dart';
 import '../../../../core/di/injection.dart';
 import '../../../create_customer/presentation/widgets/custom_header.dart';
 import '../bloc/customer_detail_bloc.dart';
-import '../bloc/customer_detail_event.dart';
 import '../bloc/customer_detail_state.dart';
 import '../widgets/customer_actionInfo_card.dart';
 import '../widgets/customer_profile_card.dart';
@@ -20,31 +21,85 @@ class CustomerInformationView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
-        final bloc = CustomerDetailBloc(getCustomerDetailUseCase: sl());
+        final bloc = sl<CustomerDetailBloc>();
         Future.microtask(() => bloc.add(FetchCustomerDetailEvent(customerMobile)));
         return bloc;
       },
-      child: const _CustomerInformationContent(),
+      child: _CustomerInformationContent(customerMobile: customerMobile),
     );
   }
 }
 
 class _CustomerInformationContent extends StatelessWidget {
-  const _CustomerInformationContent();
+  final String customerMobile;
+
+  const _CustomerInformationContent({required this.customerMobile});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: BlocBuilder<CustomerDetailBloc, CustomerDetailState>(
+        child: BlocConsumer<CustomerDetailBloc, CustomerDetailState>(
+          listener: (context, state) {
+            if (state is DeviceActionSuccessState) {
+              context.push(
+                RouteNames.deviceStatusSuccess,
+                extra: {
+                  'isLocked': state.isLocked,
+                },
+              );
+            } else if (state is CustomerDetailError) {
+              final bloc = context.read<CustomerDetailBloc>();
+              if (state is! CustomerDetailLoaded && bloc.cachedCustomer != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              }
+            }
+          },
           builder: (context, state) {
+            final bloc = context.read<CustomerDetailBloc>();
+
             if (state is CustomerDetailLoading) {
               return const Center(child: CircularProgressIndicator(color: Color(0xFF1D61E7)));
-            } else if (state is CustomerDetailError) {
-              return Center(child: Text(state.message));
-            } else if (state is CustomerDetailLoaded) {
-              final customer = state.customer;
+            } else if (state is CustomerDetailError && state is! CustomerDetailLoaded && bloc.cachedCustomer == null) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.wifi_off_rounded, color: Color(0xFFDC2626), size: 48),
+                      const SizedBox(height: 16),
+                      Text(
+                        state.message,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Color(0xFF64748B), fontSize: 14, fontFamily: 'Inter'),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          bloc.add(FetchCustomerDetailEvent(customerMobile));
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(Icons.refresh, color: Colors.white),
+                        label: const Text('Retry', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            } else if (state is CustomerDetailLoaded || (state is CustomerDetailError && bloc.cachedCustomer != null)) {
+              final customer = bloc.cachedCustomer!;
+
               return SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -52,26 +107,31 @@ class _CustomerInformationContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Row(
                       children: [
-                        Expanded(child: CustomHeader(title: 'Customer Information')),
+                        Expanded(
+                          child: CustomHeader(
+                            title: 'Customer Information',
+                            showSearch: false,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 18),
                     CustomerProfileCard(customer: customer),
                     const SizedBox(height: 18),
-                    CustomerInfoTabsWidget(selectedTabIdx: state.selectedTabIdx),
+                    CustomerInfoTabsWidget(selectedTabIdx: state is CustomerDetailLoaded ? state.selectedTabIdx : 0),
                     const SizedBox(height: 18),
 
-                    if (state.selectedTabIdx == 0)
+                    if (state is CustomerDetailLoaded ? state.selectedTabIdx == 0 : true)
                       CustomerDetailInfoCard(customer: customer)
-                    else if (state.selectedTabIdx == 1)
+                    else if (state is CustomerDetailLoaded && state.selectedTabIdx == 1)
                       CustomerDeviceInfoCard(customer: customer)
-                    else if (state.selectedTabIdx == 2)
+                    else if (state is CustomerDetailLoaded && state.selectedTabIdx == 2)
                         CustomerActionInfoCard(
                           customer: customer,
                           actionToggles: state.actionToggles,
+                          appMaster: state.appMaster,
                           selectedSubItems: state.selectedSubItems,
                         )
                       else
@@ -84,13 +144,13 @@ class _CustomerInformationContent extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
-                          child: Text(
-                            'Content for Tab ${state.selectedTabIdx} coming soon',
-                            style: const TextStyle(color: Colors.grey, fontSize: 14),
+                          child: const Text(
+                            'Content coming soon',
+                            style: TextStyle(color: Colors.grey, fontSize: 14),
                           ),
                         ),
 
-                    if (state.selectedTabIdx == 0) ...[
+                    if (state is CustomerDetailLoaded && state.selectedTabIdx == 0) ...[
                       const SizedBox(height: 26),
                       Row(
                         children: [

@@ -18,8 +18,7 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
   @override
   Future<CustomerResponseModel> verifyCustomerKit(
       CustomerRequestModel requestModel) async {
-    final uri = Uri.parse(
-        ApiConstants.verifyCustomerKit);
+    final uri = Uri.parse(ApiConstants.verifyCustomerKit);
 
     print('--- KIT VERIFY CUSTOMER REQUEST ---');
     print('URL: $uri');
@@ -47,7 +46,6 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
   }
 
   @override
-
   Future<CustomerResponseModel> manageCustomer(
       CustomerRequestModel requestModel) async {
 
@@ -102,10 +100,7 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
       queryParams['AadhaarNumber'] = requestModel.aadhaarNumber!;
     }
 
-    final uri = Uri
-        .parse(
-        ApiConstants.manageCustomer)
-        .replace(
+    final uri = Uri.parse(ApiConstants.manageCustomer).replace(
       queryParameters: queryParams,
     );
 

@@ -7,7 +7,6 @@ import 'package:open_file/open_file.dart';
 import '../../features/inventory/domain/entities/inventory_entity.dart';
 
 class InvoiceService {
-  /// Generates the PDF document and saves it locally WITHOUT opening it automatically.
   Future<String> downloadInvoice(InventoryItem item) async {
     final pdf = _buildPdfDocument(item);
 
@@ -20,7 +19,6 @@ class InvoiceService {
     return filePath;
   }
 
-  /// Generates the PDF document and opens it immediately using OpenFile.
   Future<void> generateAndOpenInvoice(InventoryItem item) async {
     final filePath = await downloadInvoice(item);
 

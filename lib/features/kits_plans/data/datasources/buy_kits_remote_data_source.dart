@@ -111,13 +111,17 @@ class BuyKitsRemoteDataSourceImpl implements BuyKitsRemoteDataSource {
       throw Exception('Error in payment gateway: $e');
     }
   }
-
+  @override
   Future<Map<String, dynamic>> savePurchaseHistory(SavePurchaseHistoryRequestModel requestModel) async {
     const url = ApiConstants.savePurchaseHistory;
 
+
+    final Map<String, dynamic> requestBodyMap = requestModel.toJson();
+
+
     print('--- SAVE PURCHASE HISTORY REQUEST ---');
     print('URL: $url');
-    print('Body: ${jsonEncode(requestModel.toJson())}');
+    print('Body: ${jsonEncode(requestBodyMap)}');
 
     try {
       final response = await client.post(
@@ -126,7 +130,7 @@ class BuyKitsRemoteDataSourceImpl implements BuyKitsRemoteDataSource {
           'accept': '*/*',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode(requestModel.toJson()),
+        body: jsonEncode(requestBodyMap),
       );
 
       print('--- SAVE PURCHASE HISTORY RESPONSE ---');
@@ -134,7 +138,11 @@ class BuyKitsRemoteDataSourceImpl implements BuyKitsRemoteDataSource {
       print('Response Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return jsonDecode(response.body);
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          return decoded;
+        }
+        return {'status': true, 'message': response.body};
       } else {
         throw Exception('Failed to save purchase history: ${response.statusCode}');
       }
@@ -143,5 +151,4 @@ class BuyKitsRemoteDataSourceImpl implements BuyKitsRemoteDataSource {
       rethrow;
     }
   }
-
 }

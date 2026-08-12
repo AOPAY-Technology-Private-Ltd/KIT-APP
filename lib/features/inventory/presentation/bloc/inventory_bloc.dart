@@ -13,16 +13,21 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     on<LoadInventoryEvent>(_onLoadInventory);
     on<FilterInventoryEvent>(_onFilterInventory);
     on<SearchInventoryEvent>(_onSearchInventory);
+
+    add(LoadInventoryEvent());
   }
 
   Future<void> _onLoadInventory(
       LoadInventoryEvent event,
       Emitter<InventoryState> emit,
       ) async {
+    print('--- BLOC: LoadInventoryEvent started ---');
     emit(const InventoryLoading());
     try {
       _currentSearchQuery = '';
+      print('--- BLOC: Fetching inventory from usecase ---');
       final items = await getInventoryUseCase();
+      print('--- BLOC: Inventory fetched successfully. Total items: ${items.length} ---');
 
       final counts = {
         'total': items.length,
@@ -30,6 +35,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         'used': items.where((i) => i.status == 'used').length,
       };
 
+      print('--- BLOC: Emitting InventoryLoaded state ---');
       emit(InventoryLoaded(
         allItems: items,
         filteredItems: items,
@@ -37,6 +43,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         counts: counts,
       ));
     } catch (e) {
+      print('--- BLOC ERROR: Caught exception in loadinventory: $e ---');
       emit(InventoryError(e.toString()));
     }
   }

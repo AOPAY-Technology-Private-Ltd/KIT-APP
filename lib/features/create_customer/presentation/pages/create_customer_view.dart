@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/routes/route_names.dart';
 import '../../../../core/utils/validators.dart';
@@ -179,6 +180,10 @@ class _CreateCustomerViewState extends State<CreateCustomerView> {
                         controller: panController,
                         label: 'Pan Card (Optional)',
                         hintText: 'Enter PAN number (e.g. ABCDE1234F)',
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(10),
+                          TextInputFormatter.withFunction((oldValue, newValue) => newValue.copyWith(text: newValue.text.toUpperCase())),
+                        ],
                         validator: Validators.validatePan,
                       ),
                       const SizedBox(height: 12),
@@ -198,8 +203,12 @@ class _CreateCustomerViewState extends State<CreateCustomerView> {
                       CustomerTextField(
                         controller: aadharController,
                         label: 'Aadhaar Card (Optional)',
-                        hintText: 'Enter 12-digit Aadhaar number',
+                        hintText: 'Enter 12-digit number',
                         keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(12),
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         validator: Validators.validateAadhaar,
                       ),
                       const SizedBox(height: 12),
@@ -235,34 +244,51 @@ class _CreateCustomerViewState extends State<CreateCustomerView> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
-
-                      AuthButton(
-                        title: 'Next',
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            context.push(
-                              RouteNames.customerInfo,
-                              extra: {
-                                'dob': dobController.text.trim(),
-                                'panNumber': panController.text.trim(),
-                                'panImage': panImage,
-                                'aadharNumber': aadharController.text.trim(),
-                                'aadharFrontImage': aadharFrontImage,
-                                'aadharBackImage': aadharBackImage,
-                              },
-                            );
-                          }
-                        },
-                      ),
-
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 100),
                     ],
                   ),
                 ),
               ),
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          12,
+          16,
+          MediaQuery.of(context).viewInsets.bottom > 0
+              ? MediaQuery.of(context).viewInsets.bottom + 12
+              : MediaQuery.of(context).padding.bottom + 12,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, -4),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: AuthButton(
+          title: 'Next',
+          onTap: () {
+            if (_formKey.currentState!.validate()) {
+              context.push(
+                RouteNames.customerInfo,
+                extra: {
+                  'dob': dobController.text.trim(),
+                  'panNumber': panController.text.trim(),
+                  'panImage': panImage,
+                  'aadharNumber': aadharController.text.trim(),
+                  'aadharFrontImage': aadharFrontImage,
+                  'aadharBackImage': aadharBackImage,
+                },
+              );
+            }
+          },
         ),
       ),
     );

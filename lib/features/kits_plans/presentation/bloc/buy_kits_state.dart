@@ -3,7 +3,7 @@ part of 'buy_kits_bloc.dart';
 class BuyKitsState {
   final List<PlanEntity> plans;
   final List<PaymentMethodEntity> paymentMethods;
-  final PlanEntity selectedPlan;
+  final PlanEntity? selectedPlan;
   final String selectedPaymentMethodId;
   final double gstPercentage;
   final double subtotal;
@@ -17,7 +17,7 @@ class BuyKitsState {
   BuyKitsState({
     required this.plans,
     required this.paymentMethods,
-    required this.selectedPlan,
+    this.selectedPlan,
     required this.selectedPaymentMethodId,
     required this.gstPercentage,
     required this.subtotal,
@@ -33,18 +33,13 @@ class BuyKitsState {
     return BuyKitsState(
       plans: [],
       paymentMethods: [],
-      selectedPlan: const PlanEntity(
-        id: '',
-        kitsCount: 0,
-        price: 0.0,
-        pricePerKit: 0.0,
-      ),
+      selectedPlan: null,
       selectedPaymentMethodId: '',
       gstPercentage: 18.0,
       subtotal: 0.0,
       gstAmount: 0.0,
       totalAmount: 0.0,
-      isLoading: false,
+      isLoading: true,
       isSubmitting: false,
       errorMessage: null,
       paymentFormHtml: null,

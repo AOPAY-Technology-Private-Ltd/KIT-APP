@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../customer_list/presentation/pages/customer_list_view.dart';
 
@@ -23,33 +24,46 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  late final List<Widget> _pages;
-
   @override
-  void initState() {
-    super.initState();
-    _pages = [
-      const HomePage(),
-      const CustomerListView(),
-      BlocProvider(
-        create: (_) => sl<HistoryBloc>()..add(LoadHistoryEvent()),
-        child: const HistoryPage(),
-      ),
-      BlocProvider(
-        create: (_) => sl<ProfileBloc>()..add(FetchProfileEvent()),
-        child: const ProfileScreen(),
-      ),
-    ];
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final extra = GoRouterState.of(context).extra;
+    if (extra is Map<String, dynamic> && extra.containsKey('initialIndex')) {
+      final targetIndex = extra['initialIndex'];
+      if (_currentIndex != targetIndex) {
+        setState(() {
+          _currentIndex = targetIndex;
+        });
+      }
+    }
+  }
+
+  Widget _getCurrentPage() {
+    switch (_currentIndex) {
+      case 0:
+        return const HomePage();
+      case 1:
+        return const CustomerListView();
+      case 2:
+        return BlocProvider(
+          create: (_) => sl<HistoryBloc>()..add(LoadHistoryEvent()),
+          child: const HistoryPage(),
+        );
+      case 3:
+        return BlocProvider(
+          create: (_) => sl<ProfileBloc>()..add(FetchProfileEvent()),
+          child: const ProfileScreen(),
+        );
+      default:
+        return const HomePage();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: _getCurrentPage(),
       bottomNavigationBar: SafeArea(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -77,10 +91,10 @@ class _MainScreenState extends State<MainScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, 'Home', Icons.home_outlined),
-                _buildNavItem(1, 'Customer', Icons.group_outlined),
-                _buildNavItem(2, 'History', Icons.history_outlined),
-                _buildNavItem(3, 'Profile', Icons.person_outline),
+                _buildNavItem(0, 'Home', Icons.home_outlined, Icons.home),
+                _buildNavItem(1, 'Customer', Icons.group_outlined, Icons.group),
+                _buildNavItem(2, 'History', Icons.history_outlined, Icons.history),
+                _buildNavItem(3, 'Profile', Icons.person_outline, Icons.person),
               ],
             ),
           ),
@@ -89,7 +103,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, String label, IconData icon) {
+  Widget _buildNavItem(int index, String label, IconData unselectedIcon, IconData selectedIcon) {
     final bool isSelected = _currentIndex == index;
 
     return GestureDetector(
@@ -114,7 +128,7 @@ class _MainScreenState extends State<MainScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Icon(
-              icon,
+              isSelected ? selectedIcon : unselectedIcon,
               size: 22,
               color: isSelected ? Colors.white : Colors.black.withValues(alpha: 0.60),
             ),

@@ -5,11 +5,18 @@ import 'core/di/injection.dart';
 import 'core/helper/device_helper.dart';
 import 'core/theme/app_theme.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await DeviceHelper.initDeviceData();
-  await init();
+
+  try {
+    await init();
+
+    DeviceHelper.initDeviceData();
+  } catch (e, stackTrace) {
+    debugPrint('Error during app initialization: $e');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+
   runApp(const MyApp());
 }
 

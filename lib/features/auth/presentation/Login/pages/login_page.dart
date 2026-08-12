@@ -6,6 +6,7 @@ import '../../../../../../core/theme/app_theme.dart';
 import '../../../../../../core/utils/validators.dart';
 import '../../../../../core/constants/routes/route_names.dart';
 import '../../common/widgets/auth_footer.dart';
+import '../../common/widgets/no_internet_widget.dart';
 import '../bloc/login_bloc.dart';
 import '../bloc/login_event.dart';
 import '../bloc/login_state.dart';
@@ -124,76 +125,97 @@ class _LoginViewState extends State<LoginView> {
                               SizedBox(
                                 height: height * 0.02,
                               ),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 4,
-                                    bottom: 6,
+
+                              if (errorMessage != null &&
+                                  errorMessage!.contains('No internet connection')) ...[
+                                Expanded(
+                                  child: NoInternetWidget(
+                                    onRetry: () {
+                                      setState(() {
+                                        errorMessage = null;
+                                      });
+                                      String input = mobileController.text.trim();
+                                      if (input.startsWith("+91 ")) {
+                                        input = input.substring(4).trim();
+                                      }
+                                      context.read<LoginBloc>().add(
+                                        SendOtpPressed(mobile: input),
+                                      );
+                                    },
                                   ),
-                                  child: RichText(
-                                    text: TextSpan(
-                                      text: "Mobile Number or Email",
-                                      style: theme.textTheme.labelSmall,
-                                      children: [
-                                        TextSpan(
-                                          text: "*",
-                                          style: TextStyle(
-                                            color: colorScheme.error,
-                                            fontWeight: FontWeight.bold,
+                                ),
+                              ] else ...[
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 4,
+                                      bottom: 6,
+                                    ),
+                                    child: RichText(
+                                      text: TextSpan(
+                                        text: "Mobile Number or Email",
+                                        style: theme.textTheme.labelSmall,
+                                        children: [
+                                          TextSpan(
+                                            text: "*",
+                                            style: TextStyle(
+                                              color: colorScheme.error,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              MobileInput(
-                                controller: mobileController,
-                                errorText: errorMessage,
-                              ),
-                              SizedBox(
-                                height: height * 0.02,
-                              ),
-                              AuthButton(
-                                title: "Send OTP →",
-                                onTap: () {
-                                  String input = mobileController.text.trim();
+                                MobileInput(
+                                  controller: mobileController,
+                                  errorText: errorMessage,
+                                ),
+                                SizedBox(
+                                  height: height * 0.02,
+                                ),
+                                AuthButton(
+                                  title: "Send OTP →",
+                                  onTap: () {
+                                    String input = mobileController.text.trim();
 
-                                  if (input.startsWith("+91 ")) {
-                                    input = input.substring(4).trim();
-                                  }
+                                    if (input.startsWith("+91 ")) {
+                                      input = input.substring(4).trim();
+                                    }
 
-                                  final error = Validators.validateInput(input);
+                                    final error = Validators.validateInput(input);
 
-                                  if (error != null) {
-                                    setState(() {
-                                      errorMessage = error;
-                                    });
-                                  } else {
-                                    setState(() {
-                                      errorMessage = null;
-                                    });
-                                    context.read<LoginBloc>().add(
-                                      SendOtpPressed(
-                                        mobile: input,
-                                      ),
+                                    if (error != null) {
+                                      setState(() {
+                                        errorMessage = error;
+                                      });
+                                    } else {
+                                      setState(() {
+                                        errorMessage = null;
+                                      });
+                                      context.read<LoginBloc>().add(
+                                        SendOtpPressed(
+                                          mobile: input,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                                SizedBox(
+                                  height: height * 0.015,
+                                ),
+                                OnboardingLink(
+                                  onTap: () {
+                                    context.push(
+                                      RouteNames.signup,
                                     );
-                                  }
-                                },
-                              ),
-                              SizedBox(
-                                height: height * 0.015,
-                              ),
-                              OnboardingLink(
-                                onTap: () {
-                                  context.push(
-                                    RouteNames.signup,
-                                  );
-                                },
-                              ),
-                              const SizedBox(height: 10),
-                              const AuthFooter(),
+                                  },
+                                ),
+                                const SizedBox(height: 10),
+                                const AuthFooter(),
+                              ],
                             ],
                           ),
                         ),

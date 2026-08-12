@@ -47,18 +47,50 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
         ),
       );
     } catch (e) {
-      String error = e.toString();
-      if (error.startsWith("Exception: ")) {
-        error = error.replaceFirst("Exception: ", "");
+      String rawError = e.toString().replaceAll("Exception: ", "");
+
+      String errorMessage;
+      if (rawError.contains('No internet connection') ||
+          rawError.contains('SocketException') ||
+          rawError.contains('Failed host lookup')) {
+        errorMessage = 'No internet connection. Please check your network settings.';
+      } else {
+        errorMessage = rawError;
       }
+
       emit(
         OtpFailure(
-          error: error,
+          error: errorMessage,
         ),
       );
     }
   }
 
   Future<void> _resendOtp(ResendOtpPressed event, Emitter<OtpState> emit) async {
+    emit(OtpLoading());
+    try {
+      final result = await sendOtpUseCase(event.mobileOrEmail);
+      emit(
+        OtpSuccess(
+          message: result.message.isNotEmpty ? result.message : "OTP Resent Successfully",
+        ),
+      );
+    } catch (e) {
+      String rawError = e.toString().replaceAll("Exception: ", "");
+      String errorMessage;
+      if (rawError.contains('No internet connection') ||
+          rawError.contains('SocketException') ||
+          rawError.contains('Failed host lookup')) {
+        errorMessage = 'No internet connection. Please check your network settings.';
+      } else {
+        errorMessage = rawError;
+      }
+
+      emit(
+        OtpFailure(
+          error: errorMessage,
+        ),
+      );
+    }
   }
 }

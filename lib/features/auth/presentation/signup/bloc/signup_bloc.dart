@@ -27,17 +27,7 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
       ) async {
     try {
       emit(SignupLoading());
-
-      final response =
-      await sendOtpUseCase(event.mobileOrEmailID);
-
-      if (event.mobileOrEmailID.length == 10) {
-        await authRemoteDatasource.sendSmsForVerifyMob(
-          mobnumber: event.mobileOrEmailID,
-          customerName: event.customerName ?? "User",
-          otp: event.otp ?? "1234",
-        );
-      }
+      final response = await sendOtpUseCase(event.mobileOrEmailID);
 
       emit(
         OtpSentSuccess(
@@ -45,13 +35,18 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
         ),
       );
     } catch (e) {
-      String error = e.toString();
+      String rawError = e.toString().replaceAll("Exception: ", "");
 
-      if (error.startsWith("Exception: ")) {
-        error = error.replaceFirst("Exception: ", "");
+      String errorMessage;
+      if (rawError.contains('No internet connection') ||
+          rawError.contains('SocketException') ||
+          rawError.contains('Failed host lookup')) {
+        errorMessage = 'No internet connection. Please check your network settings.';
+      } else {
+        errorMessage = rawError;
       }
 
-      emit(SignupFailure(error: error));
+      emit(SignupFailure(error: errorMessage));
     }
   }
 
@@ -109,10 +104,21 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
         "SIGNUP ERROR : $e",
       );
 
+      String rawError = e.toString().replaceAll("Exception: ", "");
+
+      String errorMessage;
+      if (rawError.contains('No internet connection') ||
+          rawError.contains('SocketException') ||
+          rawError.contains('Failed host lookup')) {
+        errorMessage = 'No internet connection. Please check your network settings.';
+      } else {
+        errorMessage = rawError;
+      }
+
 
       emit(
         SignupFailure(
-          error: e.toString(),
+          error: errorMessage,
         ),
       );
 

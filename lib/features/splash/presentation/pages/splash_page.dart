@@ -32,15 +32,22 @@ class SplashPage extends StatelessWidget {
           }
         },
         child: Scaffold(
+          backgroundColor: Colors.white,
           body: Center(
-            child: Image.asset(
-              "assets/images/splash.png",
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(
-                  Icons.image,
-                  size: 100,
-                );
-              },
+            child: SizedBox.expand(
+              child: Image.asset(
+                "assets/images/splash.gif",
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Icon(
+                      Icons.image,
+                      size: 100,
+                      color: Colors.grey,
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),

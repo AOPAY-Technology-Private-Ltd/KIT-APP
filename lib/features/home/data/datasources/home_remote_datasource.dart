@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../../../../core/constants/apiconstants/api_constants.dart';
+import '../../../../core/helper/api_client.dart';
 import '../../../../core/services/session_manager.dart';
 import '../models/home_model.dart';
 
@@ -10,69 +10,89 @@ abstract class HomeRemoteDataSource {
 }
 
 class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
-  final http.Client client;
-
-  HomeRemoteDataSourceImpl({required this.client});
+  HomeRemoteDataSourceImpl();
 
   @override
   Future<HomeModel> fetchHomeData() async {
-    String? retailerCode = await SessionManager.getRetailerCode();
-    if (retailerCode == null || retailerCode.isEmpty) {
-      await Future.delayed(const Duration(milliseconds: 400));
-      retailerCode = await SessionManager.getRetailerCode();
-    }
+    int maxAttempts = 2;
+    int currentAttempt = 0;
 
-    if (retailerCode == null || retailerCode.isEmpty) {
-      throw Exception('Retailer code not found in session.');
-    }
+    while (currentAttempt < maxAttempts) {
+      currentAttempt++;
+      try {
+        String? retailerCode = await SessionManager.getRetailerCode();
+        if (retailerCode == null || retailerCode.isEmpty) {
+          await Future.delayed(const Duration(milliseconds: 400));
+          retailerCode = await SessionManager.getRetailerCode();
+        }
 
-    const url = ApiConstants.fetchHomeData;
-    final requestBody = jsonEncode({"retailerCode": retailerCode});
+        if (retailerCode == null || retailerCode.isEmpty) {
+          throw Exception('Retailer code not found in session.');
+        }
 
-    final response = await client.post(
-      Uri.parse(url),
-      headers: {'accept': '*/*', 'Content-Type': 'application/json'},
-      body: requestBody,
-    );
+        final url = Uri.parse(ApiConstants.fetchHomeData);
+        final requestBody = jsonEncode({"retailerCode": retailerCode});
 
-    if (response.statusCode == 200) {
-      final decodedData = jsonDecode(response.body);
-      if (decodedData['status'] == true || decodedData['data'] != null) {
-        return HomeModel.fromJson(decodedData);
-      } else {
-        throw Exception(decodedData['message'] ?? 'Failed to fetch kit report');
+        final response = await ApiClient.post(
+          url,
+          headers: {'accept': '*/*', 'Content-Type': 'application/json'},
+          body: requestBody,
+        ).timeout(const Duration(seconds: 15));
+
+        if (response.statusCode == 500 && currentAttempt < maxAttempts) {
+          await Future.delayed(const Duration(seconds: 1));
+          continue;
+        }
+
+        if (response.statusCode == 200) {
+          final decodedData = jsonDecode(response.body);
+          if (decodedData['status'] == true || decodedData['data'] != null) {
+            return HomeModel.fromJson(decodedData);
+          } else {
+            throw Exception(decodedData['message'] ?? 'Failed to fetch home data');
+          }
+        } else {
+          throw Exception('Server error: ${response.statusCode}');
+        }
+      } catch (e) {
+        if (e.toString().contains('No internet connection')) {
+          rethrow;
+        }
+        if (currentAttempt >= maxAttempts) {
+          throw Exception(e.toString().replaceAll("Exception: ", ""));
+        }
+        await Future.delayed(const Duration(seconds: 1));
       }
-    } else {
-      throw Exception('Server error: ${response.statusCode}');
     }
+    throw Exception('Failed to load home data');
   }
 
   @override
   Future<List<CustomerModel>> fetchRecentCustomers({int? topRecords}) async {
-    String? retailerCode = await SessionManager.getRetailerCode();
-    if (retailerCode == null || retailerCode.isEmpty) {
-      await Future.delayed(const Duration(milliseconds: 400));
-      retailerCode = await SessionManager.getRetailerCode();
-    }
-
-    if (retailerCode == null || retailerCode.isEmpty) {
-      return [];
-    }
-
-    final queryParams = {
-      'retailerCode': retailerCode,
-      if (topRecords != null) 'topRecords': topRecords.toString(),
-    };
-
-    final uri = Uri.parse(ApiConstants.getRecentCustomers).replace(
-      queryParameters: queryParams,
-    );
-
     try {
-      final response = await client.get(
+      String? retailerCode = await SessionManager.getRetailerCode();
+      if (retailerCode == null || retailerCode.isEmpty) {
+        await Future.delayed(const Duration(milliseconds: 400));
+        retailerCode = await SessionManager.getRetailerCode();
+      }
+
+      if (retailerCode == null || retailerCode.isEmpty) {
+        return [];
+      }
+
+      final queryParams = {
+        'retailerCode': retailerCode,
+        if (topRecords != null) 'topRecords': topRecords.toString(),
+      };
+
+      final uri = Uri.parse(ApiConstants.getRecentCustomers).replace(
+        queryParameters: queryParams,
+      );
+
+      final response = await ApiClient.get(
         uri,
         headers: {'accept': '*/*'},
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final decodedData = jsonDecode(response.body);
@@ -81,14 +101,13 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           final dynamic rawData = decodedData['data'];
 
           if (rawData is List) {
-            return rawData.map((json) => CustomerModel.fromJson(json as Map<String, dynamic>)).toList();
+            return rawData
+                .map((json) => CustomerModel.fromJson(json as Map<String, dynamic>))
+                .toList();
           }
         }
-        return [];
-      } else {
-        print("Server returned status: ${response.statusCode}");
-        return [];
       }
+      return [];
     } catch (e) {
       print("Error fetching recent customers: $e");
       return [];

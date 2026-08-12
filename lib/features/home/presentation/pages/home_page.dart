@@ -14,7 +14,6 @@ import '../widgets/recent_customers_section.dart';
 import '../widgets/home_header.dart';
 import 'all_customers_screen.dart';
 
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -52,28 +51,42 @@ class _HomePageState extends State<HomePage> {
         builder: (context, state) {
           if (state is HomeLoadingState || state is HomeInitialState) {
             return const Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(color: Color(0xFF2563EB)),
             );
           }
 
           if (state is HomeErrorState) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.redAccent),
+                    const SizedBox(height: 12),
                     Text(
                       state.message,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red, fontSize: 14),
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                        fontFamily: 'Inter',
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                       onPressed: () {
                         context.read<HomeBloc>().add(LoadHomeDataEvent());
                       },
-                      child: const Text('Retry'),
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: const Text('Retry', style: TextStyle(fontFamily: 'Inter')),
                     ),
                   ],
                 ),
@@ -120,9 +133,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 60),
-
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
@@ -146,7 +157,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>  AllCustomersScreen(),
+                              builder: (context) => const AllCustomersScreen(),
                             ),
                           );
                         },
@@ -159,7 +170,7 @@ class _HomePageState extends State<HomePage> {
             );
           }
 
-          return const SizedBox();
+          return const SizedBox.shrink();
         },
       ),
     );

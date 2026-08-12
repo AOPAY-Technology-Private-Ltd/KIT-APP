@@ -13,6 +13,8 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
 
   Future<void> _onLoadHistory(
       LoadHistoryEvent event, Emitter<HistoryState> emit) async {
+    if (state is HistoryLoading) return;
+
     emit(HistoryLoading());
     try {
       final invoices = await getHistoryInvoices();

@@ -37,14 +37,14 @@ class ProfileInfoCard extends StatelessWidget {
                 Container(
                   width: 50,
                   height: 50,
-                  decoration: ShapeDecoration(
-                    image: DecorationImage(
-                      image: profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
-                          ? NetworkImage(profile.avatarUrl!)
-                          : const NetworkImage("https://placehold.co/50x50"),
-                      fit: BoxFit.cover,
-                    ),
-                    shape: const OvalBorder(),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.20),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.person,
+                    color: Colors.white,
+                    size: 28,
                   ),
                 ),
                 const SizedBox(width: 12),

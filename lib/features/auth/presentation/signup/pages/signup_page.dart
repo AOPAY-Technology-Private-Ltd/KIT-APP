@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logkit/features/auth/presentation/signup/pages/personal_details_page.dart';
 
@@ -280,19 +281,32 @@ class _SignupViewState extends State<SignupView> {
                                 },
                               ),
                               SizedBox(height: height * 0.008),
+
                               SignupTextField(
                                 label: "GST Number (Optional)",
                                 hint: "Enter GST Number (Optional)",
                                 requiredField: false,
                                 controller: gstNumberController,
+                                inputFormatters: [
+                                  LengthLimitingTextInputFormatter(15),
+                                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                                  TextInputFormatter.withFunction((oldValue, newValue) {
+                                    return newValue.copyWith(text: newValue.text.toUpperCase());
+                                  }),
+                                ],
                                 validator: (val) {
                                   val = val?.trim() ?? "";
                                   if (val.isEmpty) return null;
+
+                                  if (val.length != 15) {
+                                    return "GST number must be exactly 15 characters";
+                                  }
+
                                   final gstRegExp = RegExp(
                                     r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
                                   );
                                   if (!gstRegExp.hasMatch(val)) {
-                                    return "Please enter a valid 15-digit GST number";
+                                    return "Please enter a valid 15-digit GST format";
                                   }
                                   return null;
                                 },

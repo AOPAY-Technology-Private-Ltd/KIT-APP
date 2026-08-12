@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -35,18 +36,34 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
   @override
   void initState() {
     super.initState();
-    _imei1Controller.addListener(_updateState);
-    _imei2Controller.addListener(_updateState);
+    _imei1Controller.addListener(_onImeiChanged);
+    _imei2Controller.addListener(_onImeiChanged);
   }
 
-  void _updateState() {
+  void _onImeiChanged() {
+    _handleControllerValidation(_imei1Controller);
+    _handleControllerValidation(_imei2Controller);
     setState(() {});
+  }
+
+  void _handleControllerValidation(TextEditingController controller) {
+    String text = controller.text;
+    String filtered = text.replaceAll(RegExp(r'\D'), '');
+    if (filtered.length > 15) {
+      filtered = filtered.substring(0, 15);
+    }
+    if (filtered != text) {
+      controller.value = TextEditingValue(
+        text: filtered,
+        selection: TextSelection.collapsed(offset: filtered.length),
+      );
+    }
   }
 
   @override
   void dispose() {
-    _imei1Controller.removeListener(_updateState);
-    _imei2Controller.removeListener(_updateState);
+    _imei1Controller.removeListener(_onImeiChanged);
+    _imei2Controller.removeListener(_onImeiChanged);
     _imei1Controller.dispose();
     _imei2Controller.dispose();
     _textRecognizer.close();
@@ -54,9 +71,8 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
   }
 
   bool get _isFormValid {
-    return _imei1Controller.text.trim().isNotEmpty &&
-        _imei2Controller.text.trim().isNotEmpty &&
-        _imeiPhoto != null;
+    return _imei1Controller.text.trim().length == 15 &&
+        _imei2Controller.text.trim().length == 15;
   }
 
   Future<void> _pickImageFor(String type) async {
@@ -291,7 +307,9 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message), backgroundColor: Colors.green),
             );
-            context.go(RouteNames.customerList);
+
+            context.go(RouteNames.home, extra: {'initialIndex': 1});
+
           } else if (state is CustomerFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.error), backgroundColor: Colors.red),
@@ -324,10 +342,10 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
                               onPressed: _isProcessing ? null : _captureAndExtractImei,
                               icon: const Icon(Icons.camera_alt, size: 20),
                               label: Text(
-                                _imeiPhoto == null ? 'Capture Box Sticker * (Required)' : 'Box Sticker Captured ✓',
+                                _imeiPhoto == null ? 'Capture Box Sticker (Optional)' : 'Box Sticker Captured ✓',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
-                                  color: _imeiPhoto == null ? Colors.red.shade700 : Colors.green.shade700,
+                                  color: _imeiPhoto == null ? const Color(0xFF2563EB) : Colors.green.shade700,
                                 ),
                               ),
                             ),
@@ -405,11 +423,6 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
                                 ? () {
                               if (_formKey.currentState!.validate()) {
                                 final data = customerData ?? {};
-
-                                print('--- RECEIVED CUSTOMER DATA ---');
-                                print('First Name: ${data['firstName']}');
-                                print('PAN Number: ${data['panNumber']}');
-                                print('Full Map: $data');
 
                                 context.read<CustomerBloc>().add(
                                   ManageCustomerSubmitted(

@@ -1,3 +1,4 @@
+import '../../data/models/app_master_model.dart';
 import '../../domain/entities/customer_detail_entity.dart';
 
 abstract class CustomerDetailState {}
@@ -8,53 +9,57 @@ class CustomerDetailLoading extends CustomerDetailState {}
 
 class CustomerDetailLoaded extends CustomerDetailState {
   final CustomerDetailEntity customer;
+  final AppMasterModel appMaster;
   final int selectedTabIdx;
   final Map<String, bool> actionToggles;
   final Map<String, Map<String, bool>> selectedSubItems;
+  final Map<String, dynamic>? locationKitData;
 
   CustomerDetailLoaded({
     required this.customer,
+    required this.appMaster,
     this.selectedTabIdx = 0,
     Map<String, bool>? actionToggles,
     Map<String, Map<String, bool>>? selectedSubItems,
-  })  : actionToggles = actionToggles ?? {
-    'Social Apps': false,
-    'UPI Apps': false,
-    'Gaming Apps': true,
-    'Disable Call': false,
-    'Disable Settings': false,
-    'KIOSK Mode': false,
-    'Disable Camera': false,
-    'Reboot': false,
-    'Airplane Mode': false,
-    'App Hide': false,
-    'SIM Remove Lock': false,
-  },
-        selectedSubItems = selectedSubItems ?? {
-          'Social Apps': {'Whatsapp': false, 'Facebook': false, 'Instagram': false, 'Youtube': false, 'Snapchat': false, 'Linkedin': false},
-          'UPI Apps': {'Google Pay': false, 'PhonePe': false, 'Paytm': false, 'BHIM': false, 'Amazon Pay': false, 'Cred': false},
-          'Gaming Apps': {'PUBG Mobile': false, 'Free Fire': false, 'BGMI': false, 'Call of Duty': false, 'Ludo King': false, 'Subway Surfers': false},
-          'Disable Call': {'Incoming Calls': false, 'Outgoing Calls': false, 'International Calls': false, 'Roaming Calls': false},
-          'Disable Settings': {'App Settings': false, 'Network Settings': false, 'System Settings': false, 'Developer Options': false},
-          'KIOSK Mode': {'Single App Mode': false, 'Multi App Mode': false, 'Notification Bar Lock': false, 'Power Button Lock': false},
-          'Disable Camera': {'Front Camera': false, 'Rear Camera': false, 'Video Recording': false, 'QR Scanner': false},
-          'Reboot': {'Force Restart': false, 'Safe Mode Reboot': false, 'Remote Shutdown': false},
-          'Airplane Mode': {'Cellular Data': false, 'Wi-Fi': false, 'Bluetooth': false, 'GPS': false},
-          'App Hide': {'Banking Apps': false, 'Private Vault': false, 'Social Media Apps': false, 'Hidden Folders': false},
-          'SIM Remove Lock': {'SIM 1 Lock': false, 'SIM 2 Lock': false, 'E-SIM Lock': false, 'Network Lock': false},
-        };
+    this.locationKitData,
+  })  : actionToggles = actionToggles ?? _initActionToggles(appMaster),
+        selectedSubItems = selectedSubItems ?? _initSelectedSubItems(appMaster);
+
+  static Map<String, bool> _initActionToggles(AppMasterModel appMaster) {
+    Map<String, bool> toggles = {};
+    for (var cat in appMaster.categories) {
+      toggles[cat.actionName] = cat.check;
+    }
+    return toggles;
+  }
+
+  static Map<String, Map<String, bool>> _initSelectedSubItems(AppMasterModel appMaster) {
+    Map<String, Map<String, bool>> subItems = {};
+    for (var cat in appMaster.categories) {
+      Map<String, bool> subMap = {};
+      for (var sub in cat.subactionList) {
+        subMap[sub.subactionName] = sub.active;
+      }
+      subItems[cat.actionName] = subMap;
+    }
+    return subItems;
+  }
 
   CustomerDetailLoaded copyWith({
     CustomerDetailEntity? customer,
+    AppMasterModel? appMaster,
     int? selectedTabIdx,
     Map<String, bool>? actionToggles,
     Map<String, Map<String, bool>>? selectedSubItems,
+    Map<String, dynamic>? locationKitData,
   }) {
     return CustomerDetailLoaded(
       customer: customer ?? this.customer,
+      appMaster: appMaster ?? this.appMaster,
       selectedTabIdx: selectedTabIdx ?? this.selectedTabIdx,
       actionToggles: actionToggles ?? this.actionToggles,
       selectedSubItems: selectedSubItems ?? this.selectedSubItems,
+      locationKitData: locationKitData ?? this.locationKitData,
     );
   }
 }
@@ -67,5 +72,10 @@ class CustomerDetailError extends CustomerDetailState {
 class DeviceActionSuccessState extends CustomerDetailState {
   final bool isLocked;
   final String message;
-   DeviceActionSuccessState({required this.isLocked, required this.message});
+  DeviceActionSuccessState({required this.isLocked, required this.message});
+}
+
+class SaveDeviceActionSuccessState extends CustomerDetailState {
+  final String message;
+  SaveDeviceActionSuccessState({required this.message});
 }

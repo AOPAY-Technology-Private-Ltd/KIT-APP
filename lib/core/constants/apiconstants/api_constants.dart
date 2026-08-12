@@ -33,6 +33,15 @@ class ApiConstants {
 
   static const String getPurchaseHistory = '$mainBaseUrl/api/V1/AopayFinance/GetPurchaseHistory';
 
+  static const String getAppMaster = '$mainBaseUrl/api/notification/GetAppMaster';
+
+  static const String saveDeviceAction = '$mainBaseUrl/api/notification/SaveDeviceAction';
+
+  static const String sendDeviceNotification = '$mainBaseUrl/api/notification/SendDeviceNotification';
+
+
+
+
 
 
 

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:logkit/features/customer_detail/domain/entities/customer_detail_entity.dart';
-import 'package:logkit/features/customer_detail/presentation/bloc/customer_detail_bloc.dart';
-import 'package:logkit/features/customer_detail/presentation/bloc/customer_detail_event.dart';
-
-import '../../../../core/constants/routes/route_names.dart';
+import '../../domain/entities/customer_detail_entity.dart';
+import '../bloc/customer_detail_bloc.dart';
+import '../bloc/customer_detail_state.dart';
 
 class CustomerProfileCard extends StatefulWidget {
   final CustomerDetailEntity customer;
@@ -18,21 +16,553 @@ class CustomerProfileCard extends StatefulWidget {
 
 class _CustomerProfileCardState extends State<CustomerProfileCard> {
   late bool isLocked;
+  late bool isInactive;
+  late String displayStatus;
 
   @override
   void initState() {
     super.initState();
-    final status = widget.customer.status.toLowerCase();
-    isLocked = status == 'locked' || status == 'lock';
+    _updateStatus();
   }
 
-  void _showDeviceActionDialog({
-    required BuildContext context,
-    required bool isLockAction,
-    required VoidCallback onConfirm,
-  }) {
+  @override
+  void didUpdateWidget(covariant CustomerProfileCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _updateStatus();
+  }
+
+  void _updateStatus() {
+    final status = widget.customer.status.trim();
+    isLocked = status.toLowerCase() == 'locked' || status.toLowerCase() == 'lock';
+    isInactive = status.toLowerCase() == 'inactive';
+
+    if (status.toLowerCase() == 'approved') {
+      displayStatus = 'Approved';
+    } else if (isInactive) {
+      displayStatus = 'Inactive';
+    } else if (isLocked) {
+      displayStatus = 'Locked';
+    } else {
+      displayStatus = status.isNotEmpty ? status : 'Unlocked';
+    }
+  }
+
+  Color _getStatusColor() {
+    final lower = displayStatus.toLowerCase();
+    if (lower == 'approved') {
+      return const Color(0xFF0A7804);
+    } else if (lower == 'inactive') {
+      return const Color(0xFFF97316);
+    } else if (lower == 'locked') {
+      return const Color(0xFFDC2626);
+    } else {
+      return const Color(0xFF3B82F6);
+    }
+  }
+
+  void _showInactiveRestrictionDialog() {
     showDialog(
       context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFEE2E2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.error_outline,
+                      color: Color(0xFFDC2626),
+                      size: 32,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Action Restricted',
+                  style: TextStyle(
+                    color: Color(0xFF1E293B),
+                    fontSize: 20,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'This customer is currently inactive. You cannot perform any device actions until the status is updated.',
+                  style: TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 13,
+                    fontFamily: 'Inter',
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFDC2626),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLocationDetailsBottomSheet(BuildContext context) {
+    final bloc = context.read<CustomerDetailBloc>();
+    final state = bloc.state;
+
+    Map<String, dynamic> locationData = {};
+    if (state is CustomerDetailLoaded && state.locationKitData != null) {
+      locationData = state.locationKitData!;
+    } else if (bloc.latestLocationKitData != null) {
+      locationData = bloc.latestLocationKitData!;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (bottomSheetContext) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Latest Location Information',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Inter',
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(bottomSheetContext),
+                  ),
+                ],
+              ),
+              const Divider(),
+              const SizedBox(height: 12),
+              if (locationData.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24.0),
+                  child: Center(
+                    child: Text(
+                      'No location data available.',
+                      style: TextStyle(color: Colors.grey, fontFamily: 'Inter', fontSize: 14),
+                    ),
+                  ),
+                )
+              else
+                ...locationData.entries.map((entry) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${entry.key}: ',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Inter',
+                            color: Color(0xFF475569),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            '${entry.value}',
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLockFlowDialog({
+    required BuildContext parentContext,
+    required String customerCode,
+    required String notificationCode,
+  }) {
+    showDialog(
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        bool isPinStep = true;
+        bool isLoading = false;
+        String enteredPin = '';
+        final List<TextEditingController> controllers = List.generate(4, (_) => TextEditingController());
+        final List<FocusNode> focusNodes = List.generate(4, (_) => FocusNode());
+
+        return Dialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: StatefulBuilder(
+              builder: (innerContext, setInnerState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isPinStep) ...[
+                      const Text(
+                        'Set Customer Screen PIN',
+                        style: TextStyle(
+                          color: Color(0xFF1E293B),
+                          fontSize: 20,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Please enter a 4-digit PIN for the device',
+                        style: TextStyle(
+                          color: Color(0xFFDC2626),
+                          fontSize: 13,
+                          fontFamily: 'Inter',
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(4, (index) {
+                          return SizedBox(
+                            width: 50,
+                            height: 50,
+                            child: KeyboardListener(
+                              focusNode: FocusNode(),
+                              onKeyEvent: (event) {
+                                if (event is KeyDownEvent &&
+                                    event.logicalKey == LogicalKeyboardKey.backspace) {
+                                  if (controllers[index].text.isEmpty && index > 0) {
+                                    focusNodes[index - 1].requestFocus();
+                                    controllers[index - 1].clear();
+                                  }
+                                }
+                              },
+                              child: TextField(
+                                controller: controllers[index],
+                                focusNode: focusNodes[index],
+                                textAlign: TextAlign.center,
+                                keyboardType: TextInputType.number,
+                                maxLength: 1,
+                                obscureText: true,
+                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                decoration: InputDecoration(
+                                  counterText: '',
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+                                  ),
+                                ),
+                                onChanged: (value) {
+                                  if (value.isNotEmpty) {
+                                    if (index < 3) {
+                                      focusNodes[index + 1].requestFocus();
+                                    }
+                                  } else {
+                                    if (index > 0) {
+                                      focusNodes[index - 1].requestFocus();
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: isLoading ? null : () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                side: const BorderSide(color: Color(0xFFE2E8F0)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                backgroundColor: const Color(0xFFF8FAFC),
+                              ),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  color: Color(0xFF1E293B),
+                                  fontSize: 14,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () {
+                                String pin = controllers.map((c) => c.text).join();
+                                if (pin.length == 4) {
+                                  enteredPin = pin;
+
+                                  setInnerState(() {
+                                    isLoading = true;
+                                  });
+
+                                  parentContext.read<CustomerDetailBloc>().add(
+                                    SaveDeviceActionEvent(
+                                      customerCode: customerCode,
+                                      notificationCode: notificationCode,
+                                      actionStatus: true,
+                                      devicePin: enteredPin,
+                                      selectedApps: [
+                                        {
+                                          "packageName": notificationCode,
+                                          "actionStatus": true,
+                                        }
+                                      ],
+                                    ),
+                                  );
+
+                                  Future.delayed(const Duration(milliseconds: 500), () {
+                                    if (dialogContext.mounted) {
+                                      setInnerState(() {
+                                        isLoading = false;
+                                        isPinStep = false;
+                                      });
+                                    }
+                                  });
+                                } else {
+                                  ScaffoldMessenger.of(parentContext).showSnackBar(
+                                    const SnackBar(content: Text('Please enter complete 4-digit PIN')),
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2563EB),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: isLoading
+                                  ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                                  : const Text(
+                                'Next',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      SizedBox(
+                        width: 64,
+                        height: 64,
+                        child: Image.asset(
+                          'assets/images/lock.gif',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Lock this Device?',
+                        style: TextStyle(
+                          color: Color(0xFF1E293B),
+                          fontSize: 20,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'This Customer will loose full access to their phone immediately',
+                        style: TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 13,
+                          fontFamily: 'Inter',
+                          height: 1.4,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                side: const BorderSide(color: Color(0xFF2563EB)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  color: Color(0xFF2563EB),
+                                  fontSize: 14,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(dialogContext, rootNavigator: true).pop();
+
+                                showDialog(
+                                  context: parentContext,
+                                  barrierDismissible: false,
+                                  builder: (loadingContext) => const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFFEF4444),
+                                    ),
+                                  ),
+                                );
+
+                                Future.microtask(() {
+                                  parentContext.read<CustomerDetailBloc>().add(
+                                    SaveDeviceActionEvent(
+                                      customerCode: customerCode,
+                                      notificationCode: 'LOCK_DEVICE',
+                                      actionStatus: true,
+                                      devicePin: enteredPin,
+                                      selectedApps: [
+                                        {
+                                          "packageName": "LOCK_DEVICE",
+                                          "actionStatus": true,
+                                        }
+                                      ],
+                                    ),
+                                  );
+
+                                  parentContext.read<CustomerDetailBloc>().add(
+                                    LockDeviceEvent(widget.customer.id.toString()),
+                                  );
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFEF4444),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'Lock',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showUnlockActionDialog({
+    required BuildContext parentContext,
+    required String customerCode,
+    required String notificationCode,
+  }) {
+    showDialog(
+      context: parentContext,
+      barrierDismissible: true,
       builder: (dialogContext) {
         return Dialog(
           backgroundColor: Colors.white,
@@ -52,9 +582,9 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text(
-                  isLockAction ? 'Lock this Device?' : 'Unlock this Device?',
-                  style: const TextStyle(
+                const Text(
+                  'Unlock this Device?',
+                  style: TextStyle(
                     color: Color(0xFF1E293B),
                     fontSize: 20,
                     fontFamily: 'Inter',
@@ -63,11 +593,9 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  isLockAction
-                      ? 'This Customer will loose full access to their phone immediately'
-                      : 'This Customer will regain full access to their phone immediately',
-                  style: const TextStyle(
+                const Text(
+                  'This Customer will regain full access to their phone immediately',
+                  style: TextStyle(
                     color: Color(0xFF64748B),
                     fontSize: 13,
                     fontFamily: 'Inter',
@@ -80,7 +608,7 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => Navigator.pop(dialogContext),
+                        onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           side: const BorderSide(color: Color(0xFF2563EB)),
@@ -103,22 +631,49 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pop(dialogContext);
-                          onConfirm();
+                          Navigator.of(dialogContext, rootNavigator: true).pop();
+
+                          showDialog(
+                            context: parentContext,
+                            barrierDismissible: false,
+                            builder: (loadingContext) => const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF00B22D),
+                              ),
+                            ),
+                          );
+
+                          Future.microtask(() {
+                            parentContext.read<CustomerDetailBloc>().add(
+                              SaveDeviceActionEvent(
+                                customerCode: customerCode,
+                                notificationCode: notificationCode,
+                                actionStatus: true,
+                                selectedApps: [
+                                  {
+                                    "packageName": notificationCode,
+                                    "actionStatus": true,
+                                  }
+                                ],
+                              ),
+                            );
+
+                            parentContext.read<CustomerDetailBloc>().add(
+                              UnlockDeviceEvent(widget.customer.id.toString()),
+                            );
+                          });
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: isLockAction
-                              ? const Color(0xFFEF4444)
-                              : const Color(0xFF00B22D),
+                          backgroundColor: const Color(0xFF00B22D),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(
-                          isLockAction ? 'Lock' : 'Unlock',
-                          style: const TextStyle(
+                        child: const Text(
+                          'Unlock',
+                          style: TextStyle(
                             color: Colors.white,
                             fontSize: 14,
                             fontFamily: 'Inter',
@@ -134,6 +689,17 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCardIcon(IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, color: Colors.white, size: 20),
     );
   }
 
@@ -197,13 +763,13 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                             children: [
                               CircleAvatar(
                                 radius: 3,
-                                backgroundColor: isLocked ? const Color(0xFFDC2626) : const Color(0xFF0A7804),
+                                backgroundColor: _getStatusColor(),
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                isLocked ? 'Locked' : 'Unlocked',
+                                displayStatus,
                                 style: TextStyle(
-                                  color: isLocked ? const Color(0xFFDC2626) : const Color(0xFF0A7804),
+                                  color: _getStatusColor(),
                                   fontSize: 8,
                                   fontFamily: 'Inter',
                                   fontWeight: FontWeight.w500,
@@ -214,9 +780,7 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 4),
-
                     Text(
                       widget.customer.customerCode,
                       style: const TextStyle(
@@ -226,21 +790,6 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                         fontWeight: FontWeight.w400,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //   children: [
-                    //     Text('EMI : ₹${widget.customer.emiAmount}',
-                    //         style: const TextStyle(
-                    //           color: Colors.white,
-                    //           fontSize: 10,
-                    //           fontFamily: 'Inter',
-                    //           fontWeight: FontWeight.w400,
-                    //         )),
-                    //     Text('EMI Date : ${widget.customer.emiDate}',
-                    //         style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
-                    //   ],
-                    // ),
                   ],
                 ),
               ),
@@ -252,9 +801,21 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
             children: [
               Row(
                 children: [
-                  _buildCardIcon(Icons.location_on_outlined),
+                  GestureDetector(
+                    onTap: () {
+                      if (isInactive) {
+                        _showInactiveRestrictionDialog();
+                      } else {
+                        _showLocationDetailsBottomSheet(context);
+                      }
+                    },
+                    child: _buildCardIcon(Icons.location_on_outlined),
+                  ),
                   const SizedBox(width: 12),
-                  _buildCardIcon(Icons.notifications_active_outlined),
+                  GestureDetector(
+                    onTap: isInactive ? _showInactiveRestrictionDialog : null,
+                    child: _buildCardIcon(Icons.notifications_active_outlined),
+                  ),
                 ],
               ),
               CustomPaint(
@@ -273,36 +834,24 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          _showDeviceActionDialog(
-                            context: context,
-                            isLockAction: false,
-                            onConfirm: () {
-                              context.read<CustomerDetailBloc>().add(
-                                UnlockDeviceEvent(widget.customer.id.toString()),
-                              );
-
-                              context.push(
-                                RouteNames.deviceStatusSuccess,
-                                extra: {
-                                  'isLocked': false,
-                                  'customerName': widget.customer.name,
-                                  'deviceName': 'Redmi Note 13',
-                                  'reason': 'EMI Paid',
-                                  'time': 'Today, 9:42 AM',
-                                  'actionBy': 'Retailer',
-                                },
-                              );
-                            },
-                          );
+                          if (isInactive) {
+                            _showInactiveRestrictionDialog();
+                          } else {
+                            _showUnlockActionDialog(
+                              parentContext: context,
+                              customerCode: widget.customer.customerCode,
+                              notificationCode: 'UNLOCK_DEVICE',
+                            );
+                          }
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           decoration: ShapeDecoration(
-                            color: !isLocked ? Colors.white : Colors.transparent,
+                            color: !isLocked && !isInactive ? Colors.white : Colors.transparent,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(40),
                             ),
-                            shadows: !isLocked
+                            shadows: !isLocked && !isInactive
                                 ? [
                               const BoxShadow(
                                 color: Color(0x66000000),
@@ -321,13 +870,13 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                               Icon(
                                 Icons.lock_open,
                                 size: 10,
-                                color: !isLocked ? const Color(0xFF3B82F6) : Colors.white,
+                                color: (!isLocked && !isInactive) ? const Color(0xFF3B82F6) : Colors.white70,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 'Unlock',
                                 style: TextStyle(
-                                  color: !isLocked ? const Color(0xFF3B82F6) : Colors.white,
+                                  color: (!isLocked && !isInactive) ? const Color(0xFF3B82F6) : Colors.white70,
                                   fontSize: 8,
                                   fontFamily: 'Inter',
                                   fontWeight: FontWeight.w500,
@@ -341,36 +890,24 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                       const SizedBox(width: 2),
                       GestureDetector(
                         onTap: () {
-                          _showDeviceActionDialog(
-                            context: context,
-                            isLockAction: true,
-                            onConfirm: () {
-                              context.read<CustomerDetailBloc>().add(
-                                LockDeviceEvent(widget.customer.id.toString()),
-                              );
-
-                              context.push(
-                                RouteNames.deviceStatusSuccess,
-                                extra: {
-                                  'isLocked': true,
-                                  'customerName': widget.customer.name,
-                                  'deviceName': 'Redmi Note 13',
-                                  'reason': 'EMI Overdue',
-                                  'time': 'Today, 9:42 AM',
-                                  'actionBy': 'Retailer',
-                                },
-                              );
-                            },
-                          );
+                          if (isInactive) {
+                            _showInactiveRestrictionDialog();
+                          } else {
+                            _showLockFlowDialog(
+                              parentContext: context,
+                              customerCode: widget.customer.customerCode,
+                              notificationCode: 'DEVICE_PIN',
+                            );
+                          }
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           decoration: ShapeDecoration(
-                            color: isLocked ? const Color(0xFFDC2626) : Colors.transparent,
+                            color: (isLocked && !isInactive) ? const Color(0xFFDC2626) : Colors.transparent,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(40),
                             ),
-                            shadows: isLocked
+                            shadows: (isLocked && !isInactive)
                                 ? [
                               const BoxShadow(
                                 color: Color(0xBF000000),
@@ -386,16 +923,16 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.lock,
                                 size: 10,
-                                color: Colors.white,
+                                color: isInactive ? Colors.white70 : Colors.white,
                               ),
                               const SizedBox(width: 4),
-                              const Text(
+                              Text(
                                 'Lock',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: isInactive ? Colors.white70 : Colors.white,
                                   fontSize: 8,
                                   fontFamily: 'Inter',
                                   fontWeight: FontWeight.w500,
@@ -413,27 +950,6 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCardIcon(IconData icon) {
-    return CustomPaint(
-      painter: const GlassBorderPainter(borderRadius: 50),
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withValues(alpha: 0.24),
-        ),
-        child: Center(
-          child: Icon(
-            icon,
-            color: Colors.white,
-            size: 18,
-          ),
-        ),
       ),
     );
   }

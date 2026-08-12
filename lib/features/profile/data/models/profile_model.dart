@@ -11,11 +11,15 @@ class ProfileModel extends ProfileEntity {
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
+    String fName = json['firstName'] ?? '';
+    String lName = json['lastName'] ?? '';
+    String fullName = '$fName $lName'.trim();
+
     return ProfileModel(
-      name: json['name'] ?? '',
-      phone: json['phone'] ?? '',
-      email: json['email'] ?? '',
-      avatarUrl: json['avatarUrl'] ?? '',
+      name: fullName.isNotEmpty ? fullName : 'User',
+      phone: json['mobileNo'] ?? '',
+      email: json['emailID'] ?? '',
+      avatarUrl: json['avatarUrl'] ?? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330',
       kitBalance: json['kitBalance'] ?? 0,
       totalKits: json['totalKits'] ?? 0,
     );

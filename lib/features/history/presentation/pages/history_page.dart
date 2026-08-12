@@ -195,17 +195,40 @@ class _HistoryPageState extends State<HistoryPage> {
                       }).toList(),
                     );
                   } else if (state is HistoryError) {
+                    // 🔥 Internet / Error State with Retry Button
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),
-                        child: Text(
-                          state.message,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontFamily: 'Inter',
-                            color: Colors.red,
-                            fontSize: 13,
-                          ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.redAccent),
+                            const SizedBox(height: 12),
+                            Text(
+                              state.message,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 14,
+                                fontFamily: 'Inter',
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2563EB),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: () {
+                                context.read<HistoryBloc>().add(LoadHistoryEvent());
+                              },
+                              icon: const Icon(Icons.refresh, size: 16),
+                              label: const Text('Retry', style: TextStyle(fontFamily: 'Inter')),
+                            ),
+                          ],
                         ),
                       ),
                     );

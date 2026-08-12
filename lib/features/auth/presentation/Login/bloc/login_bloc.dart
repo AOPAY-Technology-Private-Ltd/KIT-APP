@@ -46,7 +46,17 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         ),
       );
     } catch (e) {
-      String errorMessage = e.toString().replaceAll("Exception: ", "");
+      String rawError = e.toString().replaceAll("Exception: ", "");
+
+      String errorMessage;
+      if (rawError.contains('No internet connection') ||
+          rawError.contains('SocketException') ||
+          rawError.contains('Failed host lookup')) {
+        errorMessage = 'No internet connection. Please check your network settings.';
+      } else {
+        errorMessage = rawError;
+      }
+
       emit(LoginFailure(error: errorMessage));
     }
   }

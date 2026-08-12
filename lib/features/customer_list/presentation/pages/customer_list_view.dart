@@ -34,6 +34,12 @@ class _CustomerListContentState extends State<CustomerListContent> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    context.read<CustomerListBloc>().add(FetchCustomerListEvent());
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -49,7 +55,6 @@ class _CustomerListContentState extends State<CustomerListContent> {
           child: Column(
             children: [
               const SizedBox(height: 16),
-
               CustomHeader(
                 title: 'Customer List',
                 showBackButton: false,
@@ -64,7 +69,6 @@ class _CustomerListContentState extends State<CustomerListContent> {
                 },
               ),
               const SizedBox(height: 18),
-
               if (_isSearching) ...[
                 TextField(
                   controller: _searchController,
@@ -106,7 +110,6 @@ class _CustomerListContentState extends State<CustomerListContent> {
                 ),
                 const SizedBox(height: 14),
               ],
-
               BlocBuilder<CustomerListBloc, CustomerListState>(
                 builder: (context, state) {
                   CustomerTabType currentTab = CustomerTabType.all;
@@ -121,9 +124,7 @@ class _CustomerListContentState extends State<CustomerListContent> {
                   );
                 },
               ),
-
               const SizedBox(height: 16),
-
               Expanded(
                 child: BlocBuilder<CustomerListBloc, CustomerListState>(
                   builder: (context, state) {
@@ -133,17 +134,58 @@ class _CustomerListContentState extends State<CustomerListContent> {
                       if (state.displayedCustomers.isEmpty) {
                         return _buildEmptyState();
                       }
-                      return ListView.separated(
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: state.displayedCustomers.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 16),
-                        itemBuilder: (context, index) {
-                          final customer = state.displayedCustomers[index];
-                          return CustomerCardItem(customer: customer);
+                      return RefreshIndicator(
+                        color: const Color(0xFF2563EB),
+                        onRefresh: () async {
+                          context.read<CustomerListBloc>().add(FetchCustomerListEvent());
                         },
+                        child: ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                          itemCount: state.displayedCustomers.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 16),
+                          itemBuilder: (context, index) {
+                            final customer = state.displayedCustomers[index];
+                            return CustomerCardItem(customer: customer);
+                          },
+                        ),
                       );
                     } else if (state is CustomerListError) {
-                      return Center(child: Text(state.message));
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.redAccent),
+                              const SizedBox(height: 12),
+                              Text(
+                                state.message,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 14,
+                                  fontFamily: 'Inter',
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF2563EB),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  context.read<CustomerListBloc>().add(FetchCustomerListEvent());
+                                },
+                                icon: const Icon(Icons.refresh, size: 16),
+                                label: const Text('Retry', style: TextStyle(fontFamily: 'Inter')),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     }
                     return const SizedBox.shrink();
                   },
@@ -193,7 +235,6 @@ class _CustomerListContentState extends State<CustomerListContent> {
                 color: Colors.black54,
                 fontSize: 12,
                 fontFamily: 'Inter',
-                fontWeight: FontWeight.w400,
               ),
             ),
           ],

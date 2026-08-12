@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:bloc/bloc.dart';
 import '../../../../core/services/session_manager.dart';
 import '../../data/models/plan_model.dart';
@@ -47,10 +48,21 @@ class BuyKitsBloc extends Bloc<BuyKitsEvent, BuyKitsState> {
           totalAmount: totalAmount,
         ));
       } else {
-        emit(state.copyWith(isLoading: false));
+        emit(state.copyWith(
+          isLoading: false,
+          plans: [],
+          paymentMethods: [],
+          selectedPlan: null,
+          selectedPaymentMethodId: '',
+        ));
       }
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(
+        isLoading: false,
+        plans: [],
+        paymentMethods: [],
+        errorMessage: e.toString(),
+      ));
     }
   }
 

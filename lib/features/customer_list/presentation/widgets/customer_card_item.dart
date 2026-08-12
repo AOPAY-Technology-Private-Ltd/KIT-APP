@@ -12,6 +12,18 @@ class CustomerCardItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
+        if (customer.mobile.trim().isEmpty) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Mobile number is not available for this customer'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return;
+        }
+
         context.push('${RouteNames.customerDetails}/${customer.mobile}');
       },
       borderRadius: BorderRadius.circular(10),
@@ -148,13 +160,6 @@ class CustomerCardItem extends StatelessWidget {
                   const SizedBox(height: 6),
                   _buildInfoRow('Serial Number', customer.serialNumber),
                   const SizedBox(height: 6),
-                  // _buildInfoRow('Purchase Date', customer.purchaseDate),
-                  // const SizedBox(height: 6),
-                  // _buildInfoRow(
-                  //   'Schedule Lock Status',
-                  //   customer.scheduleLockStatus,
-                  //   isStatus: true,
-                  // ),
                 ],
               ),
             ),

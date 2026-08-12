@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../../../../core/constants/apiconstants/api_constants.dart';
+import '../../../../core/helper/api_client.dart';
 import '../../../../core/services/session_manager.dart';
 import '../../domain/entities/entities.dart';
 import '../models/login_response_model.dart';
@@ -35,39 +36,66 @@ abstract class AuthRemoteDatasource {
 }
 
 class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
+
+  bool _isSendingOtp = false;
+
   @override
   Future<LoginResponseModel> sendOtp(String mobileOrEmailID) async {
-    final uri = Uri.parse(ApiConstants.sendOtp);
+    if (_isSendingOtp) {
+      return LoginResponseModel(message: "OTP already sending...");
+    }
+    _isSendingOtp = true;
 
-    final requestBody = {
-      "mobileOrEmailID": mobileOrEmailID,
-      "otP_Type": "Retailer",
-    };
+    try {
+      final uri = Uri.parse(ApiConstants.sendOtp);
 
-    print('--- SEND OTP REQUEST ---');
-    print('URL: $uri');
-    print('Request Body: ${jsonEncode(requestBody)}');
+      final requestBody = {
+        "mobileOrEmailID": mobileOrEmailID,
+        "otP_Type": "Retailer",
+      };
 
-    final response = await http.post(
-      uri,
-      headers: {
-        'accept': '*/*',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(requestBody),
-    );
+      print('--- SEND OTP REQUEST ---');
+      print('URL: $uri');
+      print('Request Body: ${jsonEncode(requestBody)}');
 
-    print('--- SEND OTP RESPONSE ---');
-    print('Status Code: ${response.statusCode}');
-    print('Response Body: ${response.body}');
+      final response = await http.post(
+        uri,
+        headers: {
+          'accept': '*/*',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestBody),
+      );
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return LoginResponseModel(message: "OTP Sent Successfully");
-    } else {
-      throw Exception("Failed to send OTP: ${response.body}");
+      print('--- SEND OTP RESPONSE ---');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+
+        final String backendOtp = responseData['value']?.toString() ?? "1234";
+
+        if (mobileOrEmailID.length == 10) {
+          await sendSmsForVerifyMob(
+            mobnumber: mobileOrEmailID,
+            customerName: "User",
+            otp: backendOtp,
+          );
+        }
+
+        return LoginResponseModel(
+          message: responseData['message'] ?? "OTP Sent Successfully",
+        );
+      } else {
+        throw Exception("Failed to send OTP: ${response.body}");
+      }
+    } finally {
+      // Kaam khatam hone par lock khol dein (thoda delay dekar taaki double tap bach sake)
+      await Future.delayed(const Duration(seconds: 2));
+      _isSendingOtp = false;
     }
   }
-
   @override
   Future<LoginResponseModel> login({
     required String mobileOrEmailID,
@@ -109,7 +137,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     print('URL: $uri');
     print('Request Body: ${jsonEncode(requestBody)}');
 
-    final response = await http.post(
+    final response = await ApiClient.post(
       uri,
       headers: {
         'accept': '*/*',
@@ -125,7 +153,8 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     if (response.statusCode == 200 || response.statusCode == 201) {
       final responseData = jsonDecode(response.body);
 
-      if (responseData['statuss'] == 'False' || responseData['statuss'] == false) {
+      if (responseData['statuss'] == 'False' ||
+          responseData['statuss'] == false) {
         throw Exception(responseData['message'] ?? 'Login failed.');
       }
 
@@ -153,7 +182,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     print('URL: $uri');
     print('Request Body: ${jsonEncode(requestModel.toJson())}');
 
-    final response = await http.post(
+    final response = await ApiClient.post(
       uri,
       headers: {
         'accept': '*/*',
@@ -169,7 +198,8 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     if (response.statusCode == 200 || response.statusCode == 201) {
       final responseData = jsonDecode(response.body);
 
-      if (responseData['statuss'] == 'False' || responseData['statuss'] == false) {
+      if (responseData['statuss'] == 'False' ||
+          responseData['statuss'] == false) {
         throw Exception(responseData['message'] ?? 'Incorrect OTP.');
       }
 
@@ -203,7 +233,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     print('--- SEND SMS API REQUEST ---');
     print('URL: $uri');
 
-    final response = await http.get(uri);
+    final response = await ApiClient.get(uri);
 
     print('--- SEND SMS API RESPONSE ---');
     print('Status Code: ${response.statusCode}');
@@ -230,7 +260,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     print('URL: $uri');
     print('Request Body: ${jsonEncode(requestBody)}');
 
-    final response = await http.post(
+    final response = await ApiClient.post(
       uri,
       headers: {
         'accept': '*/*',
@@ -255,11 +285,14 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
       final loginResponse = LoginResponseModel.fromJson(responseData);
 
-      if (loginResponse.retailerCode != null && loginResponse.retailerCode!.isNotEmpty) {
+      if (loginResponse.retailerCode != null &&
+          loginResponse.retailerCode!.isNotEmpty) {
         await SessionManager.createSession(
           retailerCode: loginResponse.retailerCode!,
           mobileNo: loginResponse.mobileNo ?? mobileOrEmail,
+          emailID: loginResponse.emailID ?? '',
           firstName: loginResponse.firstName,
+          lastName: loginResponse.lastName,
         );
       }
 
@@ -268,6 +301,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       throw Exception("Failed to verify OTP: ${response.body}");
     }
   }
+
   @override
   Future<LoginResponseModel> signup(SignupRequestModel request) async {
     final uri = Uri.parse(ApiConstants.signup);
@@ -308,13 +342,20 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       }
     }
 
-    await addFileIfNotNull('Profile_Photo_FileName', request.profilePhotoFileName);
-    await addFileIfNotNull('Adhaar_front_photo_FileName', request.adhaarFrontPhotoFileName);
-    await addFileIfNotNull('Adhaar_back_Photo_FileName', request.adhaarBackPhotoFileName);
-    await addFileIfNotNull('PanCard_fornt_Photo_FileName', request.panCardFrontPhotoFileName);
-    await addFileIfNotNull('cancle_cheque_Photo_FileName', request.cancleChequePhotoFileName);
-    await addFileIfNotNull('store_front_Photo_FileName', request.storefrontPhotoFileName);
-    await addFileIfNotNull('company_doc_Photo_FileName', request.companyDocPhotoFileName);
+    await addFileIfNotNull(
+        'Profile_Photo_FileName', request.profilePhotoFileName);
+    await addFileIfNotNull(
+        'Adhaar_front_photo_FileName', request.adhaarFrontPhotoFileName);
+    await addFileIfNotNull(
+        'Adhaar_back_Photo_FileName', request.adhaarBackPhotoFileName);
+    await addFileIfNotNull(
+        'PanCard_fornt_Photo_FileName', request.panCardFrontPhotoFileName);
+    await addFileIfNotNull(
+        'cancle_cheque_Photo_FileName', request.cancleChequePhotoFileName);
+    await addFileIfNotNull(
+        'store_front_Photo_FileName', request.storefrontPhotoFileName);
+    await addFileIfNotNull(
+        'company_doc_Photo_FileName', request.companyDocPhotoFileName);
 
     print("----- SIGNUP REQUEST -----");
     print(requestMultipart.fields);
@@ -329,34 +370,39 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     if (response.statusCode == 200 || response.statusCode == 201) {
       final body = jsonDecode(response.body);
 
-      if (body['statuss'] == "False" || body['statuss'] == false) {
-        throw Exception(body['message'] ?? "Signup failed");
+      final statusValue = body['statuss']?.toString().toLowerCase() ?? "";
+      final customerCode = body['customerCode'];
+      final message = body['message'] ?? "Signup failed";
+
+      final bool isFailedStatus = statusValue == "false" ||
+          (statusValue != "200" && statusValue != "true" &&
+              statusValue.isNotEmpty);
+
+      if (isFailedStatus || customerCode == null || customerCode
+          .toString()
+          .isEmpty) {
+        throw Exception(message);
       }
 
-      final customerCode = body['customerCode'];
       final mobileNumber = body['mobileNumber'] ?? request.mobileNumber;
       final firstName = body['firstName'] ?? request.firstName;
+      final emailID = body['emailID'] ?? request.emailID;
 
-      if (customerCode != null && customerCode.toString().isNotEmpty) {
-        await SessionManager.createSession(
-          retailerCode: customerCode,
-          mobileNo: mobileNumber,
-          firstName: firstName,
-        );
-      }
-      // ------------------------------------
+      await SessionManager.createSession(
+        retailerCode: customerCode.toString(),
+        mobileNo: mobileNumber,
+        emailID: emailID,
+        firstName: firstName,
+      );
 
       return LoginResponseModel(
-        message: body['message'] ?? "Account Created Successfully",
+        message: message,
       );
-    }
-
-    else {
+    } else {
       throw Exception("Server Error ${response.statusCode}: ${response.body}");
     }
-  }}
-
-
+  }
+}
 
 class ConstantClass {
   static const String smsApiKey = "KBSxc26XqjoiR7SA";

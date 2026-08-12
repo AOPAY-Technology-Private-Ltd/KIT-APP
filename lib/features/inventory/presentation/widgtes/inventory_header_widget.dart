@@ -184,7 +184,6 @@ class _InventoryHeaderWidgetState extends State<InventoryHeaderWidget> {
               _isSearching = false;
               _searchController.clear();
             });
-            // Search band hone par query reset kar rahe hain
             BlocProvider.of<InventoryBloc>(context).add(SearchInventoryEvent(''));
           },
         ),

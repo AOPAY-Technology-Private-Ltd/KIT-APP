@@ -11,7 +11,7 @@ import '../../../features/auth/presentation/verifyotp/bloc/otp_bloc.dart';
 import '../../../features/auth/presentation/verifyotp/pages/otp_verification_view.dart';
 import '../../../features/create_customer/presentation/bloc/customer_bloc.dart';
 import '../../../features/create_customer/presentation/pages/create_customer_view.dart';
-import '../../../features/create_customer/presentation/pages/customer_info_view.dart' hide CreateCustomerView;
+import '../../../features/create_customer/presentation/pages/customer_info_view.dart';
 import '../../../features/create_customer/presentation/pages/imei_number_view.dart';
 import '../../../features/customer_detail/presentation/pages/customer_information_view.dart';
 import '../../../features/customer_detail/presentation/widgets/device_status_success_view.dart';
@@ -36,6 +36,7 @@ import '../../../features/profile/presentation/bloc/profile_bloc.dart';
 import '../../../features/profile/presentation/bloc/profile_event.dart';
 import '../../../features/profile/presentation/pages/profile_screen.dart';
 import '../../../features/splash/presentation/pages/splash_page.dart';
+
 import '../../di/injection.dart';
 import 'route_names.dart';
 
@@ -143,7 +144,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: RouteNames.createCustomer,
       builder: (context, state) {
-        return  CreateCustomerView();
+        return CreateCustomerView();
       },
     ),
 
@@ -188,7 +189,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         return BlocProvider(
           create: (_) => sl<InventoryBloc>(),
-          child:  InventoryScreen(),
+          child: InventoryScreen(),
         );
       },
     ),
@@ -198,7 +199,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         return BlocProvider(
           create: (_) => sl<BuyKitsBloc>(),
-          child:  BuyKitsScreen(),
+          child: BuyKitsScreen(),
         );
       },
     ),
@@ -227,7 +228,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         return BlocProvider(
           create: (_) => sl<NotificationBloc>()..add(FetchNotificationsEvent()),
-          child:  NotificationView(),
+          child: NotificationView(),
         );
       },
     ),

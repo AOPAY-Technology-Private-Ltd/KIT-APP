@@ -6,16 +6,20 @@ class SessionManager {
   static const String _keyMobileNo = 'mobile_no';
   static const String _keyFirstName = 'first_name';
   static const String _keyLastName = 'last_name';
+  static const String _keyEmailID = 'email_id';
 
   static Future<void> createSession({
     required String retailerCode,
     required String mobileNo,
+    required String emailID,
     String? firstName,
     String? lastName,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyRetailerCode, retailerCode);
     await prefs.setString(_keyMobileNo, mobileNo);
+    await prefs.setString(_keyEmailID, emailID);
+
     if (firstName != null) {
       await prefs.setString(_keyFirstName, firstName);
     }
@@ -45,12 +49,23 @@ class SessionManager {
     return prefs.getString(_keyLastName);
   }
 
+  static Future<String?> getMobileNo() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyMobileNo);
+  }
+
+  static Future<String?> getEmailID() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyEmailID);
+  }
+
   static Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyRetailerCode);
     await prefs.remove(_keyMobileNo);
     await prefs.remove(_keyFirstName);
     await prefs.remove(_keyLastName);
+    await prefs.remove(_keyEmailID);
     await prefs.setBool(_keyIsLoggedIn, false);
   }
 }

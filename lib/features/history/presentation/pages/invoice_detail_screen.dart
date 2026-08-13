@@ -24,38 +24,6 @@ class InvoiceDetailScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF2563EB),
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.download_rounded),
-            tooltip: 'Download Invoice',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Downloading invoice ${invoice.invoiceNumber}...'),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: const Color(0xFF2563EB),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-              print("🔥 DOWNLOAD FROM APPBAR: ${invoice.invoiceNumber}");
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.print_rounded),
-            tooltip: 'Print Invoice',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Preparing print for ${invoice.invoiceNumber}...'),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: const Color(0xFF2563EB),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-              print("🔥 PRINT FROM APPBAR: ${invoice.invoiceNumber}");
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -65,6 +33,7 @@ class InvoiceDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Top Header Card
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -86,7 +55,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'Order Invoice',
+                            'Invoice No',
                             style: TextStyle(
                               fontSize: 14,
                               color: Color(0xFF64748B),
@@ -101,7 +70,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              invoice.sectionCategory,
+                              invoice.paymentStatus,
                               style: const TextStyle(
                                 color: Colors.green,
                                 fontSize: 11,
@@ -137,6 +106,7 @@ class InvoiceDetailScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
+                // Item Details
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -155,7 +125,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Item Details',
+                        'Remarks / Details',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -190,9 +160,9 @@ class InvoiceDetailScreen extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                const Text(
-                                  'Standard Package / Kit',
-                                  style: TextStyle(
+                                Text(
+                                  'Payment Mode: ${invoice.paymentMode} | Txn: ${invoice.transactionNo}',
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: Color(0xFF64748B),
                                     fontFamily: 'Inter',
@@ -209,6 +179,7 @@ class InvoiceDetailScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
+                // Payment Summary with GST
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -239,16 +210,16 @@ class InvoiceDetailScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Item Total', style: TextStyle(color: Color(0xFF64748B), fontSize: 13, fontFamily: 'Inter')),
-                          Text('₹${invoice.amount.toStringAsFixed(0)}', style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13, fontWeight: FontWeight.w500, fontFamily: 'Inter')),
+                          const Text('Plan Amount', style: TextStyle(color: Color(0xFF64748B), fontSize: 13, fontFamily: 'Inter')),
+                          Text('₹${invoice.planAmount.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13, fontWeight: FontWeight.w500, fontFamily: 'Inter')),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Delivery / Taxes', style: TextStyle(color: Color(0xFF64748B), fontSize: 13, fontFamily: 'Inter')),
-                          Text('₹0', style: TextStyle(color: Color(0xFF1E293B), fontSize: 13, fontWeight: FontWeight.w500, fontFamily: 'Inter')),
+                          const Text('GST Amount', style: TextStyle(color: Color(0xFF64748B), fontSize: 13, fontFamily: 'Inter')),
+                          Text('₹${invoice.gstAmount.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13, fontWeight: FontWeight.w500, fontFamily: 'Inter')),
                         ],
                       ),
                       const Divider(height: 20, thickness: 1),
@@ -256,11 +227,11 @@ class InvoiceDetailScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'Grand Total',
+                            'Net Amount',
                             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontFamily: 'Inter'),
                           ),
                           Text(
-                            '₹${invoice.amount.toStringAsFixed(0)}',
+                            '₹${invoice.amount.toStringAsFixed(2)}',
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green, fontFamily: 'Inter'),
                           ),
                         ],
@@ -271,83 +242,6 @@ class InvoiceDetailScreen extends StatelessWidget {
                 const SizedBox(height: 24),
               ],
             ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Preparing print for ${invoice.invoiceNumber}...'),
-                        duration: const Duration(seconds: 2),
-                        backgroundColor: const Color(0xFF2563EB),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                    print("🔥 PRINT CLICKED: ${invoice.invoiceNumber}");
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF2563EB),
-                    side: const BorderSide(color: Color(0xFF2563EB)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(Icons.print_rounded, size: 18),
-                  label: const Text(
-                    'Print',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, fontFamily: 'Inter'),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Downloading invoice ${invoice.invoiceNumber}...'),
-                        duration: const Duration(seconds: 2),
-                        backgroundColor: const Color(0xFF2563EB),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                    print("🔥 DOWNLOAD CLICKED: ${invoice.invoiceNumber}");
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  icon: const Icon(Icons.download_rounded, size: 18),
-                  label: const Text(
-                    'Download',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, fontFamily: 'Inter'),
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
       ),

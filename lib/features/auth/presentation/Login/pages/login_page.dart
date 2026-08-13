@@ -36,6 +36,24 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
+  void _showLoader(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF2563EB),
+        ),
+      ),
+    );
+  }
+
+  void _hideLoader(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -48,6 +66,12 @@ class _LoginViewState extends State<LoginView> {
       backgroundColor: Colors.transparent,
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
+          if (state is LoginLoading) {
+            _showLoader(context);
+          } else {
+            _hideLoader(context);
+          }
+
           if (state is LoginFailure) {
             setState(() {
               errorMessage = state.error;

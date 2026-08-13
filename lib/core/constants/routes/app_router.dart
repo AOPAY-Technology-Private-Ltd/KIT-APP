@@ -37,6 +37,9 @@ import '../../../features/profile/presentation/bloc/profile_event.dart';
 import '../../../features/profile/presentation/pages/profile_screen.dart';
 import '../../../features/splash/presentation/pages/splash_page.dart';
 
+import '../../../features/support_screen/presentation/bloc/support_bloc.dart';
+import '../../../features/support_screen/presentation/bloc/support_event.dart';
+import '../../../features/support_screen/presentation/pages/support_screen.dart';
 import '../../di/injection.dart';
 import 'route_names.dart';
 
@@ -229,6 +232,16 @@ final GoRouter appRouter = GoRouter(
         return BlocProvider(
           create: (_) => sl<NotificationBloc>()..add(FetchNotificationsEvent()),
           child: NotificationView(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.support,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<SupportBloc>()..add(LoadSupportDataEvent()),
+          child: const SupportScreen(),
         );
       },
     ),

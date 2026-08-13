@@ -76,27 +76,27 @@ class ProfileScreen extends StatelessWidget {
                           onTap: () {},
                         ),
                         MenuConfig(title: 'GST', iconCode: '#08', onTap: () {}),
-                        MenuConfig(title: 'KYC', iconCode: '#08', onTap: () {}),
+                        // MenuConfig(title: 'KYC', iconCode: '#08', onTap: () {}),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    ProfileMenuGroup(
-                      title: 'Preferences',
-                      items: [
-                        MenuConfig(
-                          title: 'Notifications',
-                          iconCode: '#08',
-                          onTap: () {
-                            context.push(RouteNames.notification);
-                          },
-                        ),
-                        MenuConfig(
-                          title: 'Settings',
-                          iconCode: '#08',
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
+                    // const SizedBox(height: 16),
+                    // ProfileMenuGroup(
+                    //   title: 'Preferences',
+                    //   items: [
+                    //     MenuConfig(
+                    //       title: 'Notifications',
+                    //       iconCode: '#08',
+                    //       onTap: () {
+                    //         context.push(RouteNames.notification);
+                    //       },
+                    //     ),
+                    //     MenuConfig(
+                    //       title: 'Settings',
+                    //       iconCode: '#08',
+                    //       onTap: () {},
+                    //     ),
+                    //   ],
+                    // ),
                     const SizedBox(height: 16),
                     ProfileMenuGroup(
                       title: 'Support',
@@ -104,12 +104,16 @@ class ProfileScreen extends StatelessWidget {
                         MenuConfig(
                           title: 'Help & FAQ',
                           iconCode: '#08',
-                          onTap: () {},
+                          onTap: () {
+                            context.push(RouteNames.support);
+                          },
                         ),
                         MenuConfig(
                           title: 'Contact Support',
                           iconCode: '#08',
-                          onTap: () {},
+                          onTap: () {
+                            context.push(RouteNames.support);
+                          },
                         ),
                       ],
                     ),

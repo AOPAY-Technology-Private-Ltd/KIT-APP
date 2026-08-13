@@ -26,4 +26,6 @@ class RouteNames {
   static const String notification = "/notification";
 
   static const String paymentSuccess = '/payment-success';
+
+  static const String support = '/support';
 }

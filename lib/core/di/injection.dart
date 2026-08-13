@@ -25,6 +25,7 @@ import '../../features/inventory/domain/usecaes/get_inventory_usecase.dart';
 import '../../features/inventory/data/repositories/inventory_repository_impl.dart';
 import '../../features/inventory/domain/repositories/inventory_repository.dart';
 import '../../features/inventory/presentation/bloc/inventory_bloc.dart';
+
 import '../../features/notification/data/datasources/notification_remote_data_source.dart';
 import '../../features/notification/data/repositories/notification_repository_impl.dart';
 import '../../features/notification/domain/repositories/notification_repository.dart';
@@ -70,6 +71,12 @@ import '../../features/history/data/repositories/history_repository_impl.dart';
 import '../../features/history/domain/repositories/history_repository.dart';
 import '../../features/history/domain/usecases/get_history_invoices.dart';
 import '../../features/history/presentation/bloc/history_bloc.dart';
+
+import '../../features/support_screen/data/datasources/support_remote_data_source.dart';
+import '../../features/support_screen/data/repositories/support_repository_impl.dart';
+import '../../features/support_screen/domain/repositories/support_repository.dart';
+import '../../features/support_screen/domain/usecaes/get_support_data.dart';
+import '../../features/support_screen/presentation/bloc/support_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -240,5 +247,18 @@ Future<void> init() async {
         () => NotificationBloc(
       getNotificationsUseCase: sl(),
     ),
+  );
+
+  sl.registerLazySingleton<SupportRemoteDataSource>(
+        () => SupportRemoteDataSourceImpl(client: sl()),
+  );
+  sl.registerLazySingleton<SupportRepository>(
+        () => SupportRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<GetSupportData>(
+        () => GetSupportData(sl()),
+  );
+  sl.registerFactory<SupportBloc>(
+        () => SupportBloc(getSupportData: sl()),
   );
 }

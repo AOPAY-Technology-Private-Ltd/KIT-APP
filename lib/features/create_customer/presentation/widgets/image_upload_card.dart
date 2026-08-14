@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'image_preview_dialog.dart';
 
 class ImageUploadCard extends StatelessWidget {
   final String label;
@@ -28,6 +29,23 @@ class ImageUploadCard extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (selectedImage != null)
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      ImagePreviewDialog.show(context, selectedImage!);
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.visibility, color: Color(0xFF2563EB)),
+                          SizedBox(width: 16),
+                          Text('Preview Image', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                        ],
+                      ),
+                    ),
+                  ),
                 InkWell(
                   onTap: () async {
                     Navigator.pop(sheetContext);

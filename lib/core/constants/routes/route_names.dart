@@ -28,4 +28,10 @@ class RouteNames {
   static const String paymentSuccess = '/payment-success';
 
   static const String support = '/support';
+
+  static const String qrCode = '/qr-code';
+
+  static const String tokenValidation = '/token-validation';
+
+  static const String installSuccess = '/install-success';
 }

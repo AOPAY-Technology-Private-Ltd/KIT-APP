@@ -17,6 +17,7 @@ class AvailableKitsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double progressValue = total > 0 ? (available / total).clamp(0.0, 1.0) : 0.0;
+    final bool isZero = total == 0 && available == 0;
 
     return Container(
       width: double.infinity,
@@ -53,7 +54,21 @@ class AvailableKitsCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text.rich(
+          isZero
+              ? Row(
+            children: const [
+              Text(
+                'No kits available',
+                style: TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 14,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          )
+              : Text.rich(
             TextSpan(
               children: [
                 TextSpan(

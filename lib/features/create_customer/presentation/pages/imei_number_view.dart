@@ -75,76 +75,7 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
         _imei2Controller.text.trim().length == 15;
   }
 
-  Future<void> _pickImageFor(String type) async {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                InkWell(
-                  onTap: () async {
-                    Navigator.pop(sheetContext);
-                    final XFile? image = await _picker.pickImage(
-                      source: ImageSource.camera,
-                      imageQuality: 85,
-                    );
-                    if (image != null && mounted) {
-                      setState(() {
-                        _updateImageFile(type, File(image.path));
-                      });
-                    }
-                  },
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                    child: Row(
-                      children: [
-                        Icon(Icons.camera_alt, color: Color(0xFF2563EB)),
-                        SizedBox(width: 16),
-                        Text('Take Photo from Camera', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                      ],
-                    ),
-                  ),
-                ),
-                InkWell(
-                  onTap: () async {
-                    Navigator.pop(sheetContext);
-                    final XFile? image = await _picker.pickImage(
-                      source: ImageSource.gallery,
-                      imageQuality: 85,
-                    );
-                    if (image != null && mounted) {
-                      setState(() {
-                        _updateImageFile(type, File(image.path));
-                      });
-                    }
-                  },
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                    child: Row(
-                      children: [
-                        Icon(Icons.photo_library, color: Color(0xFF2563EB)),
-                        SizedBox(width: 16),
-                        Text('Choose from Gallery', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _updateImageFile(String type, File file) {
+  void _updateImageFile(String type, File? file) {
     setState(() {
       if (type == 'sealFront') _sealFront = file;
       if (type == 'sealBack') _sealBack = file;
@@ -236,26 +167,30 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
   void _showFullImageView(File imageFile) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.black,
-        insetPadding: EdgeInsets.zero,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            InteractiveViewer(
-              child: Image.file(imageFile),
-            ),
-            Positioned(
-              top: 40,
-              right: 20,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 30),
-                onPressed: () => Navigator.pop(context),
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.black,
+          insetPadding: const EdgeInsets.all(10),
+          child: Stack(
+            alignment: Alignment.topRight,
+            children: [
+              Center(
+                child: InteractiveViewer(
+                  panEnabled: true,
+                  boundaryMargin: const EdgeInsets.all(20),
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: Image.file(imageFile),
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -281,25 +216,6 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
             fontFamily: 'Inter',
           ),
         ),
-        // actions: [
-        //   IconButton(
-        //     icon: const CircleAvatar(
-        //       radius: 16,
-        //       backgroundColor: Color(0xFF2563EB),
-        //       child: Icon(Icons.notifications_none, color: Colors.white, size: 16),
-        //     ),
-        //     onPressed: () {},
-        //   ),
-        //   IconButton(
-        //     icon: const CircleAvatar(
-        //       radius: 16,
-        //       backgroundColor: Color(0xFF2563EB),
-        //       child: Icon(Icons.search, color: Colors.white, size: 16),
-        //     ),
-        //     onPressed: () {},
-        //   ),
-        //   const SizedBox(width: 8),
-        // ],
       ),
       body: BlocConsumer<CustomerBloc, CustomerState>(
         listener: (context, state) {
@@ -308,7 +224,7 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
               SnackBar(content: Text(state.message), backgroundColor: Colors.green),
             );
 
-            context.go(RouteNames.home, extra: {'initialIndex': 1});
+            context.go(RouteNames.qrCode);
 
           } else if (state is CustomerFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -342,7 +258,7 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
                               onPressed: _isProcessing ? null : _captureAndExtractImei,
                               icon: const Icon(Icons.camera_alt, size: 20),
                               label: Text(
-                                _imeiPhoto == null ? 'Capture Box Sticker (Optional)' : 'Box Sticker Captured ✓',
+                                _imeiPhoto == null ? 'IMEI Number (Optional)' : 'IMEI Number (Optional) ✓',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: _imeiPhoto == null ? const Color(0xFF2563EB) : Colors.green.shade700,
@@ -381,11 +297,7 @@ class _ImeiNumberViewState extends State<ImeiNumberView> {
                             imeiPhoto: _imeiPhoto,
                             invoicePhoto: _invoicePhoto,
                             onImageChanged: (file, type) {
-                              if (file != null) {
-                                _updateImageFile(type, file);
-                              } else {
-                                _pickImageFor(type);
-                              }
+                              _updateImageFile(type, file);
                             },
                           ),
                         ),

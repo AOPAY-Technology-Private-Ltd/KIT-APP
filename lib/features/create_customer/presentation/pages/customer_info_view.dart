@@ -13,6 +13,7 @@ import '../bloc/customer_event.dart';
 import '../bloc/customer_state.dart';
 import '../widgets/custom_header.dart';
 import '../widgets/customer_text_field.dart';
+import '../widgets/image_preview_dialog.dart';
 
 class CustomerInfoView extends StatelessWidget {
   const CustomerInfoView({super.key});
@@ -85,6 +86,23 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (profileImage != null)
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      ImagePreviewDialog.show(context, profileImage!);
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.visibility, color: Color(0xFF2563EB)),
+                          SizedBox(width: 16),
+                          Text('Preview Image', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                        ],
+                      ),
+                    ),
+                  ),
                 InkWell(
                   onTap: () async {
                     Navigator.pop(sheetContext);
@@ -201,7 +219,7 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: CustomHeader(
-                      title: 'Customer Info',
+                    title: 'Customer Info',
                     showSearch: false,
                     showNotification: false,
                   ),
@@ -218,20 +236,23 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                           Center(
                             child: Stack(
                               children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: profileImage != null
-                                      ? Image.file(
-                                    profileImage!,
-                                    width: size.width * 0.22,
-                                    height: size.width * 0.22,
-                                    fit: BoxFit.cover,
-                                  )
-                                      : Image.asset(
-                                    'assets/images/profile.png',
-                                    width: size.width * 0.22,
-                                    height: size.width * 0.22,
-                                    fit: BoxFit.cover,
+                                GestureDetector(
+                                  onTap: profileImage != null ? () => ImagePreviewDialog.show(context, profileImage!) : null,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: profileImage != null
+                                        ? Image.file(
+                                      profileImage!,
+                                      width: size.width * 0.22,
+                                      height: size.width * 0.22,
+                                      fit: BoxFit.cover,
+                                    )
+                                        : Image.asset(
+                                      'assets/images/profile.png',
+                                      width: size.width * 0.22,
+                                      height: size.width * 0.22,
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
                                 ),
                                 Positioned(
@@ -370,71 +391,73 @@ class _CustomerInfoViewState extends State<_CustomerInfoViewContent> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 18),
-
-                          SizedBox(
-                            width: double.infinity,
-                            height: 48,
-                            child: Container(
-                              decoration: ShapeDecoration(
-                                gradient: (isChecked && isMobileVerifiedOrAvailable)
-                                    ? const LinearGradient(
-                                  begin: Alignment(1.00, 0.50),
-                                  end: Alignment(0.00, 0.50),
-                                  colors: [Color(0xFF022062), Color(0xFF008EFD)],
-                                )
-                                    : null,
-                                color: (isChecked && isMobileVerifiedOrAvailable) ? null : Colors.grey.shade300,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  shadowColor: Colors.transparent,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                ),
-                                onPressed: (isChecked && isMobileVerifiedOrAvailable)
-                                    ? () {
-                                  if (_formKey.currentState!.validate()) {
-                                    context.push(
-                                      RouteNames.imeiNumber,
-                                      extra: {
-                                        'dob': previousData?['dob'],
-                                        'panNumber': previousData?['panNumber'],
-                                        'panImage': previousData?['panImage'],
-                                        'aadharNumber': previousData?['aadharNumber'],
-                                        'aadharFrontImage': previousData?['aadharFrontImage'],
-                                        'aadharBackImage': previousData?['aadharBackImage'],
-                                        'firstName': firstNameController.text.trim(),
-                                        'lastName': lastNameController.text.trim(),
-                                        'primaryMobileNumber': mobileController.text.trim(),
-                                        'alternateMobileNumber': altMobileController.text.trim(),
-                                        'emailID': emailController.text.trim(),
-                                        'currentAddress': addressController.text.trim(),
-                                        'profileImage': profileImage,
-                                      },
-                                    );
-                                  }
-                                }
-                                    : null,
-                                child: Text(
-                                  'Next',
-                                  style: TextStyle(
-                                    color: (isChecked && isMobileVerifiedOrAvailable) ? Colors.white : Colors.grey.shade600,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
                         ],
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  color: Colors.white,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: Container(
+                      decoration: ShapeDecoration(
+                        gradient: (isChecked && isMobileVerifiedOrAvailable)
+                            ? const LinearGradient(
+                          begin: Alignment(1.00, 0.50),
+                          end: Alignment(0.00, 0.50),
+                          colors: [Color(0xFF022062), Color(0xFF008EFD)],
+                        )
+                            : null,
+                        color: (isChecked && isMobileVerifiedOrAvailable) ? null : Colors.grey.shade300,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: (isChecked && isMobileVerifiedOrAvailable)
+                            ? () {
+                          if (_formKey.currentState!.validate()) {
+                            context.push(
+                              RouteNames.imeiNumber,
+                              extra: {
+                                'dob': previousData?['dob'],
+                                'panNumber': previousData?['panNumber'],
+                                'panImage': previousData?['panImage'],
+                                'aadharNumber': previousData?['aadharNumber'],
+                                'aadharFrontImage': previousData?['aadharFrontImage'],
+                                'aadharBackImage': previousData?['aadharBackImage'],
+                                'firstName': firstNameController.text.trim(),
+                                'lastName': lastNameController.text.trim(),
+                                'primaryMobileNumber': mobileController.text.trim(),
+                                'alternateMobileNumber': altMobileController.text.trim(),
+                                'emailID': emailController.text.trim(),
+                                'currentAddress': addressController.text.trim(),
+                                'profileImage': profileImage,
+                              },
+                            );
+                          }
+                        }
+                            : null,
+                        child: Text(
+                          'Next',
+                          style: TextStyle(
+                            color: (isChecked && isMobileVerifiedOrAvailable) ? Colors.white : Colors.grey.shade600,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   ),

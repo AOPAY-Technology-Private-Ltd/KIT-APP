@@ -30,8 +30,8 @@ class CustomHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             onTap: onBackPressed ?? () => context.pop(),
             child: Container(
-              width: 36,
-              height: 36,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
                 color: const Color(0xFF2563EB),
                 borderRadius: BorderRadius.circular(10),

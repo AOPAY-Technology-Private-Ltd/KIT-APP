@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/routes/route_names.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../auth/presentation/common/widgets/auth_button.dart';
+import '../widgets/image_preview_dialog.dart';
 import '../widgets/custom_header.dart';
 import '../widgets/customer_text_field.dart';
 import '../widgets/upload_box.dart';
@@ -30,6 +31,11 @@ class _CreateCustomerViewState extends State<CreateCustomerView> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(String docType) async {
+    File? currentImage;
+    if (docType == 'pan') currentImage = panImage;
+    if (docType == 'front') currentImage = aadharFrontImage;
+    if (docType == 'back') currentImage = aadharBackImage;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -42,6 +48,26 @@ class _CreateCustomerViewState extends State<CreateCustomerView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (currentImage != null)
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      ImagePreviewDialog.show(context, currentImage!);
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.visibility, color: Color(0xFF2563EB)),
+                          SizedBox(width: 16),
+                          Text(
+                            'Preview Image',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 InkWell(
                   onTap: () async {
                     Navigator.pop(sheetContext);

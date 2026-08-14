@@ -38,6 +38,11 @@ import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
 import '../../features/profile/presentation/bloc/profile_bloc.dart';
 
+import '../../features/qr_code/data/datasources/qr_remote_data_source.dart';
+import '../../features/qr_code/data/repositories/qr_repository_impl.dart';
+import '../../features/qr_code/domain/repositories/qr_repository.dart';
+import '../../features/qr_code/domain/usecases/get_qr_data_usecase.dart';
+import '../../features/qr_code/presentation/bloc/qr_bloc.dart';
 import '../../features/splash/presentation/bloc/splash_bloc.dart';
 
 import '../../features/home/data/datasources/home_remote_datasource.dart';
@@ -248,6 +253,28 @@ Future<void> init() async {
       getNotificationsUseCase: sl(),
     ),
   );
+
+
+
+  sl.registerLazySingleton<QrRemoteDataSource>(
+        () => QrRemoteDataSourceImpl(),
+  );
+
+  sl.registerLazySingleton<QrRepository>(
+        () => QrRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton<GetQrDataUseCase>(
+        () => GetQrDataUseCase(sl()),
+  );
+
+  sl.registerFactory(
+        () => QrBloc(
+      getQrDataUseCase: sl(),
+    ),
+  );
+
+
 
   sl.registerLazySingleton<SupportRemoteDataSource>(
         () => SupportRemoteDataSourceImpl(client: sl()),

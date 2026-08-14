@@ -35,6 +35,11 @@ import '../../../features/notification/presentation/pages/notification_view.dart
 import '../../../features/profile/presentation/bloc/profile_bloc.dart';
 import '../../../features/profile/presentation/bloc/profile_event.dart';
 import '../../../features/profile/presentation/pages/profile_screen.dart';
+import '../../../features/qr_code/presentation/bloc/qr_bloc.dart';
+import '../../../features/qr_code/presentation/bloc/qr_event.dart';
+import '../../../features/qr_code/presentation/pages/qr_code_view.dart';
+import '../../../features/qr_code/presentation/pages/success_view.dart';
+import '../../../features/qr_code/presentation/pages/token_validation_view.dart';
 import '../../../features/splash/presentation/pages/splash_page.dart';
 
 import '../../../features/support_screen/presentation/bloc/support_bloc.dart';
@@ -206,6 +211,7 @@ final GoRouter appRouter = GoRouter(
         );
       },
     ),
+
     GoRoute(
       path: RouteNames.profile,
       builder: (context, state) {
@@ -256,6 +262,30 @@ final GoRouter appRouter = GoRouter(
           totalPaid: data['totalPaid'] ?? 0.0,
           paymentMethod: data['paymentMethod'] ?? 'UPI',
         );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.qrCode,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<QrBloc>()..add(LoadQrDataEvent()),
+          child: const QrCodeView(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.tokenValidation,
+      builder: (context, state) {
+        return const TokenValidationView();
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.installSuccess,
+      builder: (context, state) {
+        return const InstallSuccessView();
       },
     ),
   ],

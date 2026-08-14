@@ -29,7 +29,7 @@ class StatsGrid extends StatelessWidget {
         children: [
           Expanded(
             child: _buildStatCard(
-              "$totalInstalled",
+              totalInstalled,
               "Total Installed",
               Icons.check_circle_outline,
             ),
@@ -37,7 +37,7 @@ class StatsGrid extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: _buildStatCard(
-              "$todayInstalled",
+              todayInstalled,
               "Today Installed",
               Icons.today_outlined,
             ),
@@ -45,7 +45,7 @@ class StatsGrid extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: _buildStatCard(
-              "$locked",
+              locked,
               "Locked",
               Icons.lock_outline,
             ),
@@ -55,7 +55,9 @@ class StatsGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String count, String label, IconData icon) {
+  Widget _buildStatCard(int count, String label, IconData icon) {
+    final displayCount = count == 0 ? "-" : count.toString();
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: ShapeDecoration(
@@ -96,7 +98,7 @@ class StatsGrid extends StatelessWidget {
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  count,
+                  displayCount,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFF020617),

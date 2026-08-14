@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/routes/route_names.dart';
 
 class InstallSuccessView extends StatelessWidget {
   const InstallSuccessView({super.key});
@@ -22,20 +23,12 @@ class InstallSuccessView extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      ..._buildDecorativeDots(),
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF10B981),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.check,
-                            color: Colors.white,
-                            size: 60,
-                          ),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 355,
+                        child: Image.asset(
+                          'assets/images/succsfully.gif',
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ],
@@ -81,8 +74,7 @@ class InstallSuccessView extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-
-                      context.pop();
+                      context.go(RouteNames.home, extra: {'initialIndex': 1});
                     },
                     child: const Text(
                       'Done',
@@ -102,33 +94,5 @@ class InstallSuccessView extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  List<Widget> _buildDecorativeDots() {
-    final List<Map<String, double>> dotPositions = [
-      {'top': 20, 'left': 90, 'size': 8},
-      {'top': 40, 'left': 140, 'size': 6},
-      {'top': 90, 'left': 160, 'size': 10},
-      {'top': 130, 'left': 140, 'size': 8},
-      {'top': 150, 'left': 90, 'size': 6},
-      {'top': 140, 'left': 40, 'size': 8},
-      {'top': 90, 'left': 20, 'size': 6},
-      {'top': 40, 'left': 40, 'size': 8},
-    ];
-
-    return dotPositions.map((pos) {
-      return Positioned(
-        top: pos['top']!,
-        left: pos['left']!,
-        child: Container(
-          width: pos['size']!,
-          height: pos['size']!,
-          decoration: const BoxDecoration(
-            color: Color(0xFF34D399),
-            shape: BoxShape.circle,
-          ),
-        ),
-      );
-    }).toList();
   }
 }

@@ -16,7 +16,7 @@ class OtpBoxes extends StatefulWidget {
 }
 
 class _OtpBoxesState extends State<OtpBoxes> {
-  static const int length = 4; // Changed to 4 digits
+  static const int length = 4;
 
   late final List<TextEditingController> controllers;
   late final List<FocusNode> focusNodes;

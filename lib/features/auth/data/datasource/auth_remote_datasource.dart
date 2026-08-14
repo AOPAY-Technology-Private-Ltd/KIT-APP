@@ -91,7 +91,6 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
         throw Exception("Failed to send OTP: ${response.body}");
       }
     } finally {
-      // Kaam khatam hone par lock khol dein (thoda delay dekar taaki double tap bach sake)
       await Future.delayed(const Duration(seconds: 2));
       _isSendingOtp = false;
     }

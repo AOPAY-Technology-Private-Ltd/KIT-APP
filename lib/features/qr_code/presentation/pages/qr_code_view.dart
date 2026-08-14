@@ -27,93 +27,107 @@ class _QrCodeViewContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: CustomHeader(
-                title: 'QR Code',
-                onNotificationTap: () => context.push(RouteNames.notification),
-                onSearchTap: () {},
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(16.0),
-                child: BlocBuilder<QrBloc, QrState>(
-                  builder: (context, state) {
-                    if (state is QrLoadingState) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.only(top: 100.0),
-                          child: CircularProgressIndicator(color: Color(0xFF2563EB)),
-                        ),
-                      );
-                    } else if (state is QrLoadedState) {
-                      return QrCardWidget(
-                        userName: state.user.userName,
-                        qrData: state.user.qrData,
-                        onNextQrTap: () {
-                          context.read<QrBloc>().add(NextQrTappedEvent());
-                        },
-                      );
-                    } else if (state is QrErrorState) {
-                      return Center(
-                        child: Text(state.message, style: const TextStyle(color: Colors.red)),
-                      );
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (context.canPop()) {
+          context.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: CustomHeader(
+                  title: 'QR Code',
+                  onBackPressed: () {
+                    if (context.canPop()) {
+                      context.pop();
                     }
-                    return const SizedBox.shrink();
                   },
+                  onNotificationTap: () => context.push(RouteNames.notification),
+                  onSearchTap: () {},
                 ),
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              color: Colors.white,
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: Container(
-                  decoration: ShapeDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment(1.00, 0.50),
-                      end: Alignment(0.00, 0.50),
-                      colors: [Color(0xFF022062), Color(0xFF008EFD)],
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(16.0),
+                  child: BlocBuilder<QrBloc, QrState>(
+                    builder: (context, state) {
+                      if (state is QrLoadingState) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 100.0),
+                            child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+                          ),
+                        );
+                      } else if (state is QrLoadedState) {
+                        return QrCardWidget(
+                          userName: state.user.userName,
+                          qrData: state.user.qrData,
+                          onNextQrTap: () {
+                            context.read<QrBloc>().add(NextQrTappedEvent());
+                          },
+                        );
+                      } else if (state is QrErrorState) {
+                        return Center(
+                          child: Text(state.message, style: const TextStyle(color: Colors.red)),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
                   ),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      elevation: 0,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                color: Colors.white,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: Container(
+                    decoration: ShapeDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment(1.00, 0.50),
+                        end: Alignment(0.00, 0.50),
+                        colors: [Color(0xFF022062), Color(0xFF008EFD)],
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    onPressed: () {
-                      context.push(RouteNames.tokenValidation);
-                    },
-                    child: const Text(
-                      'Next',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Inter',
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: () {
+                        context.push(RouteNames.tokenValidation);
+                      },
+                      child: const Text(
+                        'Next',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Inter',
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/apiconstants/api_constants.dart';
-import '../../../../core/helper/api_client.dart';
 import '../models/customer_item_model.dart';
 
 abstract class CustomerListRemoteDataSource {

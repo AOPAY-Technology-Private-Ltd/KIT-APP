@@ -40,6 +40,14 @@ class ApiConstants {
   static const String sendDeviceNotification = '$mainBaseUrl/api/notification/SendDeviceNotification';
 
 
+  static const String getCustomerLatestLocationKit = '$mainBaseUrl/api/V1/AopayFinance/GetCustomerLatestLocationKit';
+
+
+  static const String validateKey = '$mainBaseUrl/api/V1/AopayFinance/validatekey';
+
+  static const String fetchQrData = '$mainBaseUrl/api/V1/AopayFinance/generate-download-lockit-ios-qr';
+
+
 
 
 

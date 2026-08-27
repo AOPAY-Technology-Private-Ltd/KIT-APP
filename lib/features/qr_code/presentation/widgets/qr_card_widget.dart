@@ -1,5 +1,5 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 class QrCardWidget extends StatelessWidget {
   final String userName;
@@ -13,7 +13,21 @@ class QrCardWidget extends StatelessWidget {
     required this.onNextQrTap,
   });
 
+  bool _isBase64Image(String data) {
+    if (data.startsWith('{') || data.contains('android.app.extra')) {
+      return false;
+    }
+    try {
+      base64Decode(data);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   void _showQrPopup(BuildContext context) {
+    onNextQrTap();
+
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -77,10 +91,20 @@ class QrCardWidget extends StatelessWidget {
                                 width: 200,
                                 height: 200,
                                 alignment: Alignment.center,
-                                child: QrImageView(
-                                  data: qrData,
-                                  version: QrVersions.auto,
-                                  size: 180,
+                                child: _isBase64Image(qrData)
+                                    ? Image.memory(
+                                  base64Decode(qrData),
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Image.asset(
+                                      'assets/images/qr.png',
+                                      fit: BoxFit.contain,
+                                    );
+                                  },
+                                )
+                                    : Image.asset(
+                                  'assets/images/qr.png',
+                                  fit: BoxFit.contain,
                                 ),
                               ),
                             ),
@@ -109,7 +133,6 @@ class QrCardWidget extends StatelessWidget {
                             GestureDetector(
                               onTap: () {
                                 Navigator.of(context).pop();
-                                onNextQrTap();
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -205,10 +228,11 @@ class QrCardWidget extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: QrImageView(
-              data: qrData,
-              version: QrVersions.auto,
-              size: qrSize,
+            child: Image.asset(
+              'assets/images/qr.png',
+              width: qrSize,
+              height: qrSize,
+              fit: BoxFit.contain,
             ),
           ),
           const SizedBox(height: 16),

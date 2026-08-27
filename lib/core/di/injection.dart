@@ -257,7 +257,7 @@ Future<void> init() async {
 
 
   sl.registerLazySingleton<QrRemoteDataSource>(
-        () => QrRemoteDataSourceImpl(),
+        () => QrRemoteDataSourceImpl(client: sl()),
   );
 
   sl.registerLazySingleton<QrRepository>(

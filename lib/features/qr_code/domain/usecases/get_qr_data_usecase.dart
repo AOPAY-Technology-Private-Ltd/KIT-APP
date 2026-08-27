@@ -5,8 +5,10 @@ class GetQrDataUseCase {
   final QrRepository repository;
 
   GetQrDataUseCase(this.repository);
-
-  Future<QrUserEntity> call() async {
-    return await repository.getQrData();
+  Future<QrUserEntity> validateKey({required String apiKey}) async {
+    return await repository.validateKey(apiKey: apiKey);
+  }
+  Future<QrUserEntity> fetchIosQrData() async {
+    return await repository.fetchQrData();
   }
 }

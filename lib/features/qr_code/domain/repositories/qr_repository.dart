@@ -1,5 +1,6 @@
-import '../../domain/entities/qr_user_entity.dart';
+import '../entities/qr_user_entity.dart';
 
 abstract class QrRepository {
-  Future<QrUserEntity> getQrData();
+  Future<QrUserEntity> validateKey({required String apiKey});
+  Future<QrUserEntity> fetchQrData();
 }

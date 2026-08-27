@@ -51,7 +51,6 @@ class PaymentSuccessScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 28),
 
-                    // Title
                     const Text(
                       'Payment Successful',
                       style: TextStyle(

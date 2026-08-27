@@ -27,7 +27,6 @@ class KitBalanceCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Dynamic Data from Profile Entity (API Response ke mutabiq)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -46,7 +45,7 @@ class KitBalanceCard extends StatelessWidget {
                 TextSpan(
                   children: [
                     TextSpan(
-                      text: '${profile.kitBalance}', // Dynamic Available/Kit Balance
+                      text: '${profile.kitBalance}',
                       style: const TextStyle(
                         color: Color(0xFF2563EB),
                         fontSize: 26,
@@ -55,7 +54,7 @@ class KitBalanceCard extends StatelessWidget {
                       ),
                     ),
                     TextSpan(
-                      text: ' / ${profile.totalKits} Total', // Dynamic Total Kits
+                      text: ' / ${profile.totalKits} Total',
                       style: TextStyle(
                         color: const Color(0xFF2563EB).withValues(alpha: 0.7),
                         fontSize: 12,
@@ -69,7 +68,6 @@ class KitBalanceCard extends StatelessWidget {
             ],
           ),
 
-          // Buy More Button with Navigation
           GestureDetector(
             onTap: onBuyMorePressed ?? () {
               context.push(RouteNames.buyKits);

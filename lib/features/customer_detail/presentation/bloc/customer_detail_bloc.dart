@@ -44,7 +44,6 @@ class CustomerDetailBloc extends Bloc<CustomerDetailEvent, CustomerDetailState> 
 
       _cachedCustomer = customer;
 
-      // Customer code milne par naya API call dynamically trigger karein
       if (remoteDataSource != null && customer.customerCode.isNotEmpty) {
         try {
           _latestLocationKitData = await remoteDataSource.getCustomerLatestLocationKit(customer.customerCode);

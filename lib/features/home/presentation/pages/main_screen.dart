@@ -4,15 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../customer_list/presentation/pages/customer_list_view.dart';
-
 import '../../../history/presentation/bloc/history_bloc.dart';
 import '../../../history/presentation/bloc/history_event.dart';
 import '../../../history/presentation/pages/history_page.dart';
-
 import '../../../profile/presentation/bloc/profile_bloc.dart';
 import '../../../profile/presentation/bloc/profile_event.dart';
 import '../../../profile/presentation/pages/profile_screen.dart';
-
 import 'home_page.dart';
 
 class MainScreen extends StatefulWidget {

@@ -5,12 +5,16 @@ class OtpInputField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final ValueChanged<String> onChanged;
+  final TextInputAction textInputAction;
+  final ValueChanged<String>? onSubmitted;
 
   const OtpInputField({
     super.key,
     required this.controller,
     required this.focusNode,
     required this.onChanged,
+    this.textInputAction = TextInputAction.next,
+    this.onSubmitted,
   });
 
   @override
@@ -19,7 +23,8 @@ class OtpInputField extends StatelessWidget {
       controller: controller,
       focusNode: focusNode,
       keyboardType: TextInputType.number,
-      textInputAction: TextInputAction.next,
+      textInputAction: textInputAction,
+      onSubmitted: onSubmitted,
       textAlign: TextAlign.center,
       textAlignVertical: TextAlignVertical.center,
       maxLength: 1,
@@ -46,13 +51,13 @@ class OtpInputField extends StatelessWidget {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(
-            color: Colors.black.withValues(alpha: .3),
+            color: Colors.black.withOpacity(0.3),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(
-            color: Colors.black.withValues(alpha: .3),
+            color: Colors.black.withOpacity(0.3),
           ),
         ),
         focusedBorder: OutlineInputBorder(

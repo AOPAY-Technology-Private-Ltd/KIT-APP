@@ -124,8 +124,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       deviceId = "DEVICE_ID_UNAVAILABLE";
     }
 
-    final String token = prefs.getString('fcm_token') ?? 'sdsdsdssdsssds';
-
+    final String token = prefs.getString('fcm_token') ?? '';
     final requestBody = {
       "mobileOrEmailID": mobileOrEmailID,
       "deviceId": deviceId,

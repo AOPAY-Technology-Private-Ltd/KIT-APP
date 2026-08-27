@@ -298,7 +298,7 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
       final prefs = await SharedPreferences.getInstance();
       final retailerCode = prefs.getString('retailer_code') ?? 'AFD0035';
 
-      final uri = Uri.parse('https://uatapi.aopay.co.in/api/V1/AopayFinance/GetCustomerLatestLocationKit');
+      final uri = Uri.parse(ApiConstants.getCustomerLatestLocationKit);
 
       final requestBody = {
         "clientCode": "CMP0005",
@@ -322,7 +322,6 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
         },
       );
 
-      // --- Print Response ---
       print('--- API RESPONSE ---');
       print('Status Code: ${response.statusCode}');
       print('Response Body: ${response.body}');

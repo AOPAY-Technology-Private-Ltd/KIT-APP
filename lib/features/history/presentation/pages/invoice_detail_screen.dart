@@ -33,7 +33,6 @@ class InvoiceDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Header Card
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -106,7 +105,6 @@ class InvoiceDetailScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // Item Details
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -179,7 +177,6 @@ class InvoiceDetailScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // Payment Summary with GST
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),

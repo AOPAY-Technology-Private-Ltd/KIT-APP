@@ -8,7 +8,13 @@ class QrRepositoryImpl implements QrRepository {
   QrRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<QrUserEntity> getQrData() async {
+  Future<QrUserEntity> validateKey({required String apiKey}) async {
+    final model = await remoteDataSource.validateKey(apiKey: apiKey);
+    return model;
+  }
+
+  @override
+  Future<QrUserEntity> fetchQrData() async {
     final model = await remoteDataSource.fetchQrData();
     return model;
   }

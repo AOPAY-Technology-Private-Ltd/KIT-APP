@@ -48,16 +48,11 @@ class AuthLogo extends StatelessWidget {
 
 
 
-          SvgPicture.asset(
-
-            "assets/images/logo.svg",
-
+          Image.asset(
+            "assets/images/logo.png",
             width: width * 0.6,
-
             height: height * 0.6,
-
             fit: BoxFit.contain,
-
           ),
 
 

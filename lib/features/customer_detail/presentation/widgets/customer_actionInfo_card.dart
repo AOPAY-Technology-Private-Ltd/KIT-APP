@@ -41,26 +41,24 @@ class CustomerActionInfoCard extends StatelessWidget {
 
       final String actionCode = newVal ? 'LOCK_DEVICE' : 'UNLOCK_DEVICE';
 
-      if (newVal) {
-        _showPinVerificationDialog(
-          context,
-          categoryTitle: categoryTitle,
+      BlocProvider.of<CustomerDetailBloc>(context).add(
+        SaveDeviceActionEvent(
+          customerCode: customer.customerCode,
           notificationCode: actionCode,
           actionStatus: newVal,
-          selectedApps: null,
+          devicePin: '',
+          selectedApps: [{
+            "packageName": actionCode,
+            "actionStatus": newVal,
+          }],
+        ),
+      );
+
+      if (newVal) {
+        BlocProvider.of<CustomerDetailBloc>(context).add(
+          LockDeviceEvent(customer.id.toString()),
         );
       } else {
-        BlocProvider.of<CustomerDetailBloc>(context).add(
-          SaveDeviceActionEvent(
-            customerCode: customer.customerCode,
-            notificationCode: actionCode,
-            actionStatus: false,
-            selectedApps: [{
-              "packageName": actionCode,
-              "actionStatus": false,
-            }],
-          ),
-        );
         BlocProvider.of<CustomerDetailBloc>(context).add(
           UnlockDeviceEvent(customer.id.toString()),
         );

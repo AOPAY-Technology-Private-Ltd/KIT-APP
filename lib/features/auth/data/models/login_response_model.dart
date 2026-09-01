@@ -11,6 +11,7 @@ class LoginResponseModel extends AuthEntity {
   final String? aadharNumber;
   final String? panNumber;
   final String? activeStatus;
+  final String? clientCode;
 
   LoginResponseModel({
     required String message,
@@ -24,6 +25,7 @@ class LoginResponseModel extends AuthEntity {
     this.aadharNumber,
     this.panNumber,
     this.activeStatus,
+    this.clientCode,
   }) : super(message: message);
 
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
@@ -33,12 +35,13 @@ class LoginResponseModel extends AuthEntity {
       retailerCode: json['retailerCode'],
       firstName: json['firstName'],
       lastName: json['lastName'],
-      mobileNo: json['mobileNo'],
+      mobileNo: json['mobileNo'] ?? json['mobileNumber'],
       emailID: json['emailID'],
       address: json['address'],
       aadharNumber: json['aadharNumber'],
       panNumber: json['panNumber'],
       activeStatus: json['activeStatus'],
+      clientCode: json['clientCode'],
     );
   }
 
@@ -55,6 +58,7 @@ class LoginResponseModel extends AuthEntity {
       "aadharNumber": aadharNumber,
       "panNumber": panNumber,
       "activeStatus": activeStatus,
+      "clientCode": clientCode,
     };
   }
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/apiconstants/api_constants.dart';
+import '../../../../core/services/session_manager.dart';
 import '../models/app_master_model.dart';
 import '../models/customer_detail_model.dart';
 
@@ -42,7 +43,7 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
   Future<CustomerDetailModel> getCustomerDetail(String customerIdentifier) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final retailerCode = prefs.getString('retailer_code') ?? 'AFD0031';
+      final retailerCode = prefs.getString('retailer_code') ?? await SessionManager.getRetailerCode() ?? '';
 
       final queryParams = <String, String>{
         'Mode': 'GET',
@@ -55,6 +56,12 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
       var request = http.MultipartRequest('POST', uri);
       request.headers.addAll({'accept': '*/*'});
 
+      print('--- 🚀 GET CUSTOMER DETAIL REQUEST ---');
+      print('URL: $uri');
+      print('Method: POST (Multipart)');
+      print('Headers: ${request.headers}');
+      print('Query Parameters: $queryParams');
+
       final streamedResponse = await client.send(request).timeout(
         const Duration(seconds: 15),
         onTimeout: () {
@@ -62,6 +69,10 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
         },
       );
       final response = await http.Response.fromStream(streamedResponse);
+
+      print('--- 📥 GET CUSTOMER DETAIL RESPONSE ---');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (response.body.isEmpty) {
@@ -94,6 +105,8 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
         throw Exception('Failed to load customer details [Status ${response.statusCode}]');
       }
     } catch (e) {
+      print('--- ❌ GET CUSTOMER DETAIL ERROR ---');
+      print('Error: $e');
       final errorStr = e.toString().replaceAll('Exception: ', '');
       if (errorStr.contains('SocketException') || errorStr.contains('ClientException')) {
         throw Exception('No internet connection. Please check your network.');
@@ -105,9 +118,17 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
   @override
   Future<AppMasterModel> getAppMaster() async {
     try {
+      final retailerCode = await SessionManager.getRetailerCode() ?? '';
+
+      final queryParams = {'CreatedBy': retailerCode};
       final uri = Uri.parse(ApiConstants.getAppMaster).replace(
-        queryParameters: {'CreatedBy': 'AFC0161'},
+        queryParameters: queryParams,
       );
+
+      print('--- 🚀 GET APP MASTER REQUEST ---');
+      print('URL: $uri');
+      print('Method: GET');
+      print('Query Parameters: $queryParams');
 
       final response = await client.get(uri, headers: {'accept': '*/*'}).timeout(
         const Duration(seconds: 15),
@@ -115,6 +136,10 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
           throw Exception('No internet connection.');
         },
       );
+
+      print('--- 📥 GET APP MASTER RESPONSE ---');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (response.body.isEmpty) {
@@ -131,6 +156,8 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
         return AppMasterModel(categories: []);
       }
     } catch (e) {
+      print('--- ❌ GET APP MASTER ERROR ---');
+      print('Error: $e');
       return AppMasterModel(categories: []);
     }
   }
@@ -143,8 +170,9 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
     List<Map<String, dynamic>>? selectedApps,
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final retailerCode = prefs.getString('retailer_code') ?? 'AFD0031';
+      final retailerCode = await SessionManager.getRetailerCode() ?? '';
+      final savedCustomerCode = await SessionManager.getCustomerCode() ?? customerCode;
+      final clientCode = await SessionManager.getClientCode() ?? 'CMP0005';
 
       final uri = Uri.parse(ApiConstants.saveDeviceAction);
 
@@ -153,9 +181,9 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
           : selectedApps;
 
       final requestBody = {
-        "clientCode": "CMP0005",
+        "clientCode": clientCode,
         "retailerCode": retailerCode,
-        "customerCode": customerCode,
+        "customerCode": savedCustomerCode,
         "notificationCode": notificationCode,
         "actionStatus": actionStatus,
         "selectedApps": finalSelectedApps,
@@ -163,6 +191,9 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
       };
 
       print('--- 🚀 SAVE DEVICE ACTION REQUEST ---');
+      print('URL: $uri');
+      print('Method: POST');
+      print('Headers: ${{'accept': '*/*', 'Content-Type': 'application/json'}}');
       print('Body: ${jsonEncode(requestBody)}');
 
       final response = await client.post(
@@ -190,6 +221,8 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
         throw Exception('Failed to save device action: ${response.body}');
       }
     } catch (e) {
+      print('--- ❌ SAVE DEVICE ACTION ERROR ---');
+      print('Error: $e');
       final errorStr = e.toString().replaceAll('Exception: ', '');
       if (errorStr.contains('SocketException') || errorStr.contains('ClientException')) {
         throw Exception('No internet connection. Please check your network.');
@@ -206,8 +239,9 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
     List<Map<String, dynamic>>? selectedApps,
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final retailerCode = prefs.getString('retailer_code') ?? 'AFD0031';
+      final retailerCode = await SessionManager.getRetailerCode() ?? '';
+      final savedCustomerCode = await SessionManager.getCustomerCode() ?? customerCode;
+      final clientCode = await SessionManager.getClientCode() ?? 'CMP0005';
 
       final uri = Uri.parse(ApiConstants.sendDeviceNotification);
 
@@ -216,9 +250,9 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
           : selectedApps;
 
       final requestBody = {
-        "clientCode": "CMP0005",
+        "clientCode": clientCode,
         "retailerCode": retailerCode,
-        "customerCode": customerCode,
+        "customerCode": savedCustomerCode,
         "notificationCode": notificationCode,
         "title": "",
         "message": "",
@@ -227,6 +261,9 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
       };
 
       print('--- 🚀 SEND DEVICE NOTIFICATION REQUEST ---');
+      print('URL: $uri');
+      print('Method: POST');
+      print('Headers: ${{'accept': '*/*', 'Content-Type': 'application/json'}}');
       print('Body: ${jsonEncode(requestBody)}');
 
       final response = await client.post(
@@ -254,6 +291,8 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
         throw Exception('Failed to send device notification: ${response.body}');
       }
     } catch (e) {
+      print('--- ❌ SEND DEVICE NOTIFICATION ERROR ---');
+      print('Error: $e');
       final errorStr = e.toString().replaceAll('Exception: ', '');
       if (errorStr.contains('SocketException') || errorStr.contains('ClientException')) {
         throw Exception('No internet connection. Please check your network.');
@@ -295,19 +334,21 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
 
   Future<Map<String, dynamic>> getCustomerLatestLocationKit(String customerCode) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final retailerCode = prefs.getString('retailer_code') ?? 'AFD0035';
+      final retailerCode = await SessionManager.getRetailerCode() ?? '';
+      final savedCustomerCode = await SessionManager.getCustomerCode() ?? customerCode;
+      final clientCode = await SessionManager.getClientCode() ?? 'CMP0005';
 
       final uri = Uri.parse(ApiConstants.getCustomerLatestLocationKit);
 
       final requestBody = {
-        "clientCode": "CMP0005",
+        "clientCode": clientCode,
         "retailerCode": retailerCode,
-        "customerCode": customerCode,
+        "customerCode": savedCustomerCode,
       };
 
-      print('--- API REQUEST ---');
+      print('--- 🚀 GET CUSTOMER LATEST LOCATION KIT REQUEST ---');
       print('URL: $uri');
+      print('Method: POST');
       print('Headers: ${{'accept': '*/*', 'Content-Type': 'application/json'}}');
       print('Body: ${jsonEncode(requestBody)}');
 
@@ -322,7 +363,7 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
         },
       );
 
-      print('--- API RESPONSE ---');
+      print('--- 📥 GET CUSTOMER LATEST LOCATION KIT RESPONSE ---');
       print('Status Code: ${response.statusCode}');
       print('Response Body: ${response.body}');
 
@@ -334,8 +375,9 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
       }
       return {};
     } catch (e) {
-      print('--- API ERROR ---');
+      print('--- ❌ GET CUSTOMER LATEST LOCATION KIT ERROR ---');
       print('Error: $e');
       return {};
     }
-  }}
+  }
+}

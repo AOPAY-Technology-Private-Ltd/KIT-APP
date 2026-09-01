@@ -283,14 +283,17 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
       final loginResponse = LoginResponseModel.fromJson(responseData);
 
-      if (loginResponse.retailerCode != null &&
-          loginResponse.retailerCode!.isNotEmpty) {
+      if ((loginResponse.retailerCode != null && loginResponse.retailerCode!.isNotEmpty) ||
+          (responseData['customerCode'] != null && responseData['customerCode'].toString().isNotEmpty)) {
+
         await SessionManager.createSession(
-          retailerCode: loginResponse.retailerCode!,
+          retailerCode: loginResponse.retailerCode ?? responseData['customerCode'].toString(),
+          customerCode: responseData['customerCode']?.toString(),
           mobileNo: loginResponse.mobileNo ?? mobileOrEmail,
           emailID: loginResponse.emailID ?? '',
           firstName: loginResponse.firstName,
           lastName: loginResponse.lastName,
+          clientCode: loginResponse.clientCode,
         );
       }
 
@@ -299,7 +302,6 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       throw Exception("Failed to verify OTP: ${response.body}");
     }
   }
-
   @override
   Future<LoginResponseModel> signup(SignupRequestModel request) async {
     final uri = Uri.parse(ApiConstants.signup);

@@ -23,7 +23,7 @@ class CustomerActionInfoCard extends StatelessWidget {
       final category = appMaster.categories.firstWhere((cat) => cat.actionName == categoryTitle);
       return category.subactionList.map((sub) => {
         'name': sub.subactionName,
-        'code': sub.subactionName,
+        'code': sub.packageName.isNotEmpty ? sub.packageName : sub.subactionName,
       }).toList();
     } catch (_) {
       return [];
@@ -33,46 +33,42 @@ class CustomerActionInfoCard extends StatelessWidget {
   void _onToggleClicked(BuildContext context, String categoryTitle) {
     final subItemsList = _getSubItemsWithCodes(categoryTitle);
 
+    String categoryNotificationCode = 'LOCK_DEVICE';
+    try {
+      final category = appMaster.categories.firstWhere((cat) => cat.actionName == categoryTitle);
+      categoryNotificationCode = category.notificationCode;
+    } catch (_) {}
+
     if (subItemsList.isNotEmpty) {
-      _showSelectionPopup(context, categoryTitle, subItemsList);
+      _showSelectionPopup(context, categoryTitle, categoryNotificationCode, subItemsList);
     } else {
       final currentVal = actionToggles[categoryTitle] ?? false;
       final newVal = !currentVal;
 
-      final String actionCode = newVal ? 'LOCK_DEVICE' : 'UNLOCK_DEVICE';
-
       BlocProvider.of<CustomerDetailBloc>(context).add(
         SaveDeviceActionEvent(
           customerCode: customer.customerCode,
-          notificationCode: actionCode,
+          notificationCode: categoryNotificationCode,
           actionStatus: newVal,
           devicePin: '',
           selectedApps: [{
-            "packageName": actionCode,
+            "packageName": categoryNotificationCode,
             "actionStatus": newVal,
           }],
         ),
       );
-
-      if (newVal) {
-        BlocProvider.of<CustomerDetailBloc>(context).add(
-          LockDeviceEvent(customer.id.toString()),
-        );
-      } else {
-        BlocProvider.of<CustomerDetailBloc>(context).add(
-          UnlockDeviceEvent(customer.id.toString()),
-        );
-      }
     }
   }
 
-  void _showSelectionPopup(BuildContext mainContext, String categoryTitle, List<Map<String, String>> subItemsList) {
+  void _showSelectionPopup(BuildContext mainContext, String categoryTitle, String categoryNotificationCode, List<Map<String, String>> subItemsList) {
     final Map<String, bool> existingSubMap = selectedSubItems[categoryTitle] ?? {};
     final Map<String, bool> itemsMap = {};
 
     for (var sub in subItemsList) {
       final name = sub['name']!;
-      itemsMap[name] = existingSubMap[name] ?? false;
+      final code = sub['code']!;
+      bool isPreviouslyChecked = existingSubMap[name] == true || existingSubMap[code] == true;
+      itemsMap[name] = isPreviouslyChecked;
     }
 
     showDialog(
@@ -240,36 +236,25 @@ class CustomerActionInfoCard extends StatelessWidget {
                           onPressed: () {
                             Navigator.pop(dialogContext);
 
-                            final bool categoryActionStatus = itemsMap.values.any((v) => v == true);
-
-                            final String actionCode = categoryActionStatus ? 'LOCK_DEVICE' : 'UNLOCK_DEVICE';
-
-                            final List<Map<String, dynamic>> selectedAppsList = subItemsList.map((sub) {
+                            final List<Map<String, dynamic>> finalAppsToSubmit = subItemsList.map((sub) {
+                              final bool isChecked = itemsMap[sub['name']!] ?? false;
                               return {
-                                "packageName": actionCode,
-                                "actionStatus": itemsMap[sub['name']!] ?? false,
+                                "packageName": sub['code']!,
+                                "actionStatus": isChecked,
                               };
                             }).toList();
+
+                            final bool categoryActionStatus = itemsMap.values.any((val) => val == true);
 
                             BlocProvider.of<CustomerDetailBloc>(mainContext).add(
                               SaveDeviceActionEvent(
                                 customerCode: customer.customerCode,
-                                notificationCode: actionCode,
+                                notificationCode: categoryNotificationCode,
                                 actionStatus: categoryActionStatus,
                                 devicePin: '',
-                                selectedApps: selectedAppsList,
+                                selectedApps: finalAppsToSubmit,
                               ),
                             );
-
-                            if (actionCode == 'LOCK_DEVICE') {
-                              BlocProvider.of<CustomerDetailBloc>(mainContext).add(
-                                LockDeviceEvent(customer.id.toString()),
-                              );
-                            } else {
-                              BlocProvider.of<CustomerDetailBloc>(mainContext).add(
-                                UnlockDeviceEvent(customer.id.toString()),
-                              );
-                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
@@ -298,178 +283,6 @@ class CustomerActionInfoCard extends StatelessWidget {
     );
   }
 
-  void _showPinVerificationDialog(
-      BuildContext context, {
-        required String categoryTitle,
-        required String notificationCode,
-        required bool actionStatus,
-        List<Map<String, dynamic>>? selectedApps,
-      }) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) {
-        final List<TextEditingController> controllers = List.generate(4, (_) => TextEditingController());
-        final List<FocusNode> focusNodes = List.generate(4, (_) => FocusNode());
-
-        return Dialog(
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Enter Device PIN',
-                  style: TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 20,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Please enter a 4-digit PIN for $categoryTitle',
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 13,
-                    fontFamily: 'Inter',
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(4, (index) {
-                    return SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: TextField(
-                        controller: controllers[index],
-                        focusNode: focusNodes[index],
-                        textAlign: TextAlign.center,
-                        keyboardType: TextInputType.number,
-                        maxLength: 1,
-                        obscureText: true,
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        decoration: InputDecoration(
-                          counterText: '',
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
-                          ),
-                        ),
-                        onChanged: (value) {
-                          if (value.isNotEmpty && index < 3) {
-                            focusNodes[index + 1].requestFocus();
-                          } else if (value.isEmpty && index > 0) {
-                            focusNodes[index - 1].requestFocus();
-                          }
-                        },
-                      ),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          side: const BorderSide(color: Color(0xFFE2E8F0)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          backgroundColor: const Color(0xFFF8FAFC),
-                        ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                            color: Color(0xFF1E293B),
-                            fontSize: 14,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          String pin = controllers.map((c) => c.text).join();
-                          if (pin.length == 4) {
-                            Navigator.of(dialogContext, rootNavigator: true).pop();
-
-                            BlocProvider.of<CustomerDetailBloc>(context).add(
-                              SaveDeviceActionEvent(
-                                customerCode: customer.customerCode,
-                                notificationCode: notificationCode,
-                                actionStatus: actionStatus,
-                                devicePin: pin,
-                                selectedApps: selectedApps ?? [
-                                  {
-                                    "packageName": notificationCode,
-                                    "actionStatus": actionStatus,
-                                  }
-                                ],
-                              ),
-                            );
-
-                            if (notificationCode == 'LOCK_DEVICE') {
-                              BlocProvider.of<CustomerDetailBloc>(context).add(
-                                LockDeviceEvent(customer.id.toString()),
-                              );
-                            } else {
-                              BlocProvider.of<CustomerDetailBloc>(context).add(
-                                UnlockDeviceEvent(customer.id.toString()),
-                              );
-                            }
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please enter complete 4-digit PIN')),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Confirm',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -492,7 +305,19 @@ class CustomerActionInfoCard extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              BlocProvider.of<CustomerDetailBloc>(context).add(
+                SaveDeviceActionEvent(
+                  customerCode: customer.customerCode,
+                  notificationCode: 'APP_UNINSTALL',
+                  actionStatus: false,
+                  devicePin: '',
+                  selectedApps: [
+                    {"packageName": "Uninstall", "actionStatus": false}
+                  ],
+                ),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFDC2626),
               padding: const EdgeInsets.symmetric(vertical: 16),

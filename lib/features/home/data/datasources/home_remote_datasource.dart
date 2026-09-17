@@ -33,11 +33,19 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         final url = Uri.parse(ApiConstants.fetchHomeData);
         final requestBody = jsonEncode({"retailerCode": retailerCode});
 
+        print('--- FETCH HOME DATA REQUEST ---');
+        print('URL: $url');
+        print('Request Body: $requestBody');
+
         final response = await ApiClient.post(
           url,
           headers: {'accept': '*/*', 'Content-Type': 'application/json'},
           body: requestBody,
         ).timeout(const Duration(seconds: 15));
+
+        print('--- FETCH HOME DATA RESPONSE ---');
+        print('Status Code: ${response.statusCode}');
+        print('Response Body: ${response.body}');
 
         if (response.statusCode == 500 && currentAttempt < maxAttempts) {
           await Future.delayed(const Duration(seconds: 1));
@@ -55,6 +63,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           throw Exception('Server error: ${response.statusCode}');
         }
       } catch (e) {
+        print('Error in fetchHomeData: $e');
         if (e.toString().contains('No internet connection')) {
           rethrow;
         }
@@ -66,7 +75,6 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     }
     throw Exception('Failed to load home data');
   }
-
   @override
   Future<List<CustomerModel>> fetchRecentCustomers({int? topRecords}) async {
     try {

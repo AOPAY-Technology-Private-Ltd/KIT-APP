@@ -14,7 +14,65 @@ class CustomerDetailRepositoryImpl implements CustomerDetailRepository {
   }
 
   @override
-  Future<AppMasterModel> getAppMaster() async {
-    return await remoteDataSource.getAppMaster();
+  Future<AppMasterModel> getAppMaster([String customerCode = '']) async {
+    return await remoteDataSource.getAppMaster(customerCode);
+  }
+
+  @override
+  Future<Map<String, dynamic>> getSuccessDeviceActions({
+    required String customerCode,
+    required String clientCode,
+  }) async {
+    return await remoteDataSource.getSuccessDeviceActions(
+      customerCode: customerCode,
+      clientCode: clientCode,
+    );
+  }
+
+  @override
+  Future<bool> saveDeviceAction({
+    required String customerCode,
+    required String notificationCode,
+    required bool actionStatus,
+    List<Map<String, dynamic>>? selectedApps,
+  }) async {
+    return await remoteDataSource.saveDeviceAction(
+      customerCode: customerCode,
+      notificationCode: notificationCode,
+      actionStatus: actionStatus,
+      selectedApps: selectedApps,
+    );
+  }
+
+  @override
+  Future<bool> sendDeviceNotification({
+    required String customerCode,
+    required String notificationCode,
+    required String devicePin,
+    List<Map<String, dynamic>>? selectedApps,
+  }) async {
+    return await remoteDataSource.sendDeviceNotification(
+      customerCode: customerCode,
+      notificationCode: notificationCode,
+      devicePin: devicePin,
+      selectedApps: selectedApps,
+    );
+  }
+
+  @override
+  Future<bool> saveAndNotifyDeviceAction({
+    required String customerCode,
+    required String notificationCode,
+    required bool actionStatus,
+    required String devicePin,
+    List<Map<String, dynamic>>? selectedApps,
+  }) async {
+    return await remoteDataSource.saveAndNotifyDeviceAction(
+      customerCode: customerCode,
+      notificationCode: notificationCode,
+      actionStatus: actionStatus,
+      devicePin: devicePin,
+      selectedApps: selectedApps,
+    );
   }
 }

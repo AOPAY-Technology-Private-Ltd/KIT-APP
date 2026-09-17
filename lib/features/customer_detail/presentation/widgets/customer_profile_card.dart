@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/services/session_manager.dart';
 import '../../domain/entities/customer_detail_entity.dart';
 import '../bloc/customer_detail_bloc.dart';
-import '../bloc/customer_detail_state.dart';
+import '../pages/Customer_location_screen.dart';
 
 class CustomerProfileCard extends StatefulWidget {
   final CustomerDetailEntity customer;
@@ -23,7 +24,10 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
   void initState() {
     super.initState();
     _updateStatus();
+
   }
+
+
 
   @override
   void didUpdateWidget(covariant CustomerProfileCard oldWidget) {
@@ -33,7 +37,14 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
 
   void _updateStatus() {
     final status = widget.customer.status.trim();
-    isLocked = status.toLowerCase() == 'locked' || status.toLowerCase() == 'lock';
+
+    bool isStringLocked = status.toLowerCase() == 'locked' || status.toLowerCase() == 'lock';
+
+    bool isApiLocked = false;
+    try {
+    } catch (_) {}
+
+    isLocked = isStringLocked || isApiLocked;
     isInactive = status.toLowerCase() == 'inactive';
 
     if (status.toLowerCase() == 'approved') {
@@ -67,7 +78,8 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
         return Dialog(
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20)),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -114,7 +126,8 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+                    onPressed: () =>
+                        Navigator.of(dialogContext, rootNavigator: true).pop(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFDC2626),
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -142,97 +155,6 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
     );
   }
 
-  void _showLocationDetailsBottomSheet(BuildContext context) {
-    final bloc = context.read<CustomerDetailBloc>();
-    final state = bloc.state;
-
-    Map<String, dynamic> locationData = {};
-    if (state is CustomerDetailLoaded && state.locationKitData != null) {
-      locationData = state.locationKitData!;
-    } else if (bloc.latestLocationKitData != null) {
-      locationData = bloc.latestLocationKitData!;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (bottomSheetContext) {
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Latest Location Information',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Inter',
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(bottomSheetContext),
-                  ),
-                ],
-              ),
-              const Divider(),
-              const SizedBox(height: 12),
-              if (locationData.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24.0),
-                  child: Center(
-                    child: Text(
-                      'No location data available.',
-                      style: TextStyle(color: Colors.grey, fontFamily: 'Inter', fontSize: 14),
-                    ),
-                  ),
-                )
-              else
-                ...locationData.entries.map((entry) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${entry.key}: ',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Inter',
-                            color: Color(0xFF475569),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            '${entry.value}',
-                            style: const TextStyle(
-                              fontFamily: 'Inter',
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   void _showLockFlowDialog({
     required BuildContext parentContext,
     required String customerCode,
@@ -245,13 +167,16 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
         bool isPinStep = true;
         bool isLoading = false;
         String enteredPin = '';
-        final List<TextEditingController> controllers = List.generate(4, (_) => TextEditingController());
-        final List<FocusNode> focusNodes = List.generate(4, (_) => FocusNode());
+        final List<TextEditingController> controllers =
+        List.generate(4, (_) => TextEditingController());
+        final List<FocusNode> focusNodes =
+        List.generate(4, (_) => FocusNode());
 
         return Dialog(
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20)),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: StatefulBuilder(
@@ -291,8 +216,10 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                               focusNode: FocusNode(),
                               onKeyEvent: (event) {
                                 if (event is KeyDownEvent &&
-                                    event.logicalKey == LogicalKeyboardKey.backspace) {
-                                  if (controllers[index].text.isEmpty && index > 0) {
+                                    event.logicalKey ==
+                                        LogicalKeyboardKey.backspace) {
+                                  if (controllers[index].text.isEmpty &&
+                                      index > 0) {
                                     focusNodes[index - 1].requestFocus();
                                     controllers[index - 1].clear();
                                   }
@@ -305,16 +232,19 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                                 keyboardType: TextInputType.number,
                                 maxLength: 1,
                                 obscureText: true,
-                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
                                 decoration: InputDecoration(
                                   counterText: '',
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+                                    borderSide: const BorderSide(
+                                        color: Color(0xFF2563EB), width: 1.5),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+                                    borderSide: const BorderSide(
+                                        color: Color(0xFF2563EB), width: 2),
                                   ),
                                 ),
                                 onChanged: (value) {
@@ -338,10 +268,16 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                         children: [
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: isLoading ? null : () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+                              onPressed: isLoading
+                                  ? null
+                                  : () => Navigator.of(dialogContext,
+                                  rootNavigator: true)
+                                  .pop(),
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                side: const BorderSide(color: Color(0xFFE2E8F0)),
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 12),
+                                side: const BorderSide(
+                                    color: Color(0xFFE2E8F0)),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -364,7 +300,9 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                               onPressed: isLoading
                                   ? null
                                   : () {
-                                String pin = controllers.map((c) => c.text).join();
+                                String pin = controllers
+                                    .map((c) => c.text)
+                                    .join();
                                 if (pin.length == 4) {
                                   enteredPin = pin;
 
@@ -372,38 +310,29 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                                     isLoading = true;
                                   });
 
-                                  parentContext.read<CustomerDetailBloc>().add(
-                                    SaveDeviceActionEvent(
-                                      customerCode: customerCode,
-                                      notificationCode: notificationCode,
-                                      actionStatus: true,
-                                      devicePin: enteredPin,
-                                      selectedApps: [
-                                        {
-                                          "packageName": notificationCode,
-                                          "actionStatus": true,
+                                  Future.delayed(
+                                      const Duration(milliseconds: 500),
+                                          () {
+                                        if (dialogContext.mounted) {
+                                          setInnerState(() {
+                                            isLoading = false;
+                                            isPinStep = false;
+                                          });
                                         }
-                                      ],
-                                    ),
-                                  );
-
-                                  Future.delayed(const Duration(milliseconds: 500), () {
-                                    if (dialogContext.mounted) {
-                                      setInnerState(() {
-                                        isLoading = false;
-                                        isPinStep = false;
                                       });
-                                    }
-                                  });
                                 } else {
-                                  ScaffoldMessenger.of(parentContext).showSnackBar(
-                                    const SnackBar(content: Text('Please enter complete 4-digit PIN')),
+                                  ScaffoldMessenger.of(parentContext)
+                                      .showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'Please enter complete 4-digit PIN')),
                                   );
                                 }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF2563EB),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 12),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -467,10 +396,14 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                         children: [
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+                              onPressed: () => Navigator.of(dialogContext,
+                                  rootNavigator: true)
+                                  .pop(),
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                side: const BorderSide(color: Color(0xFF2563EB)),
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 12),
+                                side: const BorderSide(
+                                    color: Color(0xFF2563EB)),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -490,7 +423,9 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () {
-                                Navigator.of(dialogContext, rootNavigator: true).pop();
+                                Navigator.of(dialogContext,
+                                    rootNavigator: true)
+                                    .pop();
 
                                 showDialog(
                                   context: parentContext,
@@ -503,7 +438,26 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                                 );
 
                                 Future.microtask(() {
-                                  parentContext.read<CustomerDetailBloc>().add(
+                                  parentContext
+                                      .read<CustomerDetailBloc>()
+                                      .add(
+                                    SaveDeviceActionEvent(
+                                      customerCode: customerCode,
+                                      notificationCode: 'DEVICE_PIN',
+                                      actionStatus: true,
+                                      devicePin: enteredPin,
+                                      selectedApps: [
+                                        {
+                                          "packageName": "DEVICE_PIN",
+                                          "actionStatus": true,
+                                        }
+                                      ],
+                                    ),
+                                  );
+
+                                  parentContext
+                                      .read<CustomerDetailBloc>()
+                                      .add(
                                     SaveDeviceActionEvent(
                                       customerCode: customerCode,
                                       notificationCode: 'LOCK_DEVICE',
@@ -518,14 +472,18 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                                     ),
                                   );
 
-                                  parentContext.read<CustomerDetailBloc>().add(
-                                    LockDeviceEvent(widget.customer.id.toString()),
+                                  parentContext
+                                      .read<CustomerDetailBloc>()
+                                      .add(
+                                    LockDeviceEvent(
+                                        widget.customer.id.toString()),
                                   );
                                 });
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFFEF4444),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 12),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -567,7 +525,8 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
         return Dialog(
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20)),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -608,7 +567,9 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+                        onPressed: () => Navigator.of(dialogContext,
+                            rootNavigator: true)
+                            .pop(),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           side: const BorderSide(color: Color(0xFF2563EB)),
@@ -631,7 +592,9 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.of(dialogContext, rootNavigator: true).pop();
+                          Navigator.of(dialogContext,
+                              rootNavigator: true)
+                              .pop();
 
                           showDialog(
                             context: parentContext,
@@ -648,18 +611,19 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                               SaveDeviceActionEvent(
                                 customerCode: customerCode,
                                 notificationCode: notificationCode,
-                                actionStatus: true,
+                                actionStatus: false, // 👈 Yahan false kar diya hai
                                 selectedApps: [
                                   {
                                     "packageName": notificationCode,
-                                    "actionStatus": true,
+                                    "actionStatus": false, // 👈 Yahan bhi false kar diya hai
                                   }
                                 ],
                               ),
                             );
 
                             parentContext.read<CustomerDetailBloc>().add(
-                              UnlockDeviceEvent(widget.customer.id.toString()),
+                              UnlockDeviceEvent(
+                                  widget.customer.id.toString()),
                             );
                           });
                         },
@@ -730,7 +694,8 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                   height: 60,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
-                  const CircleAvatar(radius: 30, backgroundColor: Colors.white24),
+                  const CircleAvatar(
+                      radius: 30, backgroundColor: Colors.white24),
                 ),
               ),
               const SizedBox(width: 12),
@@ -751,7 +716,8 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
                           decoration: ShapeDecoration(
                             color: Colors.white,
                             shape: RoundedRectangleBorder(
@@ -802,11 +768,103 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
               Row(
                 children: [
                   GestureDetector(
-                    onTap: () {
+                    onTap: () async {
                       if (isInactive) {
                         _showInactiveRestrictionDialog();
                       } else {
-                        _showLocationDetailsBottomSheet(context);
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) => const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF3B82F6),
+                            ),
+                          ),
+                        );
+
+                        try {
+                          final bloc = context.read<CustomerDetailBloc>();
+                          final dataSource = bloc.remoteDataSource;
+                          final customerCode = widget.customer.customerCode;
+
+                          if (dataSource != null) {
+                            final bool isSuccess = await dataSource
+                                .saveAndNotifyDeviceAction(
+                              customerCode: customerCode,
+                              notificationCode: 'GET_LOCATION',
+                              actionStatus: true,
+                              devicePin: '',
+                              selectedApps: [
+                                {
+                                  "PackageName": "TRACK_LOCATION",
+                                  "Action": "ENABLE"
+                                }
+                              ],
+                            );
+
+                            if (isSuccess) {
+                              final Map<String, dynamic> locationData =
+                              await dataSource
+                                  .getCustomerLatestLocationKit(
+                                  customerCode);
+
+                              if (context.mounted) {
+                                Navigator.of(context, rootNavigator: true)
+                                    .pop();
+                              }
+
+                              if (locationData.isNotEmpty && context.mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        CustomerLocationScreen(
+                                          locationApiResponse: locationData,
+                                          customerName: widget.customer.name,
+                                        ),
+                                  ),
+                                );
+                              } else {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'Location data not available')),
+                                  );
+                                }
+                              }
+                            } else {
+                              if (context.mounted) {
+                                Navigator.of(context, rootNavigator: true)
+                                    .pop();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Failed to trigger location tracking')),
+                                );
+                              }
+                            }
+                          } else {
+                            if (context.mounted) {
+                              Navigator.of(context, rootNavigator: true)
+                                  .pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Remote data source not available')),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            Navigator.of(context, rootNavigator: true).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      'Error: ${e.toString().replaceAll("Exception: ", "")}')),
+                            );
+                          }
+                        }
                       }
                     },
                     child: _buildCardIcon(Icons.location_on_outlined),
@@ -818,6 +876,7 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                   ),
                 ],
               ),
+
               CustomPaint(
                 painter: const GlassBorderPainter(borderRadius: 45),
                 child: Container(
@@ -845,9 +904,12 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
                           decoration: ShapeDecoration(
-                            color: !isLocked && !isInactive ? Colors.white : Colors.transparent,
+                            color: !isLocked && !isInactive
+                                ? Colors.white
+                                : Colors.transparent,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(40),
                             ),
@@ -870,13 +932,17 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                               Icon(
                                 Icons.lock_open,
                                 size: 10,
-                                color: (!isLocked && !isInactive) ? const Color(0xFF3B82F6) : Colors.white70,
+                                color: (!isLocked && !isInactive)
+                                    ? const Color(0xFF3B82F6)
+                                    : Colors.white70,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 'Unlock',
                                 style: TextStyle(
-                                  color: (!isLocked && !isInactive) ? const Color(0xFF3B82F6) : Colors.white70,
+                                  color: (!isLocked && !isInactive)
+                                      ? const Color(0xFF3B82F6)
+                                      : Colors.white70,
                                   fontSize: 8,
                                   fontFamily: 'Inter',
                                   fontWeight: FontWeight.w500,
@@ -901,9 +967,12 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
                           decoration: ShapeDecoration(
-                            color: (isLocked && !isInactive) ? const Color(0xFFDC2626) : Colors.transparent,
+                            color: (isLocked && !isInactive)
+                                ? const Color(0xFFDC2626)
+                                : Colors.transparent,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(40),
                             ),
@@ -926,13 +995,17 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                               Icon(
                                 Icons.lock,
                                 size: 10,
-                                color: isInactive ? Colors.white70 : Colors.white,
+                                color: (isLocked && !isInactive)
+                                    ? Colors.white
+                                    : (isInactive ? Colors.white70 : Colors.white70),
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 'Lock',
                                 style: TextStyle(
-                                  color: isInactive ? Colors.white70 : Colors.white,
+                                  color: (isLocked && !isInactive)
+                                      ? Colors.white
+                                      : (isInactive ? Colors.white70 : Colors.white70),
                                   fontSize: 8,
                                   fontFamily: 'Inter',
                                   fontWeight: FontWeight.w500,
@@ -947,6 +1020,8 @@ class _CustomerProfileCardState extends State<CustomerProfileCard> {
                   ),
                 ),
               ),
+
+
             ],
           ),
         ],

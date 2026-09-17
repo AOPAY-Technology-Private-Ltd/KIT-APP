@@ -6,7 +6,7 @@ class GetAppMasterUseCase {
 
   GetAppMasterUseCase(this.repository);
 
-  Future<AppMasterModel> call() async {
-    return await repository.getAppMaster();
+  Future<AppMasterModel> call([String customerCode = '']) async {
+    return await repository.getAppMaster(customerCode);
   }
 }

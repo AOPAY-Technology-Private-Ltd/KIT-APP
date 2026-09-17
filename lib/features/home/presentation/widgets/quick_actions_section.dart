@@ -4,10 +4,12 @@ import '../../../../core/constants/routes/route_names.dart';
 
 class QuickActionsSection extends StatelessWidget {
   final VoidCallback? onAddCustomerPressed;
+  final int availableKits;
 
   const QuickActionsSection({
     super.key,
     this.onAddCustomerPressed,
+    required this.availableKits,
   });
 
   @override
@@ -99,7 +101,21 @@ class QuickActionsSection extends StatelessWidget {
             Expanded(
               child: _button(
                 "Add Customer",
-                onPressed: onAddCustomerPressed,
+                onPressed: () {
+                  if (availableKits <= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please buy kits first to add a customer!'),
+                        backgroundColor: Colors.redAccent,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  } else {
+                    if (onAddCustomerPressed != null) {
+                      onAddCustomerPressed!();
+                    }
+                  }
+                },
               ),
             ),
           ],

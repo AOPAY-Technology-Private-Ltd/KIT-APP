@@ -28,12 +28,13 @@ class BuyKitsRemoteDataSourceImpl implements BuyKitsRemoteDataSource {
   Future<List<PlanEntity>> fetchPlans() async {
     try {
       final retailerCode = await SessionManager.getRetailerCode() ?? '';
+      final clientCode = await SessionManager.getClientCode() ?? 'CMP0005';
 
       final uri = Uri.parse(apiUrl);
 
       print('--- GET RETAILER KIT PLANS REQUEST ---');
       print('URL: $uri');
-      print('Request Body: {"companyCode": "CMP0005", "retailerCode": "$retailerCode"}');
+      print('Request Body: {"companyCode": "$clientCode", "retailerCode": "$retailerCode"}');
 
       final response = await client.post(
         uri,
@@ -42,7 +43,7 @@ class BuyKitsRemoteDataSourceImpl implements BuyKitsRemoteDataSource {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          "companyCode": "CMP0005",
+          "companyCode": clientCode,
           "retailerCode": retailerCode,
         }),
       );
@@ -72,7 +73,6 @@ class BuyKitsRemoteDataSourceImpl implements BuyKitsRemoteDataSource {
       throw Exception('Error fetching plans: $e');
     }
   }
-
   @override
   Future<List<PaymentMethodEntity>> fetchPaymentMethods() async {
     return PlanModel.getMockPaymentMethods();

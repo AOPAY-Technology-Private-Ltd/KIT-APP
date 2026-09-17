@@ -51,6 +51,7 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
 
     final prefs = await SharedPreferences.getInstance();
     final retailerCode = prefs.getString('retailer_code');
+    final clientCode = prefs.getString('client_code');
 
     final queryParams = <String, String>{
       'Mode': requestModel.mode ?? 'INSERT',
@@ -60,6 +61,10 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
 
     if (retailerCode != null && retailerCode.isNotEmpty) {
       queryParams['RetailerCode'] = retailerCode;
+    }
+
+    if (clientCode != null && clientCode.isNotEmpty) {
+      queryParams['ClientCode'] = clientCode;
     }
 
     if (requestModel.firstName != null && requestModel.firstName!.isNotEmpty) {
@@ -106,6 +111,11 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
 
     print('--- MANAGE CUSTOMER REQUEST ---');
     print('URL: $uri');
+
+    print('--- QUERY PARAMETERS BODY ---');
+    queryParams.forEach((key, value) {
+      print('$key: $value');
+    });
 
     var request = http.MultipartRequest('POST', uri);
     request.headers.addAll({
@@ -159,6 +169,13 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
         'InvoiceFile',
         requestModel.invoiceFile!.path,
       ));
+    }
+
+    if (request.fields.isNotEmpty) {
+      print('--- REQUEST FIELDS ---');
+      request.fields.forEach((key, value) {
+        print('$key: $value');
+      });
     }
 
     print('--- ATTACHED FILES DETAILS ---');

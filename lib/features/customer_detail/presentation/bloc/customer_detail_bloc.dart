@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/app_master_model.dart';
+import '../../../../core/services/session_manager.dart';
 import '../../domain/entities/customer_detail_entity.dart';
 import '../../domain/usecases/get_customer_detail_usecase.dart';
 import '../../domain/usecases/get_app_master_usecase.dart';
@@ -11,9 +11,13 @@ class CustomerDetailBloc extends Bloc<CustomerDetailEvent, CustomerDetailState> 
   final dynamic remoteDataSource;
   CustomerDetailEntity? _cachedCustomer;
   Map<String, dynamic>? _latestLocationKitData;
+  Map<String, dynamic>? _successDeviceActionsData;
+
+  String? _lastEnteredPin;
 
   CustomerDetailEntity? get cachedCustomer => _cachedCustomer;
   Map<String, dynamic>? get latestLocationKitData => _latestLocationKitData;
+  Map<String, dynamic>? get successDeviceActionsData => _successDeviceActionsData;
 
   CustomerDetailBloc({
     required this.getCustomerDetailUseCase,
@@ -34,15 +38,44 @@ class CustomerDetailBloc extends Bloc<CustomerDetailEvent, CustomerDetailState> 
       ) async {
     emit(CustomerDetailLoading());
     try {
-      final results = await Future.wait([
-        getCustomerDetailUseCase(event.customerId),
-        getAppMasterUseCase(),
-      ]);
-
-      final customer = results[0] as CustomerDetailEntity;
-      final appMaster = results[1] as AppMasterModel;
-
+      final customer = await getCustomerDetailUseCase(event.customerId);
       _cachedCustomer = customer;
+
+      final appMaster = await getAppMasterUseCase(customer.customerCode);
+
+      if (remoteDataSource != null && customer.customerCode.isNotEmpty) {
+        try {
+          final clientCode = await SessionManager.getClientCode() ?? '';
+          _successDeviceActionsData = await remoteDataSource.getSuccessDeviceActions(
+            customerCode: customer.customerCode,
+            clientCode: clientCode,
+          );
+
+          // 👈 API se check karke status update kar rahe hain agar locked hai
+          if (_successDeviceActionsData != null) {
+            bool isApiLocked = false;
+            final responseMap = _successDeviceActionsData!;
+
+            if (responseMap['notificationCode'] == 'LOCK_DEVICE') {
+              isApiLocked = responseMap['actionStatus'] == true;
+            } else if (responseMap['data'] is List) {
+              final list = responseMap['data'] as List;
+              for (var item in list) {
+                if (item['notificationCode'] == 'LOCK_DEVICE') {
+                  isApiLocked = item['actionStatus'] == true;
+                  break;
+                }
+              }
+            }
+
+            if (isApiLocked) {
+              _cachedCustomer = _cachedCustomer!.copyWith(status: "Locked");
+            }
+          }
+        } catch (_) {
+          _successDeviceActionsData = {};
+        }
+      }
 
       if (remoteDataSource != null && customer.customerCode.isNotEmpty) {
         try {
@@ -53,9 +86,10 @@ class CustomerDetailBloc extends Bloc<CustomerDetailEvent, CustomerDetailState> 
       }
 
       emit(CustomerDetailLoaded(
-        customer: customer,
+        customer: _cachedCustomer!,
         appMaster: appMaster,
         selectedTabIdx: 0,
+        successDeviceActionsData: _successDeviceActionsData,
       ));
     } catch (e) {
       emit(CustomerDetailError(e.toString().replaceAll('Exception: ', '')));
@@ -68,6 +102,9 @@ class CustomerDetailBloc extends Bloc<CustomerDetailEvent, CustomerDetailState> 
       ) {
     if (_cachedCustomer != null && state is CustomerDetailLoaded) {
       final currentState = state as CustomerDetailLoaded;
+      emit(currentState.copyWith(selectedTabIdx: event.tabIndex));
+    } else if (_cachedCustomer != null && state is DeviceActionSuccessState) {
+      final currentState = state as DeviceActionSuccessState;
       emit(currentState.copyWith(selectedTabIdx: event.tabIndex));
     }
   }
@@ -97,17 +134,47 @@ class CustomerDetailBloc extends Bloc<CustomerDetailEvent, CustomerDetailState> 
       SaveDeviceActionEvent event,
       Emitter<CustomerDetailState> emit,
       ) async {
+    if (event.devicePin != null && event.devicePin!.isNotEmpty) {
+      _lastEnteredPin = event.devicePin;
+    }
+
+    final finalPin = event.devicePin ?? _lastEnteredPin ?? '';
+
     try {
       if (remoteDataSource != null) {
         final success = await remoteDataSource.saveAndNotifyDeviceAction(
           customerCode: event.customerCode,
           notificationCode: event.notificationCode,
           actionStatus: event.actionStatus,
-          devicePin: event.devicePin ?? '',
+          devicePin: finalPin,
           selectedApps: event.selectedApps,
         );
 
-        if (!success) {
+        if (success) {
+          if (_cachedCustomer != null && (state is CustomerDetailLoaded || state is DeviceActionSuccessState)) {
+            final current = state is CustomerDetailLoaded
+                ? state as CustomerDetailLoaded
+                : state as DeviceActionSuccessState;
+
+            if (event.notificationCode == 'LOCK_DEVICE') {
+              _cachedCustomer = _cachedCustomer!.copyWith(
+                status: event.actionStatus ? "Locked" : "Approved",
+              );
+            }
+
+            emit(DeviceActionSuccessState(
+              isLocked: event.actionStatus,
+              message: 'Device Action Saved Successfully',
+              customer: _cachedCustomer!,
+              appMaster: current.appMaster,
+              selectedTabIdx: current.selectedTabIdx,
+              actionToggles: current.actionToggles,
+              selectedSubItems: current.selectedSubItems,
+              locationKitData: current.locationKitData,
+              successDeviceActionsData: current.successDeviceActionsData,
+            ));
+          }
+        } else {
           emit(CustomerDetailError('Failed to complete device action'));
         }
       }
@@ -124,16 +191,25 @@ class CustomerDetailBloc extends Bloc<CustomerDetailEvent, CustomerDetailState> 
     try {
       await Future.delayed(const Duration(milliseconds: 800));
 
-      if (_cachedCustomer != null && state is CustomerDetailLoaded) {
-        final current = state as CustomerDetailLoaded;
+      if (_cachedCustomer != null && (state is CustomerDetailLoaded || state is DeviceActionSuccessState)) {
+        final current = state is CustomerDetailLoaded
+            ? state as CustomerDetailLoaded
+            : state as DeviceActionSuccessState;
+
         _cachedCustomer = _cachedCustomer!.copyWith(status: "Locked");
 
-        emit(current.copyWith(
-          customer: _cachedCustomer,
+        emit(DeviceActionSuccessState(
+          isLocked: true,
+          message: 'Phone Locked Successfully',
+          customer: _cachedCustomer!,
+          appMaster: current.appMaster,
+          selectedTabIdx: current.selectedTabIdx,
+          actionToggles: current.actionToggles,
+          selectedSubItems: current.selectedSubItems,
+          locationKitData: current.locationKitData,
+          successDeviceActionsData: current.successDeviceActionsData,
         ));
       }
-
-      emit(DeviceActionSuccessState(isLocked: true, message: 'Phone Locked Successfully'));
     } catch (e) {
       emit(CustomerDetailError(e.toString().replaceAll('Exception: ', '')));
     }
@@ -146,22 +222,32 @@ class CustomerDetailBloc extends Bloc<CustomerDetailEvent, CustomerDetailState> 
     try {
       await Future.delayed(const Duration(milliseconds: 800));
 
-      if (_cachedCustomer != null && state is CustomerDetailLoaded) {
-        final current = state as CustomerDetailLoaded;
+      if (_cachedCustomer != null && (state is CustomerDetailLoaded || state is DeviceActionSuccessState)) {
+        final current = state is CustomerDetailLoaded
+            ? state as CustomerDetailLoaded
+            : state as DeviceActionSuccessState;
+
         _cachedCustomer = _cachedCustomer!.copyWith(status: "Approved");
 
-        emit(current.copyWith(
-          customer: _cachedCustomer,
+        emit(DeviceActionSuccessState(
+          isLocked: false,
+          message: 'Phone Unlocked Successfully',
+          customer: _cachedCustomer!,
+          appMaster: current.appMaster,
+          selectedTabIdx: current.selectedTabIdx,
+          actionToggles: current.actionToggles,
+          selectedSubItems: current.selectedSubItems,
+          locationKitData: current.locationKitData,
+          successDeviceActionsData: current.successDeviceActionsData,
         ));
       }
-
-      emit(DeviceActionSuccessState(isLocked: false, message: 'Phone Unlocked Successfully'));
     } catch (e) {
       emit(CustomerDetailError(e.toString().replaceAll('Exception: ', '')));
     }
   }
 }
 
+// ==================== EVENTS ====================
 abstract class CustomerDetailEvent {}
 
 class FetchCustomerDetailEvent extends CustomerDetailEvent {

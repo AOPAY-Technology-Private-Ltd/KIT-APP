@@ -60,6 +60,7 @@ class QrRemoteDataSourceImpl implements QrRemoteDataSource {
       throw Exception('Error: $e');
     }
   }
+
   @override
   Future<QrUserModel> fetchQrData() async {
     final url = Uri.parse(

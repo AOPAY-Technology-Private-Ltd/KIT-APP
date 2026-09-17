@@ -37,6 +37,11 @@ class _CustomerInformationContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentState = context.watch<CustomerDetailBloc>().state;
+    final int currentTabIdx = currentState is CustomerDetailLoaded
+        ? currentState.selectedTabIdx
+        : (currentState is DeviceActionSuccessState ? currentState.selectedTabIdx : 0);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -66,7 +71,7 @@ class _CustomerInformationContent extends StatelessWidget {
 
             if (state is CustomerDetailLoading) {
               return const Center(child: CircularProgressIndicator(color: Color(0xFF1D61E7)));
-            } else if (state is CustomerDetailError && state is! CustomerDetailLoaded && bloc.cachedCustomer == null) {
+            } else if (state is CustomerDetailError && state is! CustomerDetailLoaded && state is! DeviceActionSuccessState && bloc.cachedCustomer == null) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
@@ -97,8 +102,11 @@ class _CustomerInformationContent extends StatelessWidget {
                   ),
                 ),
               );
-            } else if (state is CustomerDetailLoaded || (state is CustomerDetailError && bloc.cachedCustomer != null)) {
-              final customer = bloc.cachedCustomer!;
+            } else if (state is CustomerDetailLoaded || state is DeviceActionSuccessState || (state is CustomerDetailError && bloc.cachedCustomer != null)) {
+              final customer = bloc.cachedCustomer ?? (state is CustomerDetailLoaded ? state.customer : (state as DeviceActionSuccessState).customer);
+              final activeTabIdx = state is CustomerDetailLoaded
+                  ? state.selectedTabIdx
+                  : (state is DeviceActionSuccessState ? state.selectedTabIdx : currentTabIdx);
 
               return SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -121,37 +129,45 @@ class _CustomerInformationContent extends StatelessWidget {
                     const SizedBox(height: 18),
                     CustomerProfileCard(customer: customer),
                     const SizedBox(height: 18),
-                    CustomerInfoTabsWidget(selectedTabIdx: state is CustomerDetailLoaded ? state.selectedTabIdx : 0),
+                    CustomerInfoTabsWidget(selectedTabIdx: activeTabIdx),
                     const SizedBox(height: 18),
 
-                    if (state is CustomerDetailLoaded ? state.selectedTabIdx == 0 : true)
+                    if (activeTabIdx == 0)
                       CustomerDetailInfoCard(customer: customer)
-                    else if (state is CustomerDetailLoaded && state.selectedTabIdx == 1)
+                    else if (activeTabIdx == 1)
                       CustomerDeviceInfoCard(customer: customer)
-                    else if (state is CustomerDetailLoaded && state.selectedTabIdx == 2)
+                    else if (activeTabIdx == 2 && (state is CustomerDetailLoaded || state is DeviceActionSuccessState))
                         CustomerActionInfoCard(
                           customer: customer,
-                          actionToggles: state.actionToggles,
-                          appMaster: state.appMaster,
-                          selectedSubItems: state.selectedSubItems,
+                          actionToggles: (state is CustomerDetailLoaded)
+                              ? state.actionToggles
+                              : (state as DeviceActionSuccessState).actionToggles,
+                          appMaster: (state is CustomerDetailLoaded)
+                              ? state.appMaster
+                              : (state as DeviceActionSuccessState).appMaster,
+                          selectedSubItems: (state is CustomerDetailLoaded)
+                              ? state.selectedSubItems
+                              : (state as DeviceActionSuccessState).selectedSubItems,
                         )
-                      else
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(32),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                      else if (activeTabIdx == 2)
+                          const SizedBox.shrink()
+                        else
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(32),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                            ),
+                            child: const Text(
+                              'Content coming soon',
+                              style: TextStyle(color: Colors.grey, fontSize: 14),
+                            ),
                           ),
-                          child: const Text(
-                            'Content coming soon',
-                            style: TextStyle(color: Colors.grey, fontSize: 14),
-                          ),
-                        ),
 
-                    if (state is CustomerDetailLoaded && state.selectedTabIdx == 0) ...[
+                    if (activeTabIdx == 0) ...[
                       const SizedBox(height: 26),
                       Row(
                         children: [

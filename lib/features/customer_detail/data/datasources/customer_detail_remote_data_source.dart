@@ -8,7 +8,7 @@ import '../models/customer_detail_model.dart';
 
 abstract class CustomerDetailRemoteDataSource {
   Future<CustomerDetailModel> getCustomerDetail(String customerIdentifier);
-  Future<AppMasterModel> getAppMaster();
+  Future<AppMasterModel> getAppMaster([String customerCode = '']);
   Future<bool> saveDeviceAction({
     required String customerCode,
     required String notificationCode,
@@ -28,6 +28,11 @@ abstract class CustomerDetailRemoteDataSource {
     required String devicePin,
     List<Map<String, dynamic>>? selectedApps,
   });
+  Future<Map<String, dynamic>> getSuccessDeviceActions({
+    required String customerCode,
+    required String clientCode,
+  });
+  Future<Map<String, dynamic>> getCustomerLatestLocationKit(String customerCode);
 }
 
 class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSource {
@@ -53,14 +58,12 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
 
       final uri = Uri.parse(apiUrl).replace(queryParameters: queryParams);
 
-      var request = http.MultipartRequest('POST', uri);
-      request.headers.addAll({'accept': '*/*'});
-
       print('--- 🚀 GET CUSTOMER DETAIL REQUEST ---');
       print('URL: $uri');
-      print('Method: POST (Multipart)');
-      print('Headers: ${request.headers}');
       print('Query Parameters: $queryParams');
+
+      var request = http.MultipartRequest('POST', uri);
+      request.headers.addAll({'accept': '*/*'});
 
       final streamedResponse = await client.send(request).timeout(
         const Duration(seconds: 15),
@@ -105,8 +108,7 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
         throw Exception('Failed to load customer details [Status ${response.statusCode}]');
       }
     } catch (e) {
-      print('--- ❌ GET CUSTOMER DETAIL ERROR ---');
-      print('Error: $e');
+      print('❌ GET CUSTOMER DETAIL ERROR: $e');
       final errorStr = e.toString().replaceAll('Exception: ', '');
       if (errorStr.contains('SocketException') || errorStr.contains('ClientException')) {
         throw Exception('No internet connection. Please check your network.');
@@ -116,18 +118,19 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
   }
 
   @override
-  Future<AppMasterModel> getAppMaster() async {
+  Future<AppMasterModel> getAppMaster([String customerCode = '']) async {
     try {
-      final retailerCode = await SessionManager.getRetailerCode() ?? '';
+      final finalCustomerCode = customerCode.isNotEmpty
+          ? customerCode
+          : (await SessionManager.getCustomerCode() ?? '');
 
-      final queryParams = {'CreatedBy': retailerCode};
+      final queryParams = {'CreatedBy': finalCustomerCode};
       final uri = Uri.parse(ApiConstants.getAppMaster).replace(
         queryParameters: queryParams,
       );
 
       print('--- 🚀 GET APP MASTER REQUEST ---');
       print('URL: $uri');
-      print('Method: GET');
       print('Query Parameters: $queryParams');
 
       final response = await client.get(uri, headers: {'accept': '*/*'}).timeout(
@@ -156,8 +159,7 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
         return AppMasterModel(categories: []);
       }
     } catch (e) {
-      print('--- ❌ GET APP MASTER ERROR ---');
-      print('Error: $e');
+      print('❌ GET APP MASTER ERROR: $e');
       return AppMasterModel(categories: []);
     }
   }
@@ -171,8 +173,8 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
   }) async {
     try {
       final retailerCode = await SessionManager.getRetailerCode() ?? '';
-      final savedCustomerCode = await SessionManager.getCustomerCode() ?? customerCode;
-      final clientCode = await SessionManager.getClientCode() ?? 'CMP0005';
+      final finalCustomerCode = customerCode.isNotEmpty ? customerCode : (await SessionManager.getCustomerCode() ?? '');
+      final clientCode = await SessionManager.getClientCode() ?? '';
 
       final uri = Uri.parse(ApiConstants.saveDeviceAction);
 
@@ -181,19 +183,17 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
           : selectedApps;
 
       final requestBody = {
-        "clientCode": clientCode,
+        "clientcode": clientCode,
         "retailerCode": retailerCode,
-        "customerCode": savedCustomerCode,
+        "customerCode": finalCustomerCode,
         "notificationCode": notificationCode,
         "actionStatus": actionStatus,
         "selectedApps": finalSelectedApps,
-        "createdBy": retailerCode,
+        "createdBy": finalCustomerCode,
       };
 
       print('--- 🚀 SAVE DEVICE ACTION REQUEST ---');
       print('URL: $uri');
-      print('Method: POST');
-      print('Headers: ${{'accept': '*/*', 'Content-Type': 'application/json'}}');
       print('Body: ${jsonEncode(requestBody)}');
 
       final response = await client.post(
@@ -221,12 +221,8 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
         throw Exception('Failed to save device action: ${response.body}');
       }
     } catch (e) {
-      print('--- ❌ SAVE DEVICE ACTION ERROR ---');
-      print('Error: $e');
+      print('❌ SAVE DEVICE ACTION ERROR: $e');
       final errorStr = e.toString().replaceAll('Exception: ', '');
-      if (errorStr.contains('SocketException') || errorStr.contains('ClientException')) {
-        throw Exception('No internet connection. Please check your network.');
-      }
       throw Exception(errorStr);
     }
   }
@@ -240,8 +236,8 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
   }) async {
     try {
       final retailerCode = await SessionManager.getRetailerCode() ?? '';
-      final savedCustomerCode = await SessionManager.getCustomerCode() ?? customerCode;
-      final clientCode = await SessionManager.getClientCode() ?? 'CMP0005';
+      final finalCustomerCode = customerCode.isNotEmpty ? customerCode : (await SessionManager.getCustomerCode() ?? '');
+      final clientCode = await SessionManager.getClientCode() ?? '';
 
       final uri = Uri.parse(ApiConstants.sendDeviceNotification);
 
@@ -252,7 +248,7 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
       final requestBody = {
         "clientCode": clientCode,
         "retailerCode": retailerCode,
-        "customerCode": savedCustomerCode,
+        "customerCode": finalCustomerCode,
         "notificationCode": notificationCode,
         "title": "",
         "message": "",
@@ -262,8 +258,6 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
 
       print('--- 🚀 SEND DEVICE NOTIFICATION REQUEST ---');
       print('URL: $uri');
-      print('Method: POST');
-      print('Headers: ${{'accept': '*/*', 'Content-Type': 'application/json'}}');
       print('Body: ${jsonEncode(requestBody)}');
 
       final response = await client.post(
@@ -282,21 +276,13 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
       print('Response Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final decoded = jsonDecode(response.body);
-        if (decoded is Map && (decoded['status'] == true || decoded['statusCode'] == 200)) {
-          return true;
-        }
         return true;
       } else {
         throw Exception('Failed to send device notification: ${response.body}');
       }
     } catch (e) {
-      print('--- ❌ SEND DEVICE NOTIFICATION ERROR ---');
-      print('Error: $e');
+      print('❌ SEND DEVICE NOTIFICATION ERROR: $e');
       final errorStr = e.toString().replaceAll('Exception: ', '');
-      if (errorStr.contains('SocketException') || errorStr.contains('ClientException')) {
-        throw Exception('No internet connection. Please check your network.');
-      }
       throw Exception(errorStr);
     }
   }
@@ -317,8 +303,6 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
     );
 
     if (isSaved) {
-      print('--- ⚡ SAVE API SUCCESS, NOW CALLING NOTIFICATION API ---');
-
       final isNotified = await sendDeviceNotification(
         customerCode: customerCode,
         notificationCode: notificationCode,
@@ -332,36 +316,30 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
     return false;
   }
 
+  @override
   Future<Map<String, dynamic>> getCustomerLatestLocationKit(String customerCode) async {
     try {
       final retailerCode = await SessionManager.getRetailerCode() ?? '';
-      final savedCustomerCode = await SessionManager.getCustomerCode() ?? customerCode;
-      final clientCode = await SessionManager.getClientCode() ?? 'CMP0005';
+      final finalCustomerCode = customerCode.isNotEmpty ? customerCode : (await SessionManager.getCustomerCode() ?? '');
+      final clientCode = await SessionManager.getClientCode() ?? '';
 
       final uri = Uri.parse(ApiConstants.getCustomerLatestLocationKit);
 
       final requestBody = {
         "clientCode": clientCode,
         "retailerCode": retailerCode,
-        "customerCode": savedCustomerCode,
+        "customerCode": finalCustomerCode,
       };
 
       print('--- 🚀 GET CUSTOMER LATEST LOCATION KIT REQUEST ---');
       print('URL: $uri');
-      print('Method: POST');
-      print('Headers: ${{'accept': '*/*', 'Content-Type': 'application/json'}}');
       print('Body: ${jsonEncode(requestBody)}');
 
       final response = await client.post(
         uri,
         headers: {'accept': '*/*', 'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
-      ).timeout(
-        const Duration(seconds: 15),
-        onTimeout: () {
-          throw Exception('No internet connection. Please check your network.');
-        },
-      );
+      ).timeout(const Duration(seconds: 15));
 
       print('--- 📥 GET CUSTOMER LATEST LOCATION KIT RESPONSE ---');
       print('Status Code: ${response.statusCode}');
@@ -375,8 +353,56 @@ class CustomerDetailRemoteDataSourceImpl implements CustomerDetailRemoteDataSour
       }
       return {};
     } catch (e) {
-      print('--- ❌ GET CUSTOMER LATEST LOCATION KIT ERROR ---');
-      print('Error: $e');
+      print('❌ GET CUSTOMER LATEST LOCATION KIT ERROR: $e');
+      return {};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getSuccessDeviceActions({
+    required String customerCode,
+    required String clientCode,
+  }) async {
+    try {
+      final finalCustomerCode = customerCode.isNotEmpty
+          ? customerCode
+          : (await SessionManager.getCustomerCode() ?? '');
+
+      final finalClientCode = clientCode.isNotEmpty
+          ? clientCode
+          : (await SessionManager.getClientCode() ?? '');
+
+      final uri = Uri.parse('https://uatapi.aopay.co.in/api/notification/GetSuccessDeviceActions');
+
+      final requestBody = {
+        "customerCode": finalCustomerCode,
+        "clientcode": finalClientCode,
+      };
+
+      print('--- 🚀 GET SUCCESS DEVICE ACTIONS REQUEST ---');
+      print('URL: $uri');
+      print('Body: ${jsonEncode(requestBody)}');
+
+      final response = await client.post(
+        uri,
+        headers: {'accept': '*/*', 'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      ).timeout(const Duration(seconds: 15));
+
+      print('--- 📥 GET SUCCESS DEVICE ACTIONS RESPONSE ---');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.body.isEmpty) return {};
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          return decoded;
+        }
+      }
+      return {};
+    } catch (e) {
+      print('❌ GET SUCCESS DEVICE ACTIONS ERROR: $e');
       return {};
     }
   }

@@ -146,6 +146,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 14),
                       QuickActionsSection(
+                        availableKits: data.availableKits,
                         onAddCustomerPressed: () {
                           context.push(RouteNames.createCustomer);
                         },

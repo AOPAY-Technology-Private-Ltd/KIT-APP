@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/services/session_manager.dart';
 import '../../domain/entities/customer_detail_entity.dart';
 import '../bloc/customer_detail_bloc.dart';
 import '../pages/Customer_location_screen.dart';

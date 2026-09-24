@@ -34,4 +34,18 @@ class RouteNames {
   static const String tokenValidation = '/token-validation';
 
   static const String installSuccess = '/install-success';
+
+  static const String loanHome = "/loan-home";
+
+  static const String loanAllCustomers = "/loan-all-customers";
+
+  static const String loanMain = "/loan-main";
+
+  static const String loanCustomerList = "/loan-customer-list";
+
+  static const String loanReports = "/loan-reports";
+
+  static const String customerDetailNew = "/customer-detail-new";
+
+  static const String updateEmi = "/update-emi";
 }

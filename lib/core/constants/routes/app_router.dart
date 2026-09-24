@@ -1,50 +1,62 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../features/auth/presentation/Login/bloc/login_bloc.dart';
-import '../../../features/auth/presentation/Login/pages/login_page.dart';
+import '../../../features/loan/customer_detail/presentation/bloc/customer_bloc.dart' as new_customer;
+import '../../../features/loan/customer_detail/presentation/pages/customer_detail_screen.dart';
+import '../../../features/loan/customer_list/presentation/bloc/loan_customer_bloc.dart';
+import '../../../features/loan/customer_list/presentation/bloc/loan_customer_event.dart';
+import '../../../features/loan/customer_list/presentation/pages/loan_customer_list_page.dart';
+import '../../../features/loan/loan_home_page/presentation/bloc/loan_home_bloc.dart';
+import '../../../features/loan/loan_home_page/presentation/bloc/loan_home_event.dart' as loan_event;
+import '../../../features/loan/loan_home_page/presentation/pages/loan_all_customers_screen.dart';
+import '../../../features/loan/loan_home_page/presentation/pages/loan_home_page.dart';
+import '../../../features/loan/loan_home_page/presentation/pages/loan_main_screen.dart';
+import '../../../features/loan/loan_reports/presentation/bloc/loan_report_bloc.dart';
+import '../../../features/loan/loan_reports/presentation/bloc/loan_report_event.dart';
+import '../../../features/loan/loan_reports/presentation/pages/loan_reports_screen.dart';
+import '../../../features/loan/update_emi/presentation/bloc/update_emi_bloc.dart';
+import '../../../features/loan/update_emi/presentation/pages/update_emi_screen.dart';
+import '../../../features/lockit/auth/presentation/Login/bloc/login_bloc.dart';
+import '../../../features/lockit/auth/presentation/Login/pages/login_page.dart';
+import '../../../features/lockit/auth/presentation/signup/bloc/signup_bloc.dart';
+import '../../../features/lockit/auth/presentation/signup/pages/personal_details_page.dart';
+import '../../../features/lockit/auth/presentation/signup/pages/signup_page.dart';
+import '../../../features/lockit/auth/presentation/verifyotp/bloc/otp_bloc.dart';
+import '../../../features/lockit/auth/presentation/verifyotp/pages/otp_verification_view.dart';
+import '../../../features/lockit/create_customer/presentation/bloc/customer_bloc.dart';
+import '../../../features/lockit/create_customer/presentation/pages/create_customer_view.dart';
+import '../../../features/lockit/create_customer/presentation/pages/customer_info_view.dart';
+import '../../../features/lockit/create_customer/presentation/pages/imei_number_view.dart';
+import '../../../features/lockit/customer_detail/presentation/pages/customer_information_view.dart';
+import '../../../features/lockit/customer_detail/presentation/widgets/device_status_success_view.dart';
+import '../../../features/lockit/customer_list/presentation/pages/customer_list_view.dart';
+import '../../../features/lockit/device_list/presentation/pages/device_list_view.dart';
+import '../../../features/lockit/history/presentation/bloc/history_bloc.dart';
+import '../../../features/lockit/history/presentation/bloc/history_event.dart';
+import '../../../features/lockit/history/presentation/pages/history_page.dart';
+import '../../../features/lockit/home/presentation/bloc/home_bloc.dart';
+import '../../../features/lockit/home/presentation/bloc/home_event.dart';
+import '../../../features/lockit/home/presentation/pages/main_screen.dart';
+import '../../../features/lockit/inventory/presentation/bloc/inventory_bloc.dart';
+import '../../../features/lockit/inventory/presentation/pages/inventory_screen.dart';
+import '../../../features/lockit/kits_plans/presentation/bloc/buy_kits_bloc.dart';
+import '../../../features/lockit/kits_plans/presentation/pages/buy_kits_screen.dart';
+import '../../../features/lockit/kits_plans/presentation/pages/payment_success_screen.dart';
+import '../../../features/lockit/notification/presentation/bloc/notification_bloc.dart';
+import '../../../features/lockit/notification/presentation/bloc/notification_event.dart';
+import '../../../features/lockit/notification/presentation/pages/notification_view.dart';
+import '../../../features/lockit/profile/presentation/bloc/profile_bloc.dart';
+import '../../../features/lockit/profile/presentation/bloc/profile_event.dart';
+import '../../../features/lockit/profile/presentation/pages/profile_screen.dart';
+import '../../../features/lockit/qr_code/presentation/bloc/qr_bloc.dart';
+import '../../../features/lockit/qr_code/presentation/bloc/qr_event.dart';
+import '../../../features/lockit/qr_code/presentation/pages/qr_code_view.dart';
+import '../../../features/lockit/qr_code/presentation/pages/success_view.dart';
+import '../../../features/lockit/qr_code/presentation/pages/token_validation_view.dart';
+import '../../../features/lockit/splash/presentation/pages/splash_page.dart';
+import '../../../features/lockit/support_screen/presentation/bloc/support_bloc.dart';
+import '../../../features/lockit/support_screen/presentation/bloc/support_event.dart';
+import '../../../features/lockit/support_screen/presentation/pages/support_screen.dart';
 
-import '../../../features/auth/presentation/signup/bloc/signup_bloc.dart';
-import '../../../features/auth/presentation/signup/pages/signup_page.dart';
-import '../../../features/auth/presentation/signup/pages/personal_details_page.dart';
-
-import '../../../features/auth/presentation/verifyotp/bloc/otp_bloc.dart';
-import '../../../features/auth/presentation/verifyotp/pages/otp_verification_view.dart';
-import '../../../features/create_customer/presentation/bloc/customer_bloc.dart';
-import '../../../features/create_customer/presentation/pages/create_customer_view.dart';
-import '../../../features/create_customer/presentation/pages/customer_info_view.dart';
-import '../../../features/create_customer/presentation/pages/imei_number_view.dart';
-import '../../../features/customer_detail/presentation/pages/customer_information_view.dart';
-import '../../../features/customer_detail/presentation/widgets/device_status_success_view.dart';
-import '../../../features/customer_list/presentation/pages/customer_list_view.dart';
-import '../../../features/device_list/presentation/pages/device_list_view.dart';
-import '../../../features/history/presentation/bloc/history_bloc.dart';
-import '../../../features/history/presentation/bloc/history_event.dart';
-import '../../../features/history/presentation/pages/history_page.dart';
-import '../../../features/home/presentation/bloc/home_bloc.dart';
-import '../../../features/home/presentation/bloc/home_event.dart';
-import '../../../features/home/presentation/pages/main_screen.dart';
-
-import '../../../features/inventory/presentation/bloc/inventory_bloc.dart';
-import '../../../features/inventory/presentation/pages/inventory_screen.dart';
-import '../../../features/kits_plans/presentation/bloc/buy_kits_bloc.dart';
-import '../../../features/kits_plans/presentation/pages/buy_kits_screen.dart';
-import '../../../features/kits_plans/presentation/pages/payment_success_screen.dart';
-import '../../../features/notification/presentation/bloc/notification_bloc.dart';
-import '../../../features/notification/presentation/bloc/notification_event.dart';
-import '../../../features/notification/presentation/pages/notification_view.dart';
-import '../../../features/profile/presentation/bloc/profile_bloc.dart';
-import '../../../features/profile/presentation/bloc/profile_event.dart';
-import '../../../features/profile/presentation/pages/profile_screen.dart';
-import '../../../features/qr_code/presentation/bloc/qr_bloc.dart';
-import '../../../features/qr_code/presentation/bloc/qr_event.dart';
-import '../../../features/qr_code/presentation/pages/qr_code_view.dart';
-import '../../../features/qr_code/presentation/pages/success_view.dart';
-import '../../../features/qr_code/presentation/pages/token_validation_view.dart';
-import '../../../features/splash/presentation/pages/splash_page.dart';
-
-import '../../../features/support_screen/presentation/bloc/support_bloc.dart';
-import '../../../features/support_screen/presentation/bloc/support_event.dart';
-import '../../../features/support_screen/presentation/pages/support_screen.dart';
 import '../../di/injection.dart';
 import 'route_names.dart';
 
@@ -286,6 +298,68 @@ final GoRouter appRouter = GoRouter(
       path: RouteNames.installSuccess,
       builder: (context, state) {
         return const InstallSuccessView();
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.loanHome,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<LoanHomeBloc>()..add(loan_event.LoadHomeDataEvent()),
+          child: const LaonHomePage(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.loanAllCustomers,
+      builder: (context, state) {
+        return const LoanAllCustomersScreen();
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.loanMain,
+      builder: (context, state) {
+        return const LoanMainScreen();
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.loanCustomerList,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<LoanCustomerBloc>()..add(FetchLoanCustomersEvent(status: 'Active')),
+          child: const LoanCustomerListPage(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.loanReports,
+      builder: (context, state) => BlocProvider(
+        create: (_) => sl<LoanReportBloc>()..add(FetchLoanReportsEvent(status: 'All')),
+        child: const LoanReportsScreen(),
+      ),
+    ),
+
+    GoRoute(
+      path: RouteNames.customerDetailNew,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<new_customer.CustomerBloc>(),
+          child: const CustomerDetailScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.updateEmi,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<UpdateEmiBloc>(),
+          child: const UpdateEmiScreen(),
+        );
       },
     ),
   ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logkit/features/lockit/splash/presentation/pages/splash_page.dart';
 
-import 'package:logkit/features/splash/presentation/pages/splash_page.dart';
 
 
 void main() {

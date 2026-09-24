@@ -32,6 +32,8 @@ dependencies:
   open_file: ^3.3.2
   connectivity_plus: ^6.0.3
   qr_flutter: ^4.1.0
+  google_maps_flutter: ^2.5.3
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
@@ -39,9 +41,15 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.15.1
   injectable_generator: ^2.10.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/images/
+
+flutter_launcher_icons:
+  image_path: "assets/images/appi_con.png"
+  android: true
+  ios: true

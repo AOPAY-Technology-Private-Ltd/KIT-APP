@@ -5,6 +5,8 @@ import '../../../features/loan/customer_detail/presentation/pages/customer_detai
 import '../../../features/loan/customer_list/presentation/bloc/loan_customer_bloc.dart';
 import '../../../features/loan/customer_list/presentation/bloc/loan_customer_event.dart';
 import '../../../features/loan/customer_list/presentation/pages/loan_customer_list_page.dart';
+import '../../../features/loan/loan_flow/create_loan/presentation/bloc/create_loan_bloc.dart';
+import '../../../features/loan/loan_flow/create_loan/presentation/pages/documents_step_screen.dart';
 import '../../../features/loan/loan_home_page/presentation/bloc/loan_home_bloc.dart';
 import '../../../features/loan/loan_home_page/presentation/bloc/loan_home_event.dart' as loan_event;
 import '../../../features/loan/loan_home_page/presentation/pages/loan_all_customers_screen.dart';
@@ -359,6 +361,16 @@ final GoRouter appRouter = GoRouter(
         return BlocProvider(
           create: (_) => sl<UpdateEmiBloc>(),
           child: const UpdateEmiScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.documentsStep,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<CreateLoanBloc>(),
+          child: const DocumentsStepScreen(),
         );
       },
     ),

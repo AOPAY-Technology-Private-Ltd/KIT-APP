@@ -48,4 +48,6 @@ class RouteNames {
   static const String customerDetailNew = "/customer-detail-new";
 
   static const String updateEmi = "/update-emi";
+
+  static const String documentsStep = "/documents-step";
 }

@@ -11,6 +11,13 @@ import '../../features/loan/customer_list/data/repositories/loan_customer_reposi
 import '../../features/loan/customer_list/domain/repositories/loan_customer_repository.dart';
 import '../../features/loan/customer_list/domain/usecases/get_loan_customers_usecase.dart';
 import '../../features/loan/customer_list/presentation/bloc/loan_customer_bloc.dart';
+import '../../features/loan/loan_flow/create_loan/data/datasources/create_loan_remote_data_source.dart';
+import '../../features/loan/loan_flow/create_loan/data/repositories/create_loan_repository_impl.dart';
+import '../../features/loan/loan_flow/create_loan/domain/repositories/create_loan_repository.dart';
+import '../../features/loan/loan_flow/create_loan/domain/usecases/submit_documents_usecase.dart';
+import '../../features/loan/loan_flow/create_loan/domain/usecases/verify_aadhaar_usecase.dart';
+import '../../features/loan/loan_flow/create_loan/domain/usecases/verify_pan_usecase.dart';
+import '../../features/loan/loan_flow/create_loan/presentation/bloc/create_loan_bloc.dart';
 import '../../features/loan/loan_reports/data/datasources/loan_report_remote_data_source.dart';
 import '../../features/loan/loan_reports/data/repositories/loan_report_repository_impl.dart';
 import '../../features/loan/loan_reports/domain/repositories/loan_report_repository.dart';
@@ -364,4 +371,34 @@ Future<void> init() async {
   sl.registerFactory(
         () => UpdateEmiBloc(sl()),
   );
+
+
+  sl.registerLazySingleton<CreateLoanRemoteDataSource>(
+        () => CreateLoanRemoteDataSourceImpl(),
+  );
+
+  sl.registerLazySingleton<CreateLoanRepository>(
+        () => CreateLoanRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  sl.registerLazySingleton<SubmitDocumentsUseCase>(
+        () => SubmitDocumentsUseCase(sl()),
+  );
+
+  sl.registerLazySingleton<VerifyPanUseCase>(
+        () => VerifyPanUseCase(sl()),
+  );
+
+  sl.registerLazySingleton<VerifyAadhaarUseCase>(
+        () => VerifyAadhaarUseCase(sl()),
+  );
+
+  sl.registerFactory(
+        () => CreateLoanBloc(
+      submitDocumentsUseCase: sl(),
+      verifyPanUseCase: sl(),
+      verifyAadhaarUseCase: sl(),
+    ),
+  );
+
 }

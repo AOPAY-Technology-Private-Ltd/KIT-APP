@@ -24,6 +24,122 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     context.read<CustomerBloc>().add(FetchCustomerDetailEvent());
   }
 
+  void _showSendReminderDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          contentPadding: const EdgeInsets.all(24),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 70,
+                height: 70,
+                child: Image.asset(
+                  'assets/images/lock.gif',
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'EMI Reminder',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
+                  fontFamily: 'Inter',
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Are you sure? Ypu want to send EMI reminder to This Card',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF64748B),
+                  fontFamily: 'Inter',
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF2563EB)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Color(0xFF2563EB),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      height: 46,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment(1.00, 0.50),
+                          end: Alignment(0.00, 0.50),
+                          colors: [Color(0xFF022062), Color(0xFF008EFD)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(dialogContext);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('EMI Reminder sent successfully!'),
+                              backgroundColor: Colors.green,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Send',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,8 +165,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                   CustomAppBar(
                     title: 'Customer Detail',
                     onBackPressed: () => Navigator.pop(context),
-                    onSearchPressed: () {
-                    },
+                    onSearchPressed: () {},
                   ),
 
                   Padding(
@@ -91,7 +206,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                         CustomActionButton(
                           title: 'Send Reminder',
                           gradientColors: const [Color(0xFF022062), Color(0xFF008EFD)],
-                          onPressed: () {},
+                          onPressed: () => _showSendReminderDialog(context),
                         ),
                         const SizedBox(height: 30),
                       ],

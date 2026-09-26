@@ -11,6 +11,16 @@ import '../../features/loan/customer_list/data/repositories/loan_customer_reposi
 import '../../features/loan/customer_list/domain/repositories/loan_customer_repository.dart';
 import '../../features/loan/customer_list/domain/usecases/get_loan_customers_usecase.dart';
 import '../../features/loan/customer_list/presentation/bloc/loan_customer_bloc.dart';
+import '../../features/loan/loan_flow/bank_detail/data/datasources/bank_detail_remote_data_source.dart';
+import '../../features/loan/loan_flow/bank_detail/data/repositories/bank_detail_repository_impl.dart';
+import '../../features/loan/loan_flow/bank_detail/domain/repositories/bank_detail_repository.dart';
+import '../../features/loan/loan_flow/bank_detail/domain/usecases/submit_bank_detail_usecase.dart';
+import '../../features/loan/loan_flow/bank_detail/presentation/bloc/bank_detail_bloc.dart';
+import '../../features/loan/loan_flow/basic_detail/data/datasources/basic_details_remote_data_source.dart';
+import '../../features/loan/loan_flow/basic_detail/data/repositories/basic_details_repository_impl.dart';
+import '../../features/loan/loan_flow/basic_detail/domain/repositories/create_loan_repository.dart';
+import '../../features/loan/loan_flow/basic_detail/domain/usecases/submit_basic_details_usecase.dart';
+import '../../features/loan/loan_flow/basic_detail/presentation/bloc/basic_details_bloc.dart';
 import '../../features/loan/loan_flow/create_loan/data/datasources/create_loan_remote_data_source.dart';
 import '../../features/loan/loan_flow/create_loan/data/repositories/create_loan_repository_impl.dart';
 import '../../features/loan/loan_flow/create_loan/domain/repositories/create_loan_repository.dart';
@@ -18,6 +28,11 @@ import '../../features/loan/loan_flow/create_loan/domain/usecases/submit_documen
 import '../../features/loan/loan_flow/create_loan/domain/usecases/verify_aadhaar_usecase.dart';
 import '../../features/loan/loan_flow/create_loan/domain/usecases/verify_pan_usecase.dart';
 import '../../features/loan/loan_flow/create_loan/presentation/bloc/create_loan_bloc.dart';
+import '../../features/loan/loan_flow/loan_detail/data/datasources/loan_detail_remote_datasource.dart';
+import '../../features/loan/loan_flow/loan_detail/data/loan_detail_repository_impl/loan_detail_repository_impl.dart';
+import '../../features/loan/loan_flow/loan_detail/domain/repositories/loan_detail_repository.dart';
+import '../../features/loan/loan_flow/loan_detail/domain/usecases/submit_loan_detail_usecase.dart';
+import '../../features/loan/loan_flow/loan_detail/presentation/bloc/loan_detail_bloc.dart';
 import '../../features/loan/loan_reports/data/datasources/loan_report_remote_data_source.dart';
 import '../../features/loan/loan_reports/data/repositories/loan_report_repository_impl.dart';
 import '../../features/loan/loan_reports/domain/repositories/loan_report_repository.dart';
@@ -398,6 +413,62 @@ Future<void> init() async {
       submitDocumentsUseCase: sl(),
       verifyPanUseCase: sl(),
       verifyAadhaarUseCase: sl(),
+    ),
+  );
+
+
+  sl.registerLazySingleton<BasicDetailsRemoteDataSource>(
+        () => BasicDetailsRemoteDataSourceImpl(),
+  );
+
+  sl.registerLazySingleton<BasicDetailsRepository>(
+        () => BasicDetailsRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  sl.registerLazySingleton<SubmitBasicDetailsUseCase>(
+        () => SubmitBasicDetailsUseCase(sl()),
+  );
+
+  sl.registerFactory(
+        () => BasicDetailsBloc(
+      submitBasicDetailsUseCase: sl(),
+    ),
+  );
+
+
+  sl.registerLazySingleton<LoanDetailRemoteDataSource>(
+        () => LoanDetailRemoteDataSourceImpl(),
+  );
+
+  sl.registerLazySingleton<LoanDetailRepository>(
+        () => LoanDetailRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton<SubmitLoanDetailUseCase>(
+        () => SubmitLoanDetailUseCase(sl()),
+  );
+
+  sl.registerFactory(
+        () => LoanDetailBloc(
+      sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<BankDetailRemoteDataSource>(
+        () => BankDetailRemoteDataSourceImpl(),
+  );
+
+  sl.registerLazySingleton<BankDetailRepository>(
+        () => BankDetailRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  sl.registerLazySingleton<SubmitBankDetailUseCase>(
+        () => SubmitBankDetailUseCase(sl()),
+  );
+
+  sl.registerFactory(
+        () => BankDetailBloc(
+      submitBankDetailUseCase: sl(),
     ),
   );
 

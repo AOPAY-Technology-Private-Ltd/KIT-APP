@@ -21,7 +21,7 @@ class UploadDashedCard extends StatelessWidget {
       child: CustomPaint(
         painter: DottedBorderPainter(
           color: const Color(0xFF2563EB),
-          strokeWidth: 1.3,
+          strokeWidth: 1.5,
           dashWidth: 8.0,
           dashSpace: 5.0,
           borderRadius: 10.0,

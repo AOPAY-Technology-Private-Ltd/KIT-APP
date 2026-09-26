@@ -50,4 +50,10 @@ class RouteNames {
   static const String updateEmi = "/update-emi";
 
   static const String documentsStep = "/documents-step";
+
+  static const String basicDetailsStep = "/basic-details-step";
+
+  static const String loanDetailStep = "/loan-detail-step";
+
+  static const String bankDetailStep = "/bank-detail-step";
 }

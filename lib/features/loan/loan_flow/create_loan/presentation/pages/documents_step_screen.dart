@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import '../../../../../../core/di/injection.dart';
 import '../../../../common/custom_icon_button.dart';
 import '../../../../common/custom_search_icon_button.dart';
+import '../../../basic_detail/presentation/bloc/basic_details_bloc.dart';
+import '../../../basic_detail/presentation/pages/basic_detail_step_screen.dart';
 import '../bloc/create_loan_bloc.dart';
 import '../bloc/create_loan_event.dart';
 import '../bloc/create_loan_state.dart';
@@ -94,7 +97,6 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
       appBar: AppBar(
         backgroundColor: const Color(0xFF022062),
         elevation: 0,
@@ -192,7 +194,6 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
                           decoration: _inputDecoration('Enter PAN number').copyWith(counterText: ''),
                           validator: _validatePan,
                           onChanged: (val) {
-                            // Jaise hi user 10 chars pure bharega, API se verify hoga
                             if (val.trim().length == 10) {
                               BlocProvider.of<CreateLoanBloc>(context).add(VerifyPanEvent(val.trim()));
                             }
@@ -269,6 +270,7 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
                       isLoading: state is CreateLoanLoadingState,
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
+                          // 1. Pehle documents submit event bhej dein
                           BlocProvider.of<CreateLoanBloc>(context).add(
                             SubmitDocumentsEvent(
                               dob: _dobController.text,
@@ -277,6 +279,16 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
                               aadhaarNumber: _aadhaarController.text.isNotEmpty ? _aadhaarController.text : null,
                               frontImage: _frontImageFile,
                               backImage: _backImageFile,
+                            ),
+                          );
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BlocProvider(
+                                create: (_) => sl<BasicDetailsBloc>(),
+                                child: const BasicDetailStepScreen(),
+                              ),
                             ),
                           );
                         }

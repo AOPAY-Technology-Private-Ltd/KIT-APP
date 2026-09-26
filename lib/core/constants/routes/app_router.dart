@@ -5,8 +5,14 @@ import '../../../features/loan/customer_detail/presentation/pages/customer_detai
 import '../../../features/loan/customer_list/presentation/bloc/loan_customer_bloc.dart';
 import '../../../features/loan/customer_list/presentation/bloc/loan_customer_event.dart';
 import '../../../features/loan/customer_list/presentation/pages/loan_customer_list_page.dart';
+import '../../../features/loan/loan_flow/bank_detail/presentation/bloc/bank_detail_bloc.dart';
+import '../../../features/loan/loan_flow/bank_detail/presentation/pages/bank_detail_step_screen.dart';
+import '../../../features/loan/loan_flow/basic_detail/presentation/bloc/basic_details_bloc.dart';
+import '../../../features/loan/loan_flow/basic_detail/presentation/pages/basic_detail_step_screen.dart';
 import '../../../features/loan/loan_flow/create_loan/presentation/bloc/create_loan_bloc.dart';
 import '../../../features/loan/loan_flow/create_loan/presentation/pages/documents_step_screen.dart';
+import '../../../features/loan/loan_flow/loan_detail/presentation/bloc/loan_detail_bloc.dart';
+import '../../../features/loan/loan_flow/loan_detail/presentation/pages/loan_detail_step_screen.dart';
 import '../../../features/loan/loan_home_page/presentation/bloc/loan_home_bloc.dart';
 import '../../../features/loan/loan_home_page/presentation/bloc/loan_home_event.dart' as loan_event;
 import '../../../features/loan/loan_home_page/presentation/pages/loan_all_customers_screen.dart';
@@ -371,6 +377,36 @@ final GoRouter appRouter = GoRouter(
         return BlocProvider(
           create: (_) => sl<CreateLoanBloc>(),
           child: const DocumentsStepScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.basicDetailsStep,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<BasicDetailsBloc>(),
+          child: const BasicDetailStepScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.loanDetailStep,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<LoanDetailBloc>(),
+          child: const LoanDetailStepScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.bankDetailStep,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<BankDetailBloc>(),
+          child: const BankDetailStepScreen(),
         );
       },
     ),

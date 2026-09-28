@@ -56,4 +56,14 @@ class RouteNames {
   static const String loanDetailStep = "/loan-detail-step";
 
   static const String bankDetailStep = "/bank-detail-step";
+
+  static const String autoUpiStep = "/auto-upi-step";
+
+  static const String emandateStep = "/emandate-step";
+
+  static const String referenceStep = "/reference-step";
+
+  static const String termsConditionStep = "/terms-condition-step";
+
+  static const String loanDisbursedStep = "/loan-disbursed-step";
 }

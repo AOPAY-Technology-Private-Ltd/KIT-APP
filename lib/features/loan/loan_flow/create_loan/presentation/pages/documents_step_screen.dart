@@ -32,9 +32,8 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
   File? _frontImageFile;
   File? _backImageFile;
 
-  // Format Validators (Optional but if filled, must be correct format)
   String? _validatePan(String? value) {
-    if (value == null || value.trim().isEmpty) return null; // Optional
+    if (value == null || value.trim().isEmpty) return null;
     final panRegex = RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$');
     if (!panRegex.hasMatch(value.trim())) {
       return 'Enter valid PAN format (e.g. ABCDE1234F)';
@@ -43,7 +42,7 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
   }
 
   String? _validateAadhaar(String? value) {
-    if (value == null || value.trim().isEmpty) return null; // Optional
+    if (value == null || value.trim().isEmpty) return null;
     if (value.trim().length != 12) {
       return 'Aadhaar number must be 12 digits';
     }
@@ -215,7 +214,6 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
                           decoration: _inputDecoration('Enter Aadhaar number').copyWith(counterText: ''),
                           validator: _validateAadhaar,
                           onChanged: (val) {
-                            // Jaise hi user 12 digits pure bharega, API se verify hoga
                             if (val.trim().length == 12) {
                               BlocProvider.of<CreateLoanBloc>(context).add(VerifyAadhaarEvent(val.trim()));
                             }
@@ -270,7 +268,6 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
                       isLoading: state is CreateLoanLoadingState,
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          // 1. Pehle documents submit event bhej dein
                           BlocProvider.of<CreateLoanBloc>(context).add(
                             SubmitDocumentsEvent(
                               dob: _dobController.text,

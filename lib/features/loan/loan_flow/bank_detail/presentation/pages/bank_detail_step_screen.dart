@@ -1,10 +1,9 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../../core/constants/routes/route_names.dart';
-import '../../domain/entities/bank_detail_entity.dart';
 import '../bloc/bank_detail_bloc.dart';
-import '../bloc/bank_detail_event.dart';
 import '../bloc/bank_detail_state.dart';
 import '../../../../common/custom_gradient_button.dart';
 import '../../../../common/custom_icon_button.dart';
@@ -30,6 +29,104 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
   final TextEditingController _beneficiaryNameController = TextEditingController();
   final TextEditingController _ifscCodeController = TextEditingController();
   final TextEditingController _branchNameController = TextEditingController();
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: 100,
+                width: 100,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    ...List.generate(8, (index) {
+                      final angle = (index * 45) * pi / 180;
+                      return Transform.translate(
+                        offset: Offset(38 * cos(angle), 38 * sin(angle)),
+                        child: Container(
+                          width: index % 2 == 0 ? 6 : 4,
+                          height: index % 2 == 0 ? 6 : 4,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF22C55E),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      );
+                    }),
+                    Container(
+                      height: 64,
+                      width: 64,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF22C55E),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.check, color: Colors.white, size: 36),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Bank Details Verified\nSuccessfully',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 22,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.bold,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF0066FF), Color(0xFF022062)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      context.go(RouteNames.emandateStep);
+                    },
+                    child: const Text(
+                      'Ok',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,9 +169,7 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
       body: BlocConsumer<BankDetailBloc, BankDetailState>(
         listener: (context, state) {
           if (state is BankDetailSuccessState) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Bank details saved successfully!'), backgroundColor: Colors.green),
-            );
+            _showSuccessDialog();
           } else if (state is BankDetailErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message), backgroundColor: Colors.red),
@@ -103,19 +198,22 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-
                         Row(
                           children: [
                             Expanded(
                               child: GestureDetector(
-                                onTap: () => setState(() => _selectedPaymentMode = 'E-Nach'),
+                                onTap: () {
+                                  setState(() => _selectedPaymentMode = 'E-Nach');
+                                },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  decoration: BoxDecoration(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  decoration: ShapeDecoration(
                                     color: _selectedPaymentMode == 'E-Nach' ? const Color(0xFF2563EB) : Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: _selectedPaymentMode == 'E-Nach' ? const Color(0xFF2563EB) : Colors.black.withValues(alpha: 0.15),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: BorderSide(
+                                        color: _selectedPaymentMode == 'E-Nach' ? const Color(0xFF2563EB) : Colors.black.withValues(alpha: 0.15),
+                                      ),
                                     ),
                                   ),
                                   alignment: Alignment.center,
@@ -123,9 +221,9 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                                     'E-Nach',
                                     style: TextStyle(
                                       color: _selectedPaymentMode == 'E-Nach' ? Colors.white : const Color(0xFF0F172A),
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
+                                      fontSize: 12,
                                       fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
@@ -134,14 +232,19 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: GestureDetector(
-                                onTap: () => setState(() => _selectedPaymentMode = 'Auto-UPI'),
+                                onTap: () {
+                                  setState(() => _selectedPaymentMode = 'Auto-UPI');
+                                  context.go(RouteNames.autoUpiStep);
+                                },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  decoration: BoxDecoration(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  decoration: ShapeDecoration(
                                     color: _selectedPaymentMode == 'Auto-UPI' ? const Color(0xFF2563EB) : Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: _selectedPaymentMode == 'Auto-UPI' ? const Color(0xFF2563EB) : Colors.black.withValues(alpha: 0.15),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: BorderSide(
+                                        color: _selectedPaymentMode == 'Auto-UPI' ? const Color(0xFF2563EB) : Colors.black.withValues(alpha: 0.15),
+                                      ),
                                     ),
                                   ),
                                   alignment: Alignment.center,
@@ -149,9 +252,9 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                                     'Auto-UPI',
                                     style: TextStyle(
                                       color: _selectedPaymentMode == 'Auto-UPI' ? Colors.white : const Color(0xFF0F172A),
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
+                                      fontSize: 12,
                                       fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
@@ -160,7 +263,6 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
-
                         _buildLabel('Select Bank*'),
                         DropdownButtonFormField<String>(
                           value: _selectedBank,
@@ -173,7 +275,6 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                           validator: (val) => val == null || val.isEmpty ? 'Please select bank' : null,
                         ),
                         const SizedBox(height: 16),
-
                         _buildLabel('Select Account Type*'),
                         DropdownButtonFormField<String>(
                           value: _selectedAccountType,
@@ -186,7 +287,6 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                           validator: (val) => val == null || val.isEmpty ? 'Please select account type' : null,
                         ),
                         const SizedBox(height: 16),
-
                         _buildLabel('Account Number*'),
                         TextFormField(
                           controller: _accountNumberController,
@@ -195,7 +295,6 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                           validator: (val) => val == null || val.trim().isEmpty ? 'Enter Account Number' : null,
                         ),
                         const SizedBox(height: 16),
-
                         _buildLabel('Confirm Account Number*'),
                         TextFormField(
                           controller: _confirmAccountNumberController,
@@ -208,7 +307,6 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-
                         _buildLabel('Beneficiary Name*'),
                         TextFormField(
                           controller: _beneficiaryNameController,
@@ -216,7 +314,6 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                           validator: (val) => val == null || val.trim().isEmpty ? 'Enter Beneficiary Name' : null,
                         ),
                         const SizedBox(height: 16),
-
                         _buildLabel('IFSC Code*'),
                         TextFormField(
                           controller: _ifscCodeController,
@@ -224,20 +321,17 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                           validator: (val) => val == null || val.trim().isEmpty ? 'Enter IFSC Code' : null,
                         ),
                         const SizedBox(height: 16),
-
-                        _buildLabel('Enter Branch Name*'),
+                        _buildLabel('Branch Name*'),
                         TextFormField(
                           controller: _branchNameController,
                           decoration: _inputDecoration('Enter Branch Name'),
                           validator: (val) => val == null || val.trim().isEmpty ? 'Enter Branch Name' : null,
                         ),
-                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
                 ),
               ),
-
               Container(
                 padding: const EdgeInsets.all(16),
                 color: Colors.white,
@@ -246,20 +340,9 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                   child: Center(
                     child: CustomGradientButton(
                       text: 'Next',
-                      isLoading: state is BankDetailLoadingState,
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          final entity = BankDetailEntity(
-                            paymentMode: _selectedPaymentMode,
-                            bankName: _selectedBank ?? '',
-                            accountType: _selectedAccountType ?? '',
-                            accountNumber: _accountNumberController.text.trim(),
-                            confirmAccountNumber: _confirmAccountNumberController.text.trim(),
-                            beneficiaryName: _beneficiaryNameController.text.trim(),
-                            ifscCode: _ifscCodeController.text.trim(),
-                            branchName: _branchNameController.text.trim(),
-                          );
-                          BlocProvider.of<BankDetailBloc>(context).add(SubmitBankDetailEvent(entity));
+                          _showSuccessDialog();
                         }
                       },
                     ),

@@ -28,11 +28,26 @@ import '../../features/loan/loan_flow/create_loan/domain/usecases/submit_documen
 import '../../features/loan/loan_flow/create_loan/domain/usecases/verify_aadhaar_usecase.dart';
 import '../../features/loan/loan_flow/create_loan/domain/usecases/verify_pan_usecase.dart';
 import '../../features/loan/loan_flow/create_loan/presentation/bloc/create_loan_bloc.dart';
+import '../../features/loan/loan_flow/emandate/data/datasources/emandate_remote_datasource.dart';
+import '../../features/loan/loan_flow/emandate/data/repositories/emandate_repository_impl.dart';
+import '../../features/loan/loan_flow/emandate/domain/repositories/emandate_repository.dart';
+import '../../features/loan/loan_flow/emandate/domain/usecases/submit_emandate_usecase.dart';
+import '../../features/loan/loan_flow/emandate/presentation/bloc/emandate_bloc.dart';
 import '../../features/loan/loan_flow/loan_detail/data/datasources/loan_detail_remote_datasource.dart';
 import '../../features/loan/loan_flow/loan_detail/data/loan_detail_repository_impl/loan_detail_repository_impl.dart';
 import '../../features/loan/loan_flow/loan_detail/domain/repositories/loan_detail_repository.dart';
 import '../../features/loan/loan_flow/loan_detail/domain/usecases/submit_loan_detail_usecase.dart';
 import '../../features/loan/loan_flow/loan_detail/presentation/bloc/loan_detail_bloc.dart';
+import '../../features/loan/loan_flow/reference_deatils/data/datasources/reference_remote_data_source.dart';
+import '../../features/loan/loan_flow/reference_deatils/data/repositories/reference_repository_impl.dart';
+import '../../features/loan/loan_flow/reference_deatils/domain/repositories/reference_repository.dart';
+import '../../features/loan/loan_flow/reference_deatils/domain/usecases/submit_reference_usecase.dart';
+import '../../features/loan/loan_flow/reference_deatils/presentation/bloc/reference_bloc.dart';
+import '../../features/loan/loan_flow/terms_condition/data/datasources/terms_condition_remote_datasource.dart';
+import '../../features/loan/loan_flow/terms_condition/data/repositories/terms_condition_repository_impl.dart';
+import '../../features/loan/loan_flow/terms_condition/domain/repositories/terms_condition_repository.dart';
+import '../../features/loan/loan_flow/terms_condition/domain/usecases/accept_terms_usecase.dart';
+import '../../features/loan/loan_flow/terms_condition/presentation/bloc/terms_bloc.dart';
 import '../../features/loan/loan_reports/data/datasources/loan_report_remote_data_source.dart';
 import '../../features/loan/loan_reports/data/repositories/loan_report_repository_impl.dart';
 import '../../features/loan/loan_reports/domain/repositories/loan_report_repository.dart';
@@ -470,6 +485,54 @@ Future<void> init() async {
         () => BankDetailBloc(
       submitBankDetailUseCase: sl(),
     ),
+  );
+
+  sl.registerLazySingleton<EmandateRemoteDataSource>(
+        () => EmandateRemoteDataSourceImpl(),
+  );
+
+  sl.registerLazySingleton<EmandateRepository>(
+        () => EmandateRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton<SubmitEmandateUseCase>(
+        () => SubmitEmandateUseCase(sl()),
+  );
+
+  sl.registerFactory(
+        () => EmandateBloc(sl()),
+  );
+
+  sl.registerLazySingleton<ReferenceRemoteDataSource>(
+        () => ReferenceRemoteDataSourceImpl(client: sl()),
+  );
+
+  sl.registerLazySingleton<ReferenceRepository>(
+        () => ReferenceRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  sl.registerLazySingleton<SubmitReferenceUseCase>(
+        () => SubmitReferenceUseCase(sl()),
+  );
+
+  sl.registerFactory(
+        () => ReferenceBloc(sl()),
+  );
+
+  sl.registerLazySingleton<TermsConditionRemoteDatasource>(
+        () => TermsConditionRemoteDatasourceImpl(),
+  );
+
+  sl.registerLazySingleton<TermsConditionRepository>(
+        () => TermsConditionRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton<AcceptTermsUsecase>(
+        () => AcceptTermsUsecase(sl()),
+  );
+
+  sl.registerFactory(
+        () => TermsBloc(sl()),
   );
 
 }

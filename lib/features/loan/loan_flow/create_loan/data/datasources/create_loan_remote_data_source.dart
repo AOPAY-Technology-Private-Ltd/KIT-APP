@@ -17,8 +17,7 @@ class CreateLoanRemoteDataSourceImpl implements CreateLoanRemoteDataSource {
   @override
   Future<bool> verifyPan(String panNumber) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 800)); // Simulate API Call
-      // Yahan aap apni real PAN verification API call integrate kar sakte hain
+      await Future.delayed(const Duration(milliseconds: 800));
       return panNumber.length == 10;
     } catch (e) {
       throw Exception('PAN Verification Error: $e');
@@ -28,8 +27,7 @@ class CreateLoanRemoteDataSourceImpl implements CreateLoanRemoteDataSource {
   @override
   Future<bool> verifyAadhaar(String aadhaarNumber) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 800)); // Simulate API Call
-      // Yahan aap apni real Aadhaar verification API call integrate kar sakte hain
+      await Future.delayed(const Duration(milliseconds: 800));
       return aadhaarNumber.length == 12;
     } catch (e) {
       throw Exception('Aadhaar Verification Error: $e');

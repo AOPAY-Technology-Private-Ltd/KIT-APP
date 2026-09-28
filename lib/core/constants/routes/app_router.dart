@@ -6,13 +6,21 @@ import '../../../features/loan/customer_list/presentation/bloc/loan_customer_blo
 import '../../../features/loan/customer_list/presentation/bloc/loan_customer_event.dart';
 import '../../../features/loan/customer_list/presentation/pages/loan_customer_list_page.dart';
 import '../../../features/loan/loan_flow/bank_detail/presentation/bloc/bank_detail_bloc.dart';
+import '../../../features/loan/loan_flow/bank_detail/presentation/pages/auto_upistep_screen.dart';
 import '../../../features/loan/loan_flow/bank_detail/presentation/pages/bank_detail_step_screen.dart';
 import '../../../features/loan/loan_flow/basic_detail/presentation/bloc/basic_details_bloc.dart';
 import '../../../features/loan/loan_flow/basic_detail/presentation/pages/basic_detail_step_screen.dart';
 import '../../../features/loan/loan_flow/create_loan/presentation/bloc/create_loan_bloc.dart';
 import '../../../features/loan/loan_flow/create_loan/presentation/pages/documents_step_screen.dart';
+import '../../../features/loan/loan_flow/emandate/presentation/bloc/emandate_bloc.dart';
+import '../../../features/loan/loan_flow/emandate/presentation/screens/emandate_step_screen.dart';
 import '../../../features/loan/loan_flow/loan_detail/presentation/bloc/loan_detail_bloc.dart';
 import '../../../features/loan/loan_flow/loan_detail/presentation/pages/loan_detail_step_screen.dart';
+import '../../../features/loan/loan_flow/reference_deatils/presentation/bloc/reference_bloc.dart';
+import '../../../features/loan/loan_flow/reference_deatils/presentation/pages/loan_disbursed_screen.dart';
+import '../../../features/loan/loan_flow/reference_deatils/presentation/pages/reference_step_screen.dart';
+import '../../../features/loan/loan_flow/terms_condition/presentation/bloc/terms_bloc.dart';
+import '../../../features/loan/loan_flow/terms_condition/presentation/pages/terms_condition_screen.dart';
 import '../../../features/loan/loan_home_page/presentation/bloc/loan_home_bloc.dart';
 import '../../../features/loan/loan_home_page/presentation/bloc/loan_home_event.dart' as loan_event;
 import '../../../features/loan/loan_home_page/presentation/pages/loan_all_customers_screen.dart';
@@ -329,7 +337,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: RouteNames.loanMain,
       builder: (context, state) {
-        return const LoanMainScreen();
+        return BlocProvider(
+          create: (_) => sl<LoanHomeBloc>()..add(loan_event.LoadHomeDataEvent()),
+          child: const LoanMainScreen(),
+        );
       },
     ),
 
@@ -408,6 +419,49 @@ final GoRouter appRouter = GoRouter(
           create: (_) => sl<BankDetailBloc>(),
           child: const BankDetailStepScreen(),
         );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.autoUpiStep,
+      builder: (context, state) {
+        return  AutoUpiStepScreen();
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.emandateStep,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<EmandateBloc>(),
+          child: const EmandateStepScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.referenceStep,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<ReferenceBloc>(),
+          child: const ReferenceStepScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.termsConditionStep,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<TermsBloc>(),
+          child: const TermsConditionScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: RouteNames.loanDisbursedStep,
+      builder: (context, state) {
+        return const LoanDisbursedScreen();
       },
     ),
   ],

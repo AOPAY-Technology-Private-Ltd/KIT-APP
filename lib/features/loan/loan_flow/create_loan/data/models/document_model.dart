@@ -1,4 +1,3 @@
-import 'dart:io';
 import '../../domain/entities/document_entity.dart';
 
 class DocumentModel extends DocumentEntity {

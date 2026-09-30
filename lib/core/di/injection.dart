@@ -404,7 +404,7 @@ Future<void> init() async {
 
 
   sl.registerLazySingleton<CreateLoanRemoteDataSource>(
-        () => CreateLoanRemoteDataSourceImpl(),
+        () => CreateLoanRemoteDataSourceImpl(client: sl()),
   );
 
   sl.registerLazySingleton<CreateLoanRepository>(
@@ -422,7 +422,6 @@ Future<void> init() async {
   sl.registerLazySingleton<VerifyAadhaarUseCase>(
         () => VerifyAadhaarUseCase(sl()),
   );
-
   sl.registerFactory(
         () => CreateLoanBloc(
       submitDocumentsUseCase: sl(),

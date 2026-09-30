@@ -13,6 +13,7 @@ import '../bloc/create_loan_event.dart';
 import '../bloc/create_loan_state.dart';
 import '../widgets/step_progress_header.dart';
 import '../widgets/upload_dashed_card.dart';
+import 'aadhaar_webview_screen.dart';
 
 class DocumentsStepScreen extends StatefulWidget {
   const DocumentsStepScreen({super.key});
@@ -130,22 +131,69 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
         ],
       ),
       body: BlocConsumer<CreateLoanBloc, CreateLoanState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is PanVerifiedState) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('PAN Verified Successfully!'), backgroundColor: Colors.blue),
+              const SnackBar(
+                content: Text(
+                  'PAN Verified Successfully!',
+                ),
+                backgroundColor: Colors.blue,
+              ),
             );
-          } else if (state is AadhaarVerifiedState) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Aadhaar Verified Successfully!'), backgroundColor: Colors.blue),
+          }
+
+
+          else if (state
+          is AadhaarVerificationUrlReceivedState) {
+
+            final bool? isVerified =
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    AadhaarWebViewScreen(
+                      kycUrl: state.kycUrl,
+                    ),
+              ),
             );
-          } else if (state is DocumentsSubmittedSuccessState) {
+
+            if (isVerified == true) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Aadhaar KYC Completed Successfully!',
+                  ),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+
+          }
+
+
+          else if (state
+          is DocumentsSubmittedSuccessState) {
+
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Documents saved successfully! Next step...'), backgroundColor: Colors.green),
+              const SnackBar(
+                content: Text(
+                  'Documents saved successfully! Next step...',
+                ),
+                backgroundColor: Colors.green,
+              ),
             );
-          } else if (state is CreateLoanErrorState) {
+          }
+
+
+          else if (state is CreateLoanErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+              SnackBar(
+                content: Text(
+                  state.message,
+                ),
+                backgroundColor: Colors.red,
+              ),
             );
           }
         },
@@ -171,7 +219,7 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _buildLabel('Date of Birth'),
+                        _buildLabel('Date of Birth (Optional)'),
                         TextFormField(
                           controller: _dobController,
                           readOnly: true,
@@ -182,7 +230,6 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
                               onPressed: () => _selectDate(context),
                             ),
                           ),
-                          validator: (val) => val == null || val.isEmpty ? 'Please select date of birth' : null,
                         ),
                         const SizedBox(height: 16),
                         _buildLabel('Pan Card (Optional)'),
@@ -215,7 +262,9 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
                           validator: _validateAadhaar,
                           onChanged: (val) {
                             if (val.trim().length == 12) {
-                              BlocProvider.of<CreateLoanBloc>(context).add(VerifyAadhaarEvent(val.trim()));
+                              BlocProvider.of<CreateLoanBloc>(context).add(
+                                VerifyAadhaarEvent(val.trim(), firstName: 'Customer'),
+                              );
                             }
                           },
                         ),

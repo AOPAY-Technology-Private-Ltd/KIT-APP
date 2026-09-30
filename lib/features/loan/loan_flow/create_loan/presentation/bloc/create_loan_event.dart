@@ -6,21 +6,39 @@ abstract class CreateLoanEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+
 class VerifyPanEvent extends CreateLoanEvent {
   final String panNumber;
+
   VerifyPanEvent(this.panNumber);
 
   @override
-  List<Object?> get props => [panNumber];
+  List<Object?> get props => [
+    panNumber,
+  ];
 }
+
 
 class VerifyAadhaarEvent extends CreateLoanEvent {
   final String aadhaarNumber;
-  VerifyAadhaarEvent(this.aadhaarNumber);
+  final String firstName;
+  final String? lastName;
+
+  VerifyAadhaarEvent(
+      this.aadhaarNumber, {
+        required this.firstName,
+        this.lastName,
+      });
 
   @override
-  List<Object?> get props => [aadhaarNumber];
+  List<Object?> get props => [
+    aadhaarNumber,
+    firstName,
+    lastName,
+  ];
 }
+
+
 
 class SubmitDocumentsEvent extends CreateLoanEvent {
   final String dob;
@@ -40,5 +58,12 @@ class SubmitDocumentsEvent extends CreateLoanEvent {
   });
 
   @override
-  List<Object?> get props => [dob, panNumber, panPhoto, aadhaarNumber, frontImage, backImage];
+  List<Object?> get props => [
+    dob,
+    panNumber,
+    panPhoto,
+    aadhaarNumber,
+    frontImage,
+    backImage,
+  ];
 }

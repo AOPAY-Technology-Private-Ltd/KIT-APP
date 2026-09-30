@@ -1,24 +1,52 @@
-import 'package:equatable/equatable.dart';
-
-abstract class CreateLoanState extends Equatable {
-  @override
-  List<Object?> get props => [];
+abstract class CreateLoanState {
+  const CreateLoanState();
 }
 
-class CreateLoanInitialState extends CreateLoanState {}
 
-class CreateLoanLoadingState extends CreateLoanState {}
 
-class PanVerifiedState extends CreateLoanState {}
+class CreateLoanInitialState extends CreateLoanState {
+  const CreateLoanInitialState();
+}
 
-class AadhaarVerifiedState extends CreateLoanState {}
 
-class DocumentsSubmittedSuccessState extends CreateLoanState {}
 
-class CreateLoanErrorState extends CreateLoanState {
+class CreateLoanLoadingState extends CreateLoanState {
+  const CreateLoanLoadingState();
+}
+
+
+
+class PanVerifiedState extends CreateLoanState {
+  const PanVerifiedState();
+}
+
+
+
+class AadhaarVerificationUrlReceivedState
+    extends CreateLoanState {
+  final String kycUrl;
+  final String? transactionId;
+
+  const AadhaarVerificationUrlReceivedState({
+    required this.kycUrl,
+    this.transactionId,
+  });
+}
+
+
+
+class DocumentsSubmittedSuccessState
+    extends CreateLoanState {
+  const DocumentsSubmittedSuccessState();
+}
+
+
+
+class CreateLoanErrorState
+    extends CreateLoanState {
   final String message;
-  CreateLoanErrorState(this.message);
 
-  @override
-  List<Object?> get props => [message];
+  const CreateLoanErrorState(
+      this.message,
+      );
 }

@@ -8,11 +8,11 @@ class SubmitDocumentsUseCase {
 
   Future<bool> call({
     required String dob,
-    required String panNumber,
-    required File panPhoto,
-    required String aadhaarNumber,
-    required File frontImage,
-    required File backImage,
+    required String? panNumber,
+    required File? panPhoto,
+    required String? aadhaarNumber,
+    required File? frontImage,
+    required File? backImage,
   }) async {
     return await repository.saveDocuments(
       dob: dob,

@@ -8,8 +8,8 @@ class StepProgressHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<String> steps = [
-      'Documents',
       'Basic Detail',
+      'Documents',
       'Loan Detail',
       'Bank Detail',
       'E-NACH',

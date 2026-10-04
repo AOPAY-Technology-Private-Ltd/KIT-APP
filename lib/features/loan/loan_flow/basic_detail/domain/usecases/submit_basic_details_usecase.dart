@@ -1,5 +1,5 @@
 import 'dart:io';
-import '../repositories/create_loan_repository.dart';
+import '../repositories/basic_loan_repository.dart';
 
 class SubmitBasicDetailsUseCase {
   final BasicDetailsRepository repository;

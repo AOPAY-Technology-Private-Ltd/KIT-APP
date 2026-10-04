@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +12,6 @@ import '../bloc/basic_details_bloc.dart';
 import '../bloc/basic_details_event.dart';
 import '../bloc/basic_details_state.dart';
 import '../widgets/customer_photo_section.dart';
-
 
 class BasicDetailStepScreen extends StatefulWidget {
   const BasicDetailStepScreen({super.key});
@@ -34,6 +32,8 @@ class _BasicDetailStepScreenState extends State<BasicDetailStepScreen> {
 
   File? _customerPhotoFile;
   bool _acceptTerms = false;
+  bool _isMobileVerified = false;
+  String? _verifiedOtp;
 
   Future<void> _pickCustomerPhotoFromCamera() async {
     final ImagePicker picker = ImagePicker();
@@ -45,147 +45,178 @@ class _BasicDetailStepScreenState extends State<BasicDetailStepScreen> {
       setState(() {
         _customerPhotoFile = File(image.path);
       });
+      print('DEBUG [UI]: Customer photo selected from camera: ${image.path}');
     }
   }
 
-  void _showOtpVerificationDialog(BuildContext context, String mobileNumber) {
+  void _sendOtp(BuildContext context, String mobileNumber) {
+    print('DEBUG [UI]: _sendOtp called with mobile: $mobileNumber');
     if (mobileNumber.length != 10) {
+      print('DEBUG [UI]: Validation failed - Invalid mobile number length');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid 10-digit mobile number first'), backgroundColor: Colors.red),
       );
       return;
     }
 
+    print('DEBUG [UI]: Adding SendOtpEvent to BasicDetailsBloc');
+    BlocProvider.of<BasicDetailsBloc>(context).add(SendOtpEvent(mobileNumber: mobileNumber));
+  }
+
+  void _openOtpPopup(BuildContext context, String mobileNumber, {String? autoOtp}) {
+    print('DEBUG [UI]: Opening OTP popup dialog for mobile: $mobileNumber');
     final List<TextEditingController> otpControllers = List.generate(4, (_) => TextEditingController());
+
+    if (autoOtp != null && autoOtp.length == 4) {
+      for (int i = 0; i < 4; i++) {
+        otpControllers[i].text = autoOtp[i];
+      }
+    }
 
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          backgroundColor: Colors.white,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.lock_outline, color: Color(0xFF022062), size: 18),
-                        SizedBox(width: 8),
-                        Text(
-                          'Verify OTP',
-                          style: TextStyle(
-                            color: Color(0xFF022062),
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                      ],
-                    ),
-                    InkWell(
-                      onTap: () => Navigator.pop(context),
-                      child: const Icon(Icons.close, color: Colors.grey, size: 20),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'We sent a 4-digit verification code to\n$mobileNumber',
-                  style: const TextStyle(
-                    color: Colors.black54,
-                    fontSize: 12,
-                    fontFamily: 'Inter',
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(4, (index) {
-                    return SizedBox(
-                      width: 50,
-                      height: 52,
-                      child: TextFormField(
-                        controller: otpControllers[index],
-                        onChanged: (value) {
-                          if (value.isNotEmpty && index < 3) {
-                            FocusScope.of(context).nextFocus();
-                          } else if (value.isEmpty && index > 0) {
-                            FocusScope.of(context).previousFocus();
-                          }
-                        },
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        maxLength: 1,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        decoration: InputDecoration(
-                          counterText: '',
-                          contentPadding: EdgeInsets.zero,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Colors.black26),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text(
-                      'Resend in 00:45',
-                      style: TextStyle(color: Colors.grey, fontSize: 11, fontFamily: 'Inter'),
-                    ),
-                    Text(
-                      'Resend Code',
-                      style: TextStyle(
-                        color: Color(0xFF2563EB),
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Inter',
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: CustomGradientButton(
-                    text: 'Verify & Proceed',
-                    isLoading: false,
-                    onPressed: () {
-                      String enteredOtp = otpControllers.map((c) => c.text.trim()).join();
-                      if (enteredOtp.length != 4) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter a valid 4-digit OTP'), backgroundColor: Colors.red),
-                        );
-                        return;
-                      }
+      builder: (dialogContext) {
+        return BlocProvider.value(
+          value: BlocProvider.of<BasicDetailsBloc>(context),
+          child: BlocConsumer<BasicDetailsBloc, BasicDetailsState>(
+            listener: (context, state) {
+              print('DEBUG [UI]: OTP Dialog Listener - State received: $state');
+              if (state is OtpVerifiedSuccessState) {
+                print('DEBUG [UI]: OTP verified successfully!');
 
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Mobile number verified successfully!'), backgroundColor: Colors.green),
-                      );
-                    },
+                String enteredOtp = otpControllers.map((c) => c.text.trim()).join();
+
+                Navigator.pop(dialogContext);
+                setState(() {
+                  _isMobileVerified = true;
+                  _verifiedOtp = enteredOtp;
+                });
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Mobile number verified successfully!'), backgroundColor: Colors.green),
+                );
+              } else if (state is BasicDetailsErrorState) {
+                print('DEBUG [UI]: OTP Dialog Error - ${state.message}');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+                );
+              }
+            },
+            builder: (context, state) {
+              return Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                backgroundColor: Colors.white,
+                insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.lock_outline, color: Color(0xFF022062), size: 18),
+                              SizedBox(width: 8),
+                              Text(
+                                'Verify OTP',
+                                style: TextStyle(
+                                  color: Color(0xFF022062),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Inter',
+                                ),
+                              ),
+                            ],
+                          ),
+                          InkWell(
+                            onTap: () {
+                              print('DEBUG [UI]: Closing OTP popup dialog');
+                              Navigator.pop(dialogContext);
+                            },
+                            child: const Icon(Icons.close, color: Colors.grey, size: 20),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'We sent a 4-digit verification code to\n$mobileNumber',
+                        style: const TextStyle(
+                          color: Colors.black54,
+                          fontSize: 12,
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(4, (index) {
+                          return SizedBox(
+                            width: 50,
+                            height: 52,
+                            child: TextFormField(
+                              controller: otpControllers[index],
+                              onChanged: (value) {
+                                if (value.isNotEmpty && index < 3) {
+                                  FocusScope.of(context).nextFocus();
+                                } else if (value.isEmpty && index > 0) {
+                                  FocusScope.of(context).previousFocus();
+                                }
+                              },
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              maxLength: 1,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              decoration: InputDecoration(
+                                counterText: '',
+                                contentPadding: EdgeInsets.zero,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(color: Colors.black26),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: CustomGradientButton(
+                          text: 'Verify & Proceed',
+                          isLoading: state is BasicDetailsLoadingState,
+                          onPressed: () {
+                            String enteredOtp = otpControllers.map((c) => c.text.trim()).join();
+                            print('DEBUG [UI]: Verify & Proceed clicked. Entered OTP: $enteredOtp');
+                            if (enteredOtp.length != 4) {
+                              print('DEBUG [UI]: Entered OTP length is not 4');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please enter a valid 4-digit OTP'), backgroundColor: Colors.red),
+                              );
+                              return;
+                            }
+
+                            print('DEBUG [UI]: Adding VerifyOtpEvent to BLoC with mobile: $mobileNumber & OTP: $enteredOtp');
+                            BlocProvider.of<BasicDetailsBloc>(context).add(
+                              VerifyOtpEvent(mobileNumber: mobileNumber, otp: enteredOtp),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
         );
       },
@@ -212,31 +243,32 @@ class _BasicDetailStepScreenState extends State<BasicDetailStepScreen> {
           'Add Customer',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Inter'),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Center(
-              child: CustomHeaderIconButton(
-                child: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF022062), size: 12),
-                onTap: () {
-                  if (context.canPop()) {
-                    context.pop();
-                  } else {
-                    context.go(RouteNames.documentsStep);
-                  }
-                },
-              ),
-            ),
-          ),
-        ],
       ),
       body: BlocConsumer<BasicDetailsBloc, BasicDetailsState>(
         listener: (context, state) {
-          if (state is BasicDetailsSubmittedSuccessState) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Basic details saved successfully!'), backgroundColor: Colors.green),
+          print('DEBUG [UI]: Main Screen BlocConsumer - State received: $state');
+          if (state is OtpSentSuccessState) {
+            print('DEBUG [UI]: OtpSentSuccessState received! Triggering popup...');
+            _openOtpPopup(context, _mobileController.text.trim());
+          } else if (state is BasicDetailsSubmittedSuccessState) {
+            print('DEBUG [UI]: BasicDetailsSubmittedSuccessState received! Navigating to next screen...');
+
+            context.go(
+
+              RouteNames.documentsStep,
+              extra: {
+                'customerPhoto': _customerPhotoFile?.path,
+                'firstName': _firstNameController.text.trim(),
+                'lastName': _lastNameController.text.trim(),
+                'mobileNumber': _mobileController.text.trim(),
+                'alternateNumber': _alternateController.text.trim(),
+                'emailId': _emailController.text.trim(),
+                'address': _addressController.text.trim(),
+                'otp': _verifiedOtp ?? '',
+              },
             );
           } else if (state is BasicDetailsErrorState) {
+            print('DEBUG [UI]: Main Screen Error - ${state.message}');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message), backgroundColor: Colors.red),
             );
@@ -309,6 +341,7 @@ class _BasicDetailStepScreenState extends State<BasicDetailStepScreen> {
                           controller: _mobileController,
                           keyboardType: TextInputType.phone,
                           maxLength: 10,
+                          enabled: !_isMobileVerified,
                           decoration: _inputDecoration('Enter Mobile Number').copyWith(counterText: ''),
                           validator: (val) {
                             if (val == null || val.trim().length != 10) return 'Enter valid 10-digit mobile number';
@@ -318,10 +351,17 @@ class _BasicDetailStepScreenState extends State<BasicDetailStepScreen> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                            onPressed: () {
-                              _showOtpVerificationDialog(context, _mobileController.text.trim());
-                            },
-                            child: const Text('Verify', style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 12)),
+                            onPressed: _isMobileVerified
+                                ? null
+                                : () => _sendOtp(context, _mobileController.text.trim()),
+                            child: Text(
+                              _isMobileVerified ? 'Verified ✓' : 'Verify',
+                              style: TextStyle(
+                                color: _isMobileVerified ? Colors.green : const Color(0xFF2563EB),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
                         ),
 
@@ -376,8 +416,6 @@ class _BasicDetailStepScreenState extends State<BasicDetailStepScreen> {
                                       builder: (context) => const TermsAndConditionsScreen(),
                                     ),
                                   );
-
-
                                 },
                                 child: const Text(
                                   'Accept Terms and Condition',
@@ -410,14 +448,25 @@ class _BasicDetailStepScreenState extends State<BasicDetailStepScreen> {
                       text: 'Next',
                       isLoading: state is BasicDetailsLoadingState,
                       onPressed: () {
+                        print('DEBUG [UI]: Next button clicked');
                         if (_customerPhotoFile == null) {
+                          print('DEBUG [UI]: Customer photo missing');
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Please capture customer photo'), backgroundColor: Colors.red),
                           );
                           return;
                         }
 
+                        if (!_isMobileVerified) {
+                          print('DEBUG [UI]: Mobile number not verified yet');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please verify your mobile number first'), backgroundColor: Colors.red),
+                          );
+                          return;
+                        }
+
                         if (!_acceptTerms) {
+                          print('DEBUG [UI]: Terms and conditions not accepted');
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Please accept terms and condition'), backgroundColor: Colors.red),
                           );
@@ -425,6 +474,20 @@ class _BasicDetailStepScreenState extends State<BasicDetailStepScreen> {
                         }
 
                         if (_formKey.currentState!.validate()) {
+                          print('DEBUG [UI]: Form validated successfully. Submitting details event...');
+
+                          print('--- SUBMIT EVENT DATA INSPECTION ---');
+                          print('Customer Photo Path: ${_customerPhotoFile?.path}');
+                          print('First Name: ${_firstNameController.text.trim()}');
+                          print('Last Name: ${_lastNameController.text.trim()}');
+                          print('Mobile Number: ${_mobileController.text.trim()}');
+                          print('Alternate Number: ${_alternateController.text.trim()}');
+                          print('Email ID: ${_emailController.text.trim()}');
+                          print('Address: ${_addressController.text.trim()}');
+                          print('Accept Terms: $_acceptTerms');
+                          print('Verified OTP being passed: $_verifiedOtp');
+                          print('------------------------------------');
+
                           BlocProvider.of<BasicDetailsBloc>(context).add(
                             SubmitBasicDetailsEvent(
                               customerPhoto: _customerPhotoFile,
@@ -437,8 +500,6 @@ class _BasicDetailStepScreenState extends State<BasicDetailStepScreen> {
                               acceptTerms: _acceptTerms,
                             ),
                           );
-
-                          context.go(RouteNames.loanDetailStep);
                         }
                       },
                     ),

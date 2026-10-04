@@ -29,9 +29,50 @@ class _LoanDetailStepScreenState extends State<LoanDetailStepScreen> {
   final TextEditingController _processFeesController = TextEditingController(text: '399');
   final TextEditingController _forecloseChargesController = TextEditingController();
 
-  String? _selectedInterestType;
+  String? _selectedInterestType = 'Flat';
   double _tenureMonths = 6.0;
   double _interestRate = 18.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loanAmountController.addListener(_updateCalculation);
+    _processFeesController.addListener(_updateCalculation);
+  }
+
+  @override
+  void dispose() {
+    _loanAmountController.dispose();
+    _processFeesController.dispose();
+    _downPaymentController.dispose();
+    _forecloseChargesController.dispose();
+    _productCategoryController.dispose();
+    _brandController.dispose();
+    _modelController.dispose();
+    super.dispose();
+  }
+
+  void _updateCalculation() {
+    setState(() {});
+  }
+
+  double get _loanAmount => double.tryParse(_loanAmountController.text.trim()) ?? 0.0;
+  double get _processFee => double.tryParse(_processFeesController.text.trim()) ?? 0.0;
+
+  double get _calculatedInterest {
+    if (_tenureMonths <= 0 || _loanAmount <= 0) return 0.0;
+    double tenureInYears = _tenureMonths / 12.0;
+    return (_loanAmount * _interestRate * tenureInYears) / 100.0;
+  }
+
+  double get _totalPayable {
+    return _loanAmount + _calculatedInterest + _processFee;
+  }
+
+  double get _monthlyEmi {
+    if (_tenureMonths <= 0) return 0.0;
+    return _totalPayable / _tenureMonths;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +299,7 @@ class _LoanDetailStepScreenState extends State<LoanDetailStepScreen> {
                           ),
                           const SizedBox(height: 4),
                           const Text(
-                            'Adjust down payment and tenure to see your EMI',
+                            'Adjust tenure to see your dynamic EMI',
                             style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontFamily: 'Inter'),
                           ),
                           const SizedBox(height: 12),
@@ -291,14 +332,14 @@ class _LoanDetailStepScreenState extends State<LoanDetailStepScreen> {
                                         setState(() {
                                           double dx = details.localPosition.dx;
                                           double value = (dx / maxWidth) * 60;
-                                          _tenureMonths = value.clamp(0.0, 60.0);
+                                          _tenureMonths = value.clamp(1.0, 60.0);
                                         });
                                       },
                                       onTapDown: (details) {
                                         setState(() {
                                           double dx = details.localPosition.dx;
                                           double value = (dx / maxWidth) * 60;
-                                          _tenureMonths = value.clamp(0.0, 60.0);
+                                          _tenureMonths = value.clamp(1.0, 60.0);
                                         });
                                       },
                                       child: Container(
@@ -362,7 +403,7 @@ class _LoanDetailStepScreenState extends State<LoanDetailStepScreen> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       const Text('Interest Rate', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-                                      const Text('18% p.a', style: TextStyle(color: Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.bold)),
+                                      Text('${_interestRate.toStringAsFixed(0)}% p.a', style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                 ),
@@ -391,7 +432,7 @@ class _LoanDetailStepScreenState extends State<LoanDetailStepScreen> {
                                           ),
                                         ],
                                       ),
-                                      const Text('₹ 386 /month', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
+                                      Text('₹ ${_monthlyEmi.toStringAsFixed(2)} /month', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
                                     ],
                                   ),
                                 ),
@@ -420,9 +461,9 @@ class _LoanDetailStepScreenState extends State<LoanDetailStepScreen> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                _buildSummaryRow('Loan Amount', '₹ 2,200.00'),
-                                _buildSummaryRow('Interest', '₹ 116.00'),
-                                _buildSummaryRow('Processing Fee', '₹ 399.00'),
+                                _buildSummaryRow('Loan Amount', '₹ ${_loanAmount.toStringAsFixed(2)}'),
+                                _buildSummaryRow('Interest', '₹ ${_calculatedInterest.toStringAsFixed(2)}'),
+                                _buildSummaryRow('Processing Fee', '₹ ${_processFee.toStringAsFixed(2)}'),
                                 const SizedBox(height: 4),
                                 Container(
                                   width: double.infinity,
@@ -433,8 +474,8 @@ class _LoanDetailStepScreenState extends State<LoanDetailStepScreen> {
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: const [
-                                      Text(
+                                    children: [
+                                      const Text(
                                         'Total Payable',
                                         style: TextStyle(
                                           color: Colors.white,
@@ -444,8 +485,8 @@ class _LoanDetailStepScreenState extends State<LoanDetailStepScreen> {
                                         ),
                                       ),
                                       Text(
-                                        '₹ 2,786.82.00',
-                                        style: TextStyle(
+                                        '₹ ${_totalPayable.toStringAsFixed(2)}',
+                                        style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 16,
                                           fontFamily: 'Inter',

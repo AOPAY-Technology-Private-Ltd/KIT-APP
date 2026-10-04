@@ -14,19 +14,22 @@ import '../../features/loan/customer_list/presentation/bloc/loan_customer_bloc.d
 import '../../features/loan/loan_flow/bank_detail/data/datasources/bank_detail_remote_data_source.dart';
 import '../../features/loan/loan_flow/bank_detail/data/repositories/bank_detail_repository_impl.dart';
 import '../../features/loan/loan_flow/bank_detail/domain/repositories/bank_detail_repository.dart';
+import '../../features/loan/loan_flow/bank_detail/domain/usecases/get_bank_list_usecase.dart';
 import '../../features/loan/loan_flow/bank_detail/domain/usecases/submit_bank_detail_usecase.dart';
 import '../../features/loan/loan_flow/bank_detail/presentation/bloc/bank_detail_bloc.dart';
 import '../../features/loan/loan_flow/basic_detail/data/datasources/basic_details_remote_data_source.dart';
 import '../../features/loan/loan_flow/basic_detail/data/repositories/basic_details_repository_impl.dart';
-import '../../features/loan/loan_flow/basic_detail/domain/repositories/create_loan_repository.dart';
+import '../../features/loan/loan_flow/basic_detail/domain/repositories/basic_loan_repository.dart';
 import '../../features/loan/loan_flow/basic_detail/domain/usecases/submit_basic_details_usecase.dart';
 import '../../features/loan/loan_flow/basic_detail/presentation/bloc/basic_details_bloc.dart';
 import '../../features/loan/loan_flow/create_loan/data/datasources/create_loan_remote_data_source.dart';
 import '../../features/loan/loan_flow/create_loan/data/repositories/create_loan_repository_impl.dart';
 import '../../features/loan/loan_flow/create_loan/domain/repositories/create_loan_repository.dart';
+import '../../features/loan/loan_flow/create_loan/domain/usecases/get_credit_report_usecase.dart';
 import '../../features/loan/loan_flow/create_loan/domain/usecases/submit_documents_usecase.dart';
 import '../../features/loan/loan_flow/create_loan/domain/usecases/verify_aadhaar_usecase.dart';
 import '../../features/loan/loan_flow/create_loan/domain/usecases/verify_pan_usecase.dart';
+import '../../features/loan/loan_flow/create_loan/domain/usecases/check_loan_reapply_eligibility_usecase.dart'; // <-- Yeh import add kiya gaya hai
 import '../../features/loan/loan_flow/create_loan/presentation/bloc/create_loan_bloc.dart';
 import '../../features/loan/loan_flow/emandate/data/datasources/emandate_remote_datasource.dart';
 import '../../features/loan/loan_flow/emandate/data/repositories/emandate_repository_impl.dart';
@@ -422,17 +425,27 @@ Future<void> init() async {
   sl.registerLazySingleton<VerifyAadhaarUseCase>(
         () => VerifyAadhaarUseCase(sl()),
   );
+
+  sl.registerLazySingleton<GetCreditReportUseCase>(
+        () => GetCreditReportUseCase(sl()),
+  );
+
+  sl.registerLazySingleton(
+        () => CheckLoanReapplyEligibilityUseCase(sl()),
+  );
+
   sl.registerFactory(
         () => CreateLoanBloc(
       submitDocumentsUseCase: sl(),
       verifyPanUseCase: sl(),
       verifyAadhaarUseCase: sl(),
+      getCreditReportUseCase: sl(),
+      checkLoanReapplyEligibilityUseCase: sl(),
     ),
   );
 
-
   sl.registerLazySingleton<BasicDetailsRemoteDataSource>(
-        () => BasicDetailsRemoteDataSourceImpl(),
+        () => BasicDetailsRemoteDataSourceImpl(client: sl()),
   );
 
   sl.registerLazySingleton<BasicDetailsRepository>(
@@ -446,6 +459,7 @@ Future<void> init() async {
   sl.registerFactory(
         () => BasicDetailsBloc(
       submitBasicDetailsUseCase: sl(),
+      repository: sl(),
     ),
   );
 
@@ -469,7 +483,7 @@ Future<void> init() async {
   );
 
   sl.registerLazySingleton<BankDetailRemoteDataSource>(
-        () => BankDetailRemoteDataSourceImpl(),
+        () => BankDetailRemoteDataSourceImpl(client: sl()),
   );
 
   sl.registerLazySingleton<BankDetailRepository>(
@@ -480,9 +494,14 @@ Future<void> init() async {
         () => SubmitBankDetailUseCase(sl()),
   );
 
+  sl.registerLazySingleton<GetBankListUseCase>(
+        () => GetBankListUseCase(sl()),
+  );
+
   sl.registerFactory(
         () => BankDetailBloc(
       submitBankDetailUseCase: sl(),
+      getBankListUseCase: sl(),
     ),
   );
 
@@ -533,5 +552,4 @@ Future<void> init() async {
   sl.registerFactory(
         () => TermsBloc(sl()),
   );
-
 }

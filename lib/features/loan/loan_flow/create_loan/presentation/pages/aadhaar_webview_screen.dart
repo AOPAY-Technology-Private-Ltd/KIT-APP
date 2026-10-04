@@ -1,10 +1,18 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../../../../../../core/di/injection.dart';
+import '../../data/datasources/create_loan_remote_data_source.dart';
 
 class AadhaarWebViewScreen extends StatefulWidget {
   final String kycUrl;
+  final String? transactionId;
 
-  const AadhaarWebViewScreen({super.key, required this.kycUrl});
+  const AadhaarWebViewScreen({
+    super.key,
+    required this.kycUrl,
+    this.transactionId,
+  });
 
   @override
   State<AadhaarWebViewScreen> createState() => _AadhaarWebViewScreenState();
@@ -33,21 +41,27 @@ class _AadhaarWebViewScreenState extends State<AadhaarWebViewScreen> {
             });
             print('Current WebView URL: $url');
           },
-          onNavigationRequest: (NavigationRequest request) {
+          onNavigationRequest: (NavigationRequest request) async {
             final url = request.url.toLowerCase();
 
-            print('Intercepted URL: $url');
+            if (url.contains('success') || url.contains('close') || url.contains('complete') || url.contains('code=')) {
 
-            if (url.contains('digilocker-prod.digitap.work') && url.contains('code=')) {
-              Navigator.pop(context, true);
+              if (widget.transactionId != null && widget.transactionId!.isNotEmpty) {
+                try {
+                  print('=== Fetching Aadhaar Transaction Details ===');
+                  final remoteDataSource = sl<CreateLoanRemoteDataSource>();
+                  final response = await remoteDataSource.fetchAadhaarTransaction(widget.transactionId!);
+                  print('Transaction API Response: $response');
+                } catch (e) {
+                  print('Error fetching transaction: $e');
+                }
+              }
+
+              if (mounted) {
+                Navigator.pop(context, true);
+              }
               return NavigationDecision.prevent;
             }
-
-            if (url.contains('success') || url.contains('close') || url.contains('complete')) {
-              Navigator.pop(context, true);
-              return NavigationDecision.prevent;
-            }
-
             return NavigationDecision.navigate;
           },
         ),

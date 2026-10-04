@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SessionManager {
   static const String _keyRetailerCode = 'retailer_code';
   static const String _keyCustomerCode = 'customer_code';
+  static const String _keyCustomerCodeTwo = 'customer_code_two';
   static const String _keyIsLoggedIn = 'is_logged_in';
   static const String _keyMobileNo = 'mobile_no';
   static const String _keyFirstName = 'first_name';
@@ -24,6 +25,7 @@ class SessionManager {
 
     if (customerCode != null && customerCode.isNotEmpty) {
       await prefs.setString(_keyCustomerCode, customerCode);
+      await prefs.setString(_keyCustomerCodeTwo, customerCode);
     }
 
     await prefs.setString(_keyMobileNo, mobileNo);
@@ -41,6 +43,12 @@ class SessionManager {
     await prefs.setBool(_keyIsLoggedIn, true);
   }
 
+  static Future<void> saveCustomerCodes(String customerCode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyCustomerCode, customerCode);
+    await prefs.setString(_keyCustomerCodeTwo, customerCode);
+  }
+
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_keyIsLoggedIn) ?? false;
@@ -54,6 +62,11 @@ class SessionManager {
   static Future<String?> getCustomerCode() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyCustomerCode);
+  }
+
+  static Future<String?> getCustomerCodeTwo() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyCustomerCodeTwo);
   }
 
   static Future<String?> getFirstName() async {
@@ -85,6 +98,7 @@ class SessionManager {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyRetailerCode);
     await prefs.remove(_keyCustomerCode);
+    await prefs.remove(_keyCustomerCodeTwo);
     await prefs.remove(_keyMobileNo);
     await prefs.remove(_keyFirstName);
     await prefs.remove(_keyLastName);

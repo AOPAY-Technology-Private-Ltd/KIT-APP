@@ -11,11 +11,13 @@ class VerifyAadhaarUseCase {
       String aadhaarNumber, {
         required String firstName,
         String? lastName,
+        String? mobileNumber,
       }) async {
     return await repository.verifyAadhaar(
       aadhaarNumber,
       firstName: firstName,
       lastName: lastName,
+      mobileNumber: mobileNumber,
     );
   }
 }

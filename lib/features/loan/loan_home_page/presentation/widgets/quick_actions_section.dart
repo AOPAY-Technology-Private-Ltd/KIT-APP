@@ -118,7 +118,7 @@ class QuickActionsSection extends StatelessWidget {
                     elevation: 0,
                   ),
                   onPressed: () {
-                    context.push(RouteNames.documentsStep);
+                    context.push(RouteNames.basicDetailsStep);
                   },
                   icon: Image.asset(
                     'assets/images/loan.png',

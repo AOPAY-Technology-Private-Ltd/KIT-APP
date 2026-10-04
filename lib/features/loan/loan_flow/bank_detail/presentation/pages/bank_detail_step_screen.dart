@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../../core/constants/routes/route_names.dart';
+import '../../domain/entities/bank_detail_entity.dart';
 import '../bloc/bank_detail_bloc.dart';
+import '../bloc/bank_detail_event.dart';
 import '../bloc/bank_detail_state.dart';
 import '../../../../common/custom_gradient_button.dart';
 import '../../../../common/custom_icon_button.dart';
@@ -24,11 +26,158 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
   String? _selectedBank;
   String? _selectedAccountType;
 
+  List<String> _bankList = [];
+
   final TextEditingController _accountNumberController = TextEditingController();
   final TextEditingController _confirmAccountNumberController = TextEditingController();
   final TextEditingController _beneficiaryNameController = TextEditingController();
   final TextEditingController _ifscCodeController = TextEditingController();
   final TextEditingController _branchNameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<BankDetailBloc>().add(FetchBankListEvent('AOP-554'));
+  }
+
+  void _showBankSearchModal() {
+    String searchQuery = '';
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            final filteredList = _bankList.where((bank) {
+              return bank.toLowerCase().contains(
+                searchQuery.toLowerCase(),
+              );
+            }).toList();
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+                left: 16,
+                right: 16,
+                top: 16,
+              ),
+              child: SizedBox(
+                height: MediaQuery.of(sheetContext).size.height * 0.6,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Select Bank',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Inter',
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(sheetContext),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: 'Search bank...',
+                        hintStyle: TextStyle(color: Colors.black.withValues(alpha: 0.3), fontSize: 12),
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        filled: true,
+                        fillColor: const Color(0xFFF1F5F9),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setModalState(() {
+                          searchQuery = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: filteredList.isEmpty
+                          ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24.0),
+                          child: Text(
+                            'No data found',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      )
+                          : ListView.builder(
+                        itemCount: filteredList.length,
+                        padding: EdgeInsets.zero,
+                        itemBuilder: (context, index) {
+                          final String bankName = filteredList[index];
+
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _selectedBank = bankName;
+                              });
+
+                              Navigator.of(sheetContext).pop();
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 14,
+                              ),
+                              decoration: const BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Color(0xFFE5E7EB),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                bankName,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: 'Inter',
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   void _showSuccessDialog() {
     showDialog(
@@ -168,7 +317,11 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
       ),
       body: BlocConsumer<BankDetailBloc, BankDetailState>(
         listener: (context, state) {
-          if (state is BankDetailSuccessState) {
+          if (state is BankBankListLoadedState) {
+            setState(() {
+              _bankList = state.banks;
+            });
+          } else if (state is BankDetailSuccessState) {
             _showSuccessDialog();
           } else if (state is BankDetailErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -264,15 +417,54 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                         ),
                         const SizedBox(height: 20),
                         _buildLabel('Select Bank*'),
-                        DropdownButtonFormField<String>(
-                          value: _selectedBank,
-                          isExpanded: true,
-                          decoration: _inputDecoration('--- Select Bank ---'),
-                          items: ['HDFC Bank', 'ICICI Bank', 'SBI', 'Axis Bank'].map((bank) {
-                            return DropdownMenuItem(value: bank, child: Text(bank, style: const TextStyle(fontSize: 12)));
-                          }).toList(),
-                          onChanged: (val) => setState(() => _selectedBank = val),
-                          validator: (val) => val == null || val.isEmpty ? 'Please select bank' : null,
+                        FormField<String>(
+                          validator: (val) => _selectedBank == null || _selectedBank!.isEmpty ? 'Please select bank' : null,
+                          builder: (FormFieldState<String> field) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                InkWell(
+                                  onTap: _showBankSearchModal,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        width: 1,
+                                        color: field.hasError ? Colors.red : Colors.black.withValues(alpha: 0.40),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            _selectedBank ?? '--- Select Bank ---',
+                                            style: TextStyle(
+                                              color: _selectedBank == null ? Colors.black.withValues(alpha: 0.30) : const Color(0xFF0F172A),
+                                              fontSize: 12,
+                                              fontFamily: 'Inter',
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ),
+                                        const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                if (field.hasError)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 6, left: 12),
+                                    child: Text(
+                                      field.errorText!,
+                                      style: const TextStyle(color: Colors.red, fontSize: 11, fontFamily: 'Inter'),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                         _buildLabel('Select Account Type*'),
@@ -340,9 +532,21 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
                   child: Center(
                     child: CustomGradientButton(
                       text: 'Next',
+                      isLoading: state is BankDetailLoadingState,
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          _showSuccessDialog();
+                          final bankDetailEntity = BankDetailEntity(
+                            paymentMode: _selectedPaymentMode,
+                            bankName: _selectedBank ?? '',
+                            accountType: _selectedAccountType ?? '',
+                            accountNumber: _accountNumberController.text.trim(),
+                            confirmAccountNumber: _confirmAccountNumberController.text.trim(),
+                            beneficiaryName: _beneficiaryNameController.text.trim(),
+                            ifscCode: _ifscCodeController.text.trim(),
+                            branchName: _branchNameController.text.trim(),
+                          );
+
+                          context.read<BankDetailBloc>().add(SubmitBankDetailEvent(bankDetailEntity));
                         }
                       },
                     ),

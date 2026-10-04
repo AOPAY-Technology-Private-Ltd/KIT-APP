@@ -1,5 +1,5 @@
 import 'dart:io';
-import '../../domain/repositories/create_loan_repository.dart';
+import '../../domain/repositories/basic_loan_repository.dart';
 import '../datasources/basic_details_remote_data_source.dart';
 
 class BasicDetailsRepositoryImpl implements BasicDetailsRepository {
@@ -15,6 +15,16 @@ class BasicDetailsRepositoryImpl implements BasicDetailsRepository {
   @override
   Future<bool> verifyAadhaar(String aadhaarNumber) async {
     return await remoteDataSource.verifyAadhaar(aadhaarNumber);
+  }
+
+  @override
+  Future<bool> sendOtp({required String mobileOrEmailID, required String otpType}) async {
+    return await remoteDataSource.sendOtp(mobileOrEmailID: mobileOrEmailID, otpType: otpType);
+  }
+
+  @override
+  Future<String?> verifyOtp({required String mobileOrEmail, required String enteredOTP}) async {
+    return await remoteDataSource.verifyOtp(mobileOrEmail: mobileOrEmail, enteredOTP: enteredOTP);
   }
 
   @override

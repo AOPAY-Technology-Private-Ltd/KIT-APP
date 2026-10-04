@@ -4,6 +4,10 @@ abstract class BasicDetailsRepository {
   Future<bool> verifyPan(String panNumber);
   Future<bool> verifyAadhaar(String aadhaarNumber);
 
+  Future<bool> sendOtp({required String mobileOrEmailID, required String otpType});
+
+  Future<String?> verifyOtp({required String mobileOrEmail, required String enteredOTP});
+
   Future<bool> saveDocuments({
     required String dob,
     required String? panNumber,

@@ -13,4 +13,9 @@ class BankDetailRepositoryImpl implements BankDetailRepository {
     final model = BankDetailModel.fromEntity(entity);
     await remoteDataSource.submitBankDetails(model);
   }
+
+  @override
+  Future<List<String>> getBankList(String registrationId) async {
+    return await remoteDataSource.getBankList(registrationId);
+  }
 }

@@ -385,13 +385,23 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: RouteNames.documentsStep,
       builder: (context, state) {
-        return BlocProvider(
-          create: (_) => sl<CreateLoanBloc>(),
-          child: const DocumentsStepScreen(),
+        final extra = state.extra as Map<String, dynamic>?;
+        return BlocProvider<CreateLoanBloc>(
+          create: (context) => sl<CreateLoanBloc>(),
+          child: DocumentsStepScreen(
+            firstName: extra?['firstName'] ?? 'Customer',
+            lastName: extra?['lastName'],
+            mobileNumber: extra?['mobileNumber'],
+            emailId: extra?['emailId'],     // <-- Email ID bhi add kar diya
+            address: extra?['address'],     // <-- Yeh line add karni zaroori thi!
+            pinCode: extra?['pinCode'],
+            stateName: extra?['stateName'],
+            cityName: extra?['cityName'],
+            otp: extra?['otp'] ?? '',
+          ),
         );
       },
     ),
-
     GoRoute(
       path: RouteNames.basicDetailsStep,
       builder: (context, state) {

@@ -325,7 +325,7 @@ class _BankDetailStepScreenState extends State<BankDetailStepScreen> {
             _showSuccessDialog();
           } else if (state is BankDetailErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+              SnackBar(content: Text(state.error), backgroundColor: Colors.red),
             );
           }
         },

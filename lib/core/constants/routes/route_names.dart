@@ -66,4 +66,5 @@ class RouteNames {
   static const String termsConditionStep = "/terms-condition-step";
 
   static const String loanDisbursedStep = "/loan-disbursed-step";
+  static const String loanHistory = "/loan-history";
 }

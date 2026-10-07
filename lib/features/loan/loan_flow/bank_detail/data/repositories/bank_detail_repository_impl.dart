@@ -18,4 +18,37 @@ class BankDetailRepositoryImpl implements BankDetailRepository {
   Future<List<String>> getBankList(String registrationId) async {
     return await remoteDataSource.getBankList(registrationId);
   }
+
+  @override
+  Future<Map<String, String>> setupAutoUpiSubscription(String registrationId) async {
+    return await remoteDataSource.setupAutoUpiSubscription(registrationId);
+  }
+
+  @override
+  Future<bool> checkOrderStatus({required String registrationId, required String merchantOrderId}) async {
+    return await remoteDataSource.checkOrderStatus(
+      registrationId: registrationId,
+      merchantOrderId: merchantOrderId,
+    );
+  }
+
+  @override
+  Future<Map<String, String>> postTransactionWithResponse({
+    required String registrationId,
+    required String loanCode,
+    required String emiNumbers,
+  }) async {
+    return await remoteDataSource.postTransactionWithResponse(
+      registrationId: registrationId,
+      loanCode: loanCode,
+      emiNumbers: emiNumbers,
+    );
+  }
+
+  @override
+  Future<void> manageCustomerStepWiseForStep4({required String registrationId}) async {
+    await remoteDataSource.manageCustomerStepWiseForStep4(
+      registrationId: registrationId,
+    );
+  }
 }

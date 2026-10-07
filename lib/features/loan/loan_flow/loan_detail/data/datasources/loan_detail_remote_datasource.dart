@@ -68,6 +68,22 @@ class LoanDetailRemoteDataSourceImpl implements LoanDetailRemoteDataSource {
         String message = decodedData['message'] ?? '';
 
         if (isSuccess || message.toLowerCase().contains('already completed')) {
+
+          // 🔥 Response ke 'data' object se loanCode aur rid extract karke session mein save karna
+          final dynamicData = decodedData['data'];
+          if (dynamicData is Map) {
+            final loanCode = dynamicData['loanCode']?.toString() ?? '';
+            final rid = dynamicData['rid']?.toString() ?? '';
+
+            if (loanCode.isNotEmpty || rid.isNotEmpty) {
+              await SessionManager.saveLoanDetails(
+                loanCode: loanCode,
+                rid: rid,
+              );
+              print('✅ Saved to Session -> LoanCode: $loanCode, RID: $rid');
+            }
+          }
+
           return;
         } else {
           throw Exception(message.isNotEmpty ? message : 'Failed to save loan details');

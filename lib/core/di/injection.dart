@@ -16,6 +16,7 @@ import '../../features/loan/loan_flow/bank_detail/data/repositories/bank_detail_
 import '../../features/loan/loan_flow/bank_detail/domain/repositories/bank_detail_repository.dart';
 import '../../features/loan/loan_flow/bank_detail/domain/usecases/get_bank_list_usecase.dart';
 import '../../features/loan/loan_flow/bank_detail/domain/usecases/submit_bank_detail_usecase.dart';
+import '../../features/loan/loan_flow/bank_detail/domain/usecases/setup_auto_upi_usecase.dart';
 import '../../features/loan/loan_flow/bank_detail/presentation/bloc/bank_detail_bloc.dart';
 import '../../features/loan/loan_flow/basic_detail/data/datasources/basic_details_remote_data_source.dart';
 import '../../features/loan/loan_flow/basic_detail/data/repositories/basic_details_repository_impl.dart';
@@ -29,7 +30,7 @@ import '../../features/loan/loan_flow/create_loan/domain/usecases/get_credit_rep
 import '../../features/loan/loan_flow/create_loan/domain/usecases/submit_documents_usecase.dart';
 import '../../features/loan/loan_flow/create_loan/domain/usecases/verify_aadhaar_usecase.dart';
 import '../../features/loan/loan_flow/create_loan/domain/usecases/verify_pan_usecase.dart';
-import '../../features/loan/loan_flow/create_loan/domain/usecases/check_loan_reapply_eligibility_usecase.dart'; // <-- Yeh import add kiya gaya hai
+import '../../features/loan/loan_flow/create_loan/domain/usecases/check_loan_reapply_eligibility_usecase.dart';
 import '../../features/loan/loan_flow/create_loan/presentation/bloc/create_loan_bloc.dart';
 import '../../features/loan/loan_flow/emandate/data/datasources/emandate_remote_datasource.dart';
 import '../../features/loan/loan_flow/emandate/data/repositories/emandate_repository_impl.dart';
@@ -41,11 +42,22 @@ import '../../features/loan/loan_flow/loan_detail/data/loan_detail_repository_im
 import '../../features/loan/loan_flow/loan_detail/domain/repositories/loan_detail_repository.dart';
 import '../../features/loan/loan_flow/loan_detail/domain/usecases/submit_loan_detail_usecase.dart';
 import '../../features/loan/loan_flow/loan_detail/presentation/bloc/loan_detail_bloc.dart';
+import '../../features/loan/loan_flow/loan_history/data/datasources/loan_history_remote_datasource.dart';
+import '../../features/loan/loan_flow/loan_history/data/repositories/loan_history_repository_impl.dart';
+import '../../features/loan/loan_flow/loan_history/domain/repositories/loan_repository.dart';
+import '../../features/loan/loan_flow/loan_history/domain/usecases/get_loan_portfolio_usecase.dart';
+import '../../features/loan/loan_flow/loan_history/presentation/bloc/loan_history_bloc.dart';
 import '../../features/loan/loan_flow/reference_deatils/data/datasources/reference_remote_data_source.dart';
+import '../../features/loan/loan_flow/reference_deatils/data/repositories/loan_disbursed_repository.dart';
 import '../../features/loan/loan_flow/reference_deatils/data/repositories/reference_repository_impl.dart';
 import '../../features/loan/loan_flow/reference_deatils/domain/repositories/reference_repository.dart';
 import '../../features/loan/loan_flow/reference_deatils/domain/usecases/submit_reference_usecase.dart';
 import '../../features/loan/loan_flow/reference_deatils/presentation/bloc/reference_bloc.dart';
+
+import '../../features/loan/loan_flow/reference_deatils/data/datasources/loan_disbursed_remote_data_source.dart';
+import '../../features/loan/loan_flow/reference_deatils/domain/usecases/update_loan_disbursed_usecase.dart';
+import '../../features/loan/loan_flow/reference_deatils/presentation/bloc/loan_disbursed_bloc.dart';
+
 import '../../features/loan/loan_flow/terms_condition/data/datasources/terms_condition_remote_datasource.dart';
 import '../../features/loan/loan_flow/terms_condition/data/repositories/terms_condition_repository_impl.dart';
 import '../../features/loan/loan_flow/terms_condition/domain/repositories/terms_condition_repository.dart';
@@ -498,15 +510,20 @@ Future<void> init() async {
         () => GetBankListUseCase(sl()),
   );
 
+  sl.registerLazySingleton<SetupAutoUpiUseCase>(
+        () => SetupAutoUpiUseCase(sl()),
+  );
+
   sl.registerFactory(
         () => BankDetailBloc(
       submitBankDetailUseCase: sl(),
       getBankListUseCase: sl(),
+      setupAutoUpiUseCase: sl(),
     ),
   );
 
   sl.registerLazySingleton<EmandateRemoteDataSource>(
-        () => EmandateRemoteDataSourceImpl(),
+        () => EmandateRemoteDataSourceImpl(client: sl<http.Client>()),
   );
 
   sl.registerLazySingleton<EmandateRepository>(
@@ -537,6 +554,22 @@ Future<void> init() async {
         () => ReferenceBloc(sl()),
   );
 
+  sl.registerLazySingleton<LoanDisbursedRemoteDataSource>(
+        () => LoanDisbursedRemoteDataSourceImpl(client: sl()),
+  );
+
+  sl.registerLazySingleton<LoanDisbursedRepository>(
+        () => LoanDisbursedRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  sl.registerLazySingleton<UpdateLoanDisbursedUseCase>(
+        () => UpdateLoanDisbursedUseCase(sl()),
+  );
+
+  sl.registerFactory(
+        () => LoanDisbursedBloc(sl()),
+  );
+
   sl.registerLazySingleton<TermsConditionRemoteDatasource>(
         () => TermsConditionRemoteDatasourceImpl(),
   );
@@ -551,5 +584,18 @@ Future<void> init() async {
 
   sl.registerFactory(
         () => TermsBloc(sl()),
+  );
+
+  sl.registerLazySingleton<LoanHistoryRemoteDatasource>(
+        () => LoanHistoryRemoteDatasourceImpl(client: sl()),
+  );
+  sl.registerLazySingleton<LoanHistoryRepository>(
+        () => LoanHistoryRepositoryImpl(remoteDatasource: sl()),
+  );
+  sl.registerLazySingleton<GetLoanPortfolioUsecase>(
+        () => GetLoanPortfolioUsecase(sl()),
+  );
+  sl.registerFactory(
+        () => LoanHistoryBloc(getLoanPortfolioUsecase: sl()),
   );
 }

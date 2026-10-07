@@ -1,5 +1,3 @@
-import '../../domain/entities/bank_detail_entity.dart';
-
 abstract class BankDetailState {}
 
 class BankDetailInitialState extends BankDetailState {}
@@ -13,7 +11,27 @@ class BankBankListLoadedState extends BankDetailState {
   BankBankListLoadedState(this.banks);
 }
 
+class AutoUpiUrlLoadedState extends BankDetailState {
+  final String intentUrl;
+  final String merchantOrderId;
+
+  AutoUpiUrlLoadedState({
+    required this.intentUrl,
+    required this.merchantOrderId,
+  });
+}
+
+class TransactionUrlLoadedState extends BankDetailState {
+  final String intentUrl;
+  final String merchantOrderId;
+
+  TransactionUrlLoadedState({
+    required this.intentUrl,
+    required this.merchantOrderId,
+  });
+}
+
 class BankDetailErrorState extends BankDetailState {
-  final String message;
-  BankDetailErrorState(this.message);
+  final String error;
+  BankDetailErrorState(this.error);
 }

@@ -16,6 +16,9 @@ import '../../../features/loan/loan_flow/emandate/presentation/bloc/emandate_blo
 import '../../../features/loan/loan_flow/emandate/presentation/screens/emandate_step_screen.dart';
 import '../../../features/loan/loan_flow/loan_detail/presentation/bloc/loan_detail_bloc.dart';
 import '../../../features/loan/loan_flow/loan_detail/presentation/pages/loan_detail_step_screen.dart';
+import '../../../features/loan/loan_flow/loan_history/presentation/bloc/loan_history_bloc.dart';
+import '../../../features/loan/loan_flow/loan_history/presentation/bloc/loan_history_event.dart';
+import '../../../features/loan/loan_flow/loan_history/presentation/pages/loan_history_screen.dart';
 import '../../../features/loan/loan_flow/reference_deatils/presentation/bloc/reference_bloc.dart';
 import '../../../features/loan/loan_flow/reference_deatils/presentation/pages/loan_disbursed_screen.dart';
 import '../../../features/loan/loan_flow/reference_deatils/presentation/pages/reference_step_screen.dart';
@@ -322,7 +325,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         return BlocProvider(
           create: (_) => sl<LoanHomeBloc>()..add(loan_event.LoadHomeDataEvent()),
-          child: const LaonHomePage(),
+          child: const LoanMainScreen(),
         );
       },
     ),
@@ -333,9 +336,8 @@ final GoRouter appRouter = GoRouter(
         return const LoanAllCustomersScreen();
       },
     ),
-
     GoRoute(
-      path: RouteNames.loanMain,
+      path: RouteNames.loanHome,
       builder: (context, state) {
         return BlocProvider(
           create: (_) => sl<LoanHomeBloc>()..add(loan_event.LoadHomeDataEvent()),
@@ -392,8 +394,8 @@ final GoRouter appRouter = GoRouter(
             firstName: extra?['firstName'] ?? 'Customer',
             lastName: extra?['lastName'],
             mobileNumber: extra?['mobileNumber'],
-            emailId: extra?['emailId'],     // <-- Email ID bhi add kar diya
-            address: extra?['address'],     // <-- Yeh line add karni zaroori thi!
+            emailId: extra?['emailId'],
+            address: extra?['address'],
             pinCode: extra?['pinCode'],
             stateName: extra?['stateName'],
             cityName: extra?['cityName'],
@@ -435,7 +437,17 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: RouteNames.autoUpiStep,
       builder: (context, state) {
-        return  AutoUpiStepScreen();
+        final extra = state.extra as Map<String, dynamic>?;
+        final loanCode = extra?['loanCode'] ?? '';
+        final emiNumbers = extra?['emiNumbers'] ?? '';
+
+        return BlocProvider(
+          create: (context) => sl<BankDetailBloc>(),
+          child: AutoUpiStepScreen(
+            loanCode: loanCode,
+            emiNumbers: emiNumbers,
+          ),
+        );
       },
     ),
 
@@ -472,6 +484,16 @@ final GoRouter appRouter = GoRouter(
       path: RouteNames.loanDisbursedStep,
       builder: (context, state) {
         return const LoanDisbursedScreen();
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.loanHistory,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<LoanHistoryBloc>()..add(FetchLoanHistoryEvent()),
+          child: const LoanHistoryScreen(),
+        );
       },
     ),
   ],

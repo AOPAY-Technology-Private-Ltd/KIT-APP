@@ -4,13 +4,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../lockit/customer_list/presentation/pages/customer_list_view.dart';
-import '../../../../lockit/history/presentation/bloc/history_bloc.dart';
-import '../../../../lockit/history/presentation/bloc/history_event.dart';
-import '../../../../lockit/history/presentation/pages/history_page.dart';
 import '../../../../lockit/home/presentation/pages/home_page.dart';
 import '../../../../lockit/profile/presentation/bloc/profile_bloc.dart';
 import '../../../../lockit/profile/presentation/bloc/profile_event.dart';
 import '../../../../lockit/profile/presentation/pages/profile_screen.dart';
+
+// Loan History Imports
+import '../../../loan_flow/loan_history/presentation/bloc/loan_history_bloc.dart';
+import '../../../loan_flow/loan_history/presentation/bloc/loan_history_event.dart';
+import '../../../loan_flow/loan_history/presentation/pages/loan_history_screen.dart';
+
 import 'loan_home_page.dart';
 
 class LoanMainScreen extends StatefulWidget {
@@ -149,8 +152,8 @@ class _LoanMainScreenState extends State<LoanMainScreen> {
         return const CustomerListView();
       case 2:
         return BlocProvider(
-          create: (_) => sl<HistoryBloc>()..add(LoadHistoryEvent()),
-          child: const HistoryPage(),
+          create: (_) => sl<LoanHistoryBloc>()..add(FetchLoanHistoryEvent()),
+          child: const LoanHistoryScreen(),
         );
       case 3:
         return BlocProvider(
@@ -158,7 +161,7 @@ class _LoanMainScreenState extends State<LoanMainScreen> {
           child: const ProfileScreen(),
         );
       default:
-        return const HomePage();
+        return const LaonHomePage();
     }
   }
 
@@ -214,7 +217,7 @@ class _LoanMainScreenState extends State<LoanMainScreen> {
   }
 
   Widget _buildNavItem(int index, String label, IconData unselectedIcon, IconData selectedIcon) {
-    final bool isSelected = _currentIndex == index;
+    final bool isServiceSelected = _currentIndex == index;
 
     return GestureDetector(
       onTap: () {
@@ -227,7 +230,7 @@ class _LoanMainScreenState extends State<LoanMainScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: ShapeDecoration(
-          color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
+          color: isServiceSelected ? const Color(0xFF2563EB) : Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(40),
           ),
@@ -238,16 +241,16 @@ class _LoanMainScreenState extends State<LoanMainScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Icon(
-              isSelected ? selectedIcon : unselectedIcon,
+              isServiceSelected ? selectedIcon : unselectedIcon,
               size: 22,
-              color: isSelected ? Colors.white : Colors.black.withValues(alpha: 0.60),
+              color: isServiceSelected ? Colors.white : Colors.black.withValues(alpha: 0.60),
             ),
             const SizedBox(height: 2),
             Text(
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.black.withValues(alpha: 0.60),
+                color: isServiceSelected ? Colors.white : Colors.black.withValues(alpha: 0.60),
                 fontSize: 9,
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w500,

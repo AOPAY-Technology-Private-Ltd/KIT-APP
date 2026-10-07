@@ -20,6 +20,17 @@ class EmandateStepScreen extends StatefulWidget {
 class _EmandateStepScreenState extends State<EmandateStepScreen> {
   bool _isAuthorized = false;
 
+  void _submitEmandate() {
+    if (!_isAuthorized) {
+      setState(() {
+        _isAuthorized = true;
+      });
+    }
+    BlocProvider.of<EmandateBloc>(context).add(
+      SubmitEmandateEvent(_isAuthorized),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -139,36 +150,43 @@ class _EmandateStepScreenState extends State<EmandateStepScreen> {
                         _buildBulletPoint('Cancellation may take a few working days.'),
                         _buildBulletPoint('I agree to the loan terms and conditions.'),
                         const SizedBox(height: 20),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: Checkbox(
-                                value: _isAuthorized,
-                                activeColor: const Color(0xFF2563EB),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                onChanged: (val) {
-                                  setState(() {
-                                    _isAuthorized = val ?? false;
-                                  });
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            const Expanded(
-                              child: Text(
-                                'I authorize the auto-debit of EMI through ECS and agree to the terms and conditions.',
-                                style: TextStyle(
-                                  color: Color(0xFF0F172A),
-                                  fontSize: 12,
-                                  fontFamily: 'Inter',
-                                  height: 1.3,
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _isAuthorized = !_isAuthorized;
+                            });
+                          },
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: Checkbox(
+                                  value: _isAuthorized,
+                                  activeColor: const Color(0xFF2563EB),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _isAuthorized = val ?? false;
+                                    });
+                                  },
                                 ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 10),
+                              const Expanded(
+                                child: Text(
+                                  'I authorize the auto-debit of EMI through ECS and agree to the terms and conditions.',
+                                  style: TextStyle(
+                                    color: Color(0xFF0F172A),
+                                    fontSize: 12,
+                                    fontFamily: 'Inter',
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -193,9 +211,7 @@ class _EmandateStepScreenState extends State<EmandateStepScreen> {
                             );
                             return;
                           }
-                          BlocProvider.of<EmandateBloc>(context).add(
-                            SubmitEmandateEvent(_isAuthorized),
-                          );
+                          _submitEmandate();
                         },
                       ),
                     ),

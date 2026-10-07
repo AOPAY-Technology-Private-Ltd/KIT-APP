@@ -11,6 +11,9 @@ class SessionManager {
   static const String _keyEmailID = 'email_id';
   static const String _keyClientCode = 'client_code';
 
+  static const String _keyLoanCode = 'loan_code';
+  static const String _keyRid = 'rid';
+
   static Future<void> createSession({
     required String retailerCode,
     String? customerCode,
@@ -47,6 +50,22 @@ class SessionManager {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyCustomerCode, customerCode);
     await prefs.setString(_keyCustomerCodeTwo, customerCode);
+  }
+
+  static Future<void> saveLoanDetails({required String loanCode, required String rid}) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (loanCode.isNotEmpty) await prefs.setString(_keyLoanCode, loanCode);
+    if (rid.isNotEmpty) await prefs.setString(_keyRid, rid);
+  }
+
+  static Future<String?> getLoanCode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyLoanCode);
+  }
+
+  static Future<String?> getRid() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyRid);
   }
 
   static Future<bool> isLoggedIn() async {
@@ -104,6 +123,8 @@ class SessionManager {
     await prefs.remove(_keyLastName);
     await prefs.remove(_keyEmailID);
     await prefs.remove(_keyClientCode);
+    await prefs.remove(_keyLoanCode);
+    await prefs.remove(_keyRid);
     await prefs.setBool(_keyIsLoggedIn, false);
   }
 }

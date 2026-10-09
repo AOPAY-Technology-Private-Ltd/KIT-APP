@@ -13,37 +13,36 @@ class LoanCustomerModel extends LoanCustomerEntity {
     required super.nextPaymentDate,
     required super.emIsRemaining,
     required super.status,
+    required super.customerCode,
+    required super.currentStep,
   });
 
   factory LoanCustomerModel.fromJson(Map<String, dynamic> json) {
     return LoanCustomerModel(
-      id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
-      phone: json['phone']?.toString() ?? '',
-      email: json['email']?.toString() ?? '',
-      profileImage: json['profileImage']?.toString() ?? '',
-      loanId: json['loanId']?.toString() ?? '',
-      principal: json['principal']?.toString() ?? '0',
-      monthlyEmi: json['monthlyEmi']?.toString() ?? '0',
-      nextPaymentDate: json['nextPaymentDate']?.toString() ?? '',
-      emIsRemaining: json['emIsRemaining']?.toString() ?? '',
-      status: json['status']?.toString() ?? 'On track',
+      id: json['customerCode']?.toString() ?? '',
+      name: json['fullName']?.toString().replaceAll(RegExp(r'\s+'), ' ').trim() ?? 'Unknown',
+      phone: json['mobileNumber']?.toString() ?? '',
+      email: '',
+      profileImage: json['customerImage']?.toString() ?? '',
+      loanId: json['customerCode']?.toString() ?? '',
+      principal: '0',
+      monthlyEmi: '0',
+      nextPaymentDate: '',
+      emIsRemaining: json['currentStep']?.toString() ?? '',
+      status: json['customerStatus']?.toString() ?? 'Active',
+      customerCode: json['customerCode']?.toString() ?? '',
+      currentStep: json['currentStep']?.toString() ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'name': name,
-      'phone': phone,
-      'email': email,
-      'profileImage': profileImage,
-      'loanId': loanId,
-      'principal': principal,
-      'monthlyEmi': monthlyEmi,
-      'nextPaymentDate': nextPaymentDate,
-      'emIsRemaining': emIsRemaining,
-      'status': status,
+      'customerCode': id,
+      'fullName': name,
+      'mobileNumber': phone,
+      'customerImage': profileImage,
+      'customerStatus': status,
+      'currentStep': currentStep,
     };
   }
 }

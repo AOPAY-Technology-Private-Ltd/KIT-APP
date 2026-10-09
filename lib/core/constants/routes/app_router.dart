@@ -5,6 +5,12 @@ import '../../../features/loan/customer_detail/presentation/pages/customer_detai
 import '../../../features/loan/customer_list/presentation/bloc/loan_customer_bloc.dart';
 import '../../../features/loan/customer_list/presentation/bloc/loan_customer_event.dart';
 import '../../../features/loan/customer_list/presentation/pages/loan_customer_list_page.dart';
+import '../../../features/loan/enach_request/presentation/bloc/enach_request_bloc.dart';
+import '../../../features/loan/enach_request/presentation/bloc/enach_request_event.dart';
+import '../../../features/loan/enach_request/presentation/pages/enach_request_screen.dart';
+import '../../../features/loan/enach_review/domain/entities/enach_review_entity.dart';
+import '../../../features/loan/enach_review/presentation/bloc/enach_review_bloc.dart';
+import '../../../features/loan/enach_review/presentation/pages/enach_review_screen.dart';
 import '../../../features/loan/loan_flow/bank_detail/presentation/bloc/bank_detail_bloc.dart';
 import '../../../features/loan/loan_flow/bank_detail/presentation/pages/auto_upistep_screen.dart';
 import '../../../features/loan/loan_flow/bank_detail/presentation/pages/bank_detail_step_screen.dart';
@@ -493,6 +499,27 @@ final GoRouter appRouter = GoRouter(
         return BlocProvider(
           create: (_) => sl<LoanHistoryBloc>()..add(FetchLoanHistoryEvent()),
           child: const LoanHistoryScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.enachRequest,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (_) => sl<EnachRequestBloc>()..add(LoadEnachRequestsEvent()),
+          child: const EnachRequestScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: RouteNames.enachReview,
+      builder: (context, state) {
+        final entity = state.extra as EnachReviewEntity;
+        return BlocProvider(
+          create: (_) => sl<EnachReviewBloc>(),
+          child: EnachReviewScreen(request: entity),
         );
       },
     ),

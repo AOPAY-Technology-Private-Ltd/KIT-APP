@@ -19,11 +19,11 @@ class LoanHistoryCard extends StatelessWidget {
   Color _getStatusColor() {
     switch (status.toLowerCase()) {
       case 'active':
-        return const Color(0xFF10B981); // Green
+        return const Color(0xFF10B981);
       case 'closed':
-        return const Color(0xFF6B7280); // Grey
+        return const Color(0xFF6B7280);
       case 'disbursed':
-        return const Color(0xFFD97706); // Orange/Amber
+        return const Color(0xFFD97706);
       default:
         return const Color(0xFF10B981);
     }
@@ -48,7 +48,6 @@ class LoanHistoryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row 1: Name and Status Badge
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -83,12 +82,10 @@ class LoanHistoryCard extends StatelessWidget {
           const Divider(height: 1, color: Color(0xFFF3F4F6)),
           const SizedBox(height: 12),
 
-          // Row 2: Disbursed Amount, Tenure, Disbursal Date
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Disbursed Amount
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -114,7 +111,6 @@ class LoanHistoryCard extends StatelessWidget {
                 ],
               ),
 
-              // Tenure
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -140,7 +136,6 @@ class LoanHistoryCard extends StatelessWidget {
                 ],
               ),
 
-              // Disbursal Date
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [

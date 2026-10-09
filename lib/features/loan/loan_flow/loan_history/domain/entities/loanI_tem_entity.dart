@@ -1,6 +1,6 @@
 class LoanItemEntity {
   final String name;
-  final String status; // 'Active', 'Closed', 'Disbursed'
+  final String status;
   final String disbursedAmount;
   final String tenure;
   final String disbursalDate;

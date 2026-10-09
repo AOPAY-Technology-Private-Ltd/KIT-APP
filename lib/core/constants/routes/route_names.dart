@@ -67,4 +67,8 @@ class RouteNames {
 
   static const String loanDisbursedStep = "/loan-disbursed-step";
   static const String loanHistory = "/loan-history";
+
+  static const String enachRequest = "/enach-request";
+
+  static const String enachReview = "/enach-review";
 }

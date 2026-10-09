@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:developer';
+import '../../../../../core/services/session_manager.dart';
+import 'package:http/http.dart' as http;
 import '../models/loan_customer_model.dart';
 
 abstract class LoanCustomerRemoteDataSource {
@@ -5,63 +9,63 @@ abstract class LoanCustomerRemoteDataSource {
 }
 
 class LoanCustomerRemoteDataSourceImpl implements LoanCustomerRemoteDataSource {
-  LoanCustomerRemoteDataSourceImpl();
+  final http.Client client;
+
+  LoanCustomerRemoteDataSourceImpl({required this.client});
 
   @override
   Future<List<LoanCustomerModel>> fetchLoanCustomers(String status) async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    final List<Map<String, dynamic>> mockData = [
-      {
-        'id': '1',
-        'name': 'Neha Sharma',
-        'phone': '98105 64321',
-        'email': 'neha.sharma@gmail.com',
-        'profileImage': '',
-        'loanId': 'LN202603184',
-        'principal': '48,000',
-        'monthlyEmi': '4,350',
-        'nextPaymentDate': '18 Sep 2026',
-        'emIsRemaining': '8 of 12',
-        'status': 'On track',
-      },
-      {
-        'id': '2',
-        'name': 'Imran Khan',
-        'phone': '99584 12076',
-        'email': 'imran.khan@gmail.com',
-        'profileImage': '',
-        'loanId': 'LN202605097',
-        'principal': '62,500',
-        'monthlyEmi': '5,740',
-        'nextPaymentDate': '15 Sep 2026',
-        'emIsRemaining': '10 of 12',
-        'status': 'Overdue',
-      },
-      {
-        'id': '3',
-        'name': 'Rahul Verma',
-        'phone': '98765 43210',
-        'email': 'rahul.verma@gmail.com',
-        'profileImage': '',
-        'loanId': 'LN202608912',
-        'principal': '55,000',
-        'monthlyEmi': '5,000',
-        'nextPaymentDate': '25 Sep 2026',
-        'emIsRemaining': '6 of 12',
-        'status': 'Upcoming',
-      },
-    ];
+    const url = 'https://uatapi.aopay.co.in/api/V1/AopayFinance/GetCustomerByRetailerSummary';
 
-    List<LoanCustomerModel> allCustomers = mockData
-        .map((json) => LoanCustomerModel.fromJson(json))
-        .toList();
+    final String retailerCode = await SessionManager.getRetailerCode() ?? '';
 
-    if (status.toLowerCase() == 'active') {
-      return allCustomers;
-    } else {
-      return allCustomers
-          .where((customer) => customer.status.toLowerCase() == status.toLowerCase())
-          .toList();
+    final requestBody = {
+      "retailerCode": retailerCode,
+      "searchText": ""
+    };
+
+    log('=== API REQUEST ===');
+    log('URL: $url');
+    log('Headers: {"Content-Type": "application/json", "accept": "*/*"}');
+    log('Body: ${jsonEncode(requestBody)}');
+
+    try {
+      final response = await client.post(
+        Uri.parse(url),
+        headers: {
+          'accept': '*/*',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      log('=== API RESPONSE ===');
+      log('Status Code: ${response.statusCode}');
+      log('Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> decodedData = jsonDecode(response.body);
+
+        final List<dynamic> listData = decodedData['data'] ?? decodedData['result'] ?? [];
+
+        List<LoanCustomerModel> allCustomers = listData
+            .map((json) => LoanCustomerModel.fromJson(json))
+            .toList();
+
+        if (status.toLowerCase() == 'active') {
+          return allCustomers;
+        } else {
+          return allCustomers
+              .where((customer) => customer.status.toLowerCase() == status.toLowerCase())
+              .toList();
+        }
+      } else {
+        throw Exception('Failed to load customers, Status Code: ${response.statusCode}');
+      }
+    } catch (e) {
+      log('=== API ERROR ===');
+      log('Error: $e');
+      rethrow;
     }
   }
 }

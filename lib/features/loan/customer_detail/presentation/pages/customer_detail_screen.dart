@@ -21,7 +21,8 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<CustomerBloc>().add(FetchCustomerDetailEvent());
+    // Yahan searchText me required customer code pass kar diya gaya hai
+    context.read<CustomerBloc>().add(FetchCustomerDetailEvent(searchText: 'AFC0485'));
   }
 
   void _showSendReminderDialog(BuildContext context) {
@@ -56,7 +57,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Are you sure? Ypu want to send EMI reminder to This Card',
+                'Are you sure? You want to send EMI reminder to this customer',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
@@ -150,9 +151,13 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
             return const Center(child: CircularProgressIndicator());
           } else if (state is CustomerErrorState) {
             return Center(
-              child: Text(
-                state.message,
-                style: const TextStyle(color: Colors.red, fontFamily: 'Inter'),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  state.message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red, fontFamily: 'Inter'),
+                ),
               ),
             );
           } else if (state is CustomerLoadedState) {

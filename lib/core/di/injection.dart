@@ -11,6 +11,16 @@ import '../../features/loan/customer_list/data/repositories/loan_customer_reposi
 import '../../features/loan/customer_list/domain/repositories/loan_customer_repository.dart';
 import '../../features/loan/customer_list/domain/usecases/get_loan_customers_usecase.dart';
 import '../../features/loan/customer_list/presentation/bloc/loan_customer_bloc.dart';
+import '../../features/loan/enach_request/data/datasources/enach_request_local_data_source.dart';
+import '../../features/loan/enach_request/data/repositories/enach_request_repository_impl.dart';
+import '../../features/loan/enach_request/domain/repositories/enach_request_repository.dart';
+import '../../features/loan/enach_request/domain/usecases/get_enach_requests_usecase.dart';
+import '../../features/loan/enach_request/presentation/bloc/enach_request_bloc.dart';
+import '../../features/loan/enach_review/data/datasources/enach_review_remote_datasource.dart';
+import '../../features/loan/enach_review/data/repositories/enach_review_repository_impl.dart';
+import '../../features/loan/enach_review/domain/repositories/enach_review_repository.dart';
+import '../../features/loan/enach_review/domain/usecases/update_enach_status_usecase.dart';
+import '../../features/loan/enach_review/presentation/bloc/enach_review_bloc.dart';
 import '../../features/loan/loan_flow/bank_detail/data/datasources/bank_detail_remote_data_source.dart';
 import '../../features/loan/loan_flow/bank_detail/data/repositories/bank_detail_repository_impl.dart';
 import '../../features/loan/loan_flow/bank_detail/domain/repositories/bank_detail_repository.dart';
@@ -365,7 +375,7 @@ Future<void> init() async {
   );
 
   sl.registerLazySingleton<LoanCustomerRemoteDataSource>(
-        () => LoanCustomerRemoteDataSourceImpl(),
+        () => LoanCustomerRemoteDataSourceImpl(client: sl()),
   );
   sl.registerLazySingleton<LoanCustomerRepository>(
         () => LoanCustomerRepositoryImpl(sl()),
@@ -392,8 +402,11 @@ Future<void> init() async {
 
 
   sl.registerLazySingleton<new_datasource.CustomerRemoteDataSource>(
-        () => new_datasource.CustomerRemoteDataSourceImpl(),
+        () => new_datasource.CustomerRemoteDataSourceImpl(
+      client: sl<http.Client>(),
+    ),
   );
+
   sl.registerLazySingleton<new_repo_interface.CustomerRepository>(
         () => new_repo.CustomerRepositoryImpl(remoteDataSource: sl()),
   );
@@ -597,5 +610,37 @@ Future<void> init() async {
   );
   sl.registerFactory(
         () => LoanHistoryBloc(getLoanPortfolioUsecase: sl()),
+  );
+
+  sl.registerLazySingleton<EnachRequestLocalDataSource>(
+        () => EnachRequestLocalDataSourceImpl(),
+  );
+
+  sl.registerLazySingleton<EnachRequestRepository>(
+        () => EnachRequestRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton<GetEnachRequestsUsecase>(
+        () => GetEnachRequestsUsecase(sl()),
+  );
+
+  sl.registerFactory(
+        () => EnachRequestBloc(sl()),
+  );
+
+  sl.registerLazySingleton<EnachReviewRemoteDataSource>(
+        () => EnachReviewRemoteDataSourceImpl(),
+  );
+
+  sl.registerLazySingleton<EnachReviewRepository>(
+        () => EnachReviewRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  sl.registerLazySingleton<UpdateEnachStatusUsecase>(
+        () => UpdateEnachStatusUsecase(sl()),
+  );
+
+  sl.registerFactory(
+        () => EnachReviewBloc(updateEnachStatusUsecase: sl()),
   );
 }

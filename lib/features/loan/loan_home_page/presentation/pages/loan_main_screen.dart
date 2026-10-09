@@ -3,13 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/di/injection.dart';
-import '../../../../lockit/customer_list/presentation/pages/customer_list_view.dart';
-import '../../../../lockit/home/presentation/pages/home_page.dart';
+
 import '../../../../lockit/profile/presentation/bloc/profile_bloc.dart';
 import '../../../../lockit/profile/presentation/bloc/profile_event.dart';
 import '../../../../lockit/profile/presentation/pages/profile_screen.dart';
 
-// Loan History Imports
+import '../../../customer_list/presentation/bloc/loan_customer_bloc.dart';
+import '../../../customer_list/presentation/pages/loan_customer_list_page.dart';
 import '../../../loan_flow/loan_history/presentation/bloc/loan_history_bloc.dart';
 import '../../../loan_flow/loan_history/presentation/bloc/loan_history_event.dart';
 import '../../../loan_flow/loan_history/presentation/pages/loan_history_screen.dart';
@@ -149,7 +149,10 @@ class _LoanMainScreenState extends State<LoanMainScreen> {
       case 0:
         return const LaonHomePage();
       case 1:
-        return const CustomerListView();
+        return BlocProvider(
+          create: (_) => sl<LoanCustomerBloc>(),
+          child: const LoanCustomerListPage(),
+        );
       case 2:
         return BlocProvider(
           create: (_) => sl<LoanHistoryBloc>()..add(FetchLoanHistoryEvent()),

@@ -10,6 +10,8 @@ class LoanCustomerEntity {
   final String nextPaymentDate;
   final String emIsRemaining;
   final String status;
+  final String customerCode;
+  final String currentStep;
 
   const LoanCustomerEntity({
     required this.id,
@@ -23,5 +25,7 @@ class LoanCustomerEntity {
     required this.nextPaymentDate,
     required this.emIsRemaining,
     required this.status,
+    required this.customerCode,
+    required this.currentStep,
   });
 }

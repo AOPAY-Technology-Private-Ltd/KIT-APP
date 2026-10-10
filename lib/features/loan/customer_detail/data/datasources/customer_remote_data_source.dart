@@ -41,7 +41,6 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedData = jsonDecode(response.body);
 
-        // 'data' ek List hai, isliye pehle list check karke first element nikal rahe hain
         final dynamic dataField = decodedData['data'];
         Map<String, dynamic> customerJson = {};
 

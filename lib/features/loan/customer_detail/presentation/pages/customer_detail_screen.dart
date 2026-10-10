@@ -21,7 +21,6 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // Yahan searchText me required customer code pass kar diya gaya hai
     context.read<CustomerBloc>().add(FetchCustomerDetailEvent(searchText: 'AFC0485'));
   }
 

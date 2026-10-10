@@ -24,7 +24,6 @@ class CustomerDetailModel extends CustomerDetailEntity {
     final productDetails = json['productDetails'] ?? {};
     final createLoanDetails = json['createLoanDetails'] ?? {};
 
-    // First name aur Last name ko combine karke full name bana rahe hain
     final firstName = customerDetails['firstName'] ?? '';
     final lastName = customerDetails['lastName'] ?? '';
     final fullName = '$firstName $lastName'.trim();
@@ -36,7 +35,7 @@ class CustomerDetailModel extends CustomerDetailEntity {
       status: customerDetails['activeStatus'] ?? '',
       loanNumber: createLoanDetails['loanCode'] ?? '',
       nextEmiDate: createLoanDetails['loanStartDate'] ?? '',
-      loanType: 'Device Loan', // API ke mutabiq default ya dynamic
+      loanType: 'Device Loan',
       loanCategory: productDetails['brandName'] ?? '',
       emiAmount: double.tryParse(productDetails['emiAmount']?.toString() ?? '0') ?? 0.0,
       loanAmount: double.tryParse(productDetails['loanAmount']?.toString() ?? '0') ?? 0.0,
@@ -44,7 +43,7 @@ class CustomerDetailModel extends CustomerDetailEntity {
       startDate: createLoanDetails['loanStartDate'] ?? '',
       endDate: createLoanDetails['loanEndDate'] ?? '',
       totalEmiCount: int.tryParse(productDetails['tenure']?.toString() ?? '0') ?? 0,
-      paidEmiCount: 0, // Agar paid count API me nahi hai toh default 0
+      paidEmiCount: 0,
     );
   }
 

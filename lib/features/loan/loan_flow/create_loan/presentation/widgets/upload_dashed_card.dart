@@ -1,5 +1,7 @@
+
 import 'dart:io';
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class UploadDashedCard extends StatelessWidget {
@@ -28,54 +30,81 @@ class UploadDashedCard extends StatelessWidget {
         ),
         child: Container(
           width: double.infinity,
-          height: 120,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          height: file != null ? 180 : 120,
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: const Color(0x192563EB),
             borderRadius: BorderRadius.circular(10),
           ),
           child: file != null
-              ? Row(
+              ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(file!, width: 45, height: 45, fit: BoxFit.cover),
-              ),
-              const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      file!.path.split('/').last,
-                      style: TextStyle(
-                        color: Colors.black.withValues(alpha: 0.80),
-                        fontSize: 13,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                child: Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      file!,
+                      width: double.infinity,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.broken_image_outlined,
+                          size: 40,
+                          color: Colors.grey,
+                        );
+                      },
                     ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'File uploaded successfully',
-                      style: TextStyle(
-                        color: Color(0xFF10B981),
-                        fontSize: 10,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-              const Icon(Icons.check_circle, color: Color(0xFF10B981), size: 22),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF10B981),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.8),
+                            fontSize: 12,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Text(
+                          'Image uploaded successfully',
+                          style: TextStyle(
+                            color: Color(0xFF10B981),
+                            fontSize: 10,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.edit_outlined,
+                    color: Color(0xFF2563EB),
+                    size: 20,
+                  ),
+                ],
+              ),
             ],
           )
               : Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Image.asset(
                 'assets/images/upload.png',
@@ -86,8 +115,9 @@ class UploadDashedCard extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 title,
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.black.withValues(alpha: 0.80),
+                  color: Colors.black.withValues(alpha: 0.8),
                   fontSize: 13,
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w600,
@@ -96,8 +126,9 @@ class UploadDashedCard extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 'JPG, PNG or PDF (Max. 5MB)',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.black.withValues(alpha: 0.40),
+                  color: Colors.black.withValues(alpha: 0.4),
                   fontSize: 10,
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w400,
@@ -134,25 +165,42 @@ class DottedBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final RRect rRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
+      Rect.fromLTWH(
+        strokeWidth / 2,
+        strokeWidth / 2,
+        size.width - strokeWidth,
+        size.height - strokeWidth,
+      ),
       Radius.circular(borderRadius),
     );
 
     final Path path = Path()..addRRect(rRect);
 
     for (final PathMetric metric in path.computeMetrics()) {
-      double distance = 0.0;
+      double distance = 0;
+
       while (distance < metric.length) {
-        final double len = dashWidth;
+        final double end = (distance + dashWidth).clamp(
+          0.0,
+          metric.length,
+        );
+
         canvas.drawPath(
-          metric.extractPath(distance, distance + len),
+          metric.extractPath(distance, end),
           paint,
         );
+
         distance += dashWidth + dashSpace;
       }
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant DottedBorderPainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.dashWidth != dashWidth ||
+        oldDelegate.dashSpace != dashSpace ||
+        oldDelegate.borderRadius != borderRadius;
+  }
 }

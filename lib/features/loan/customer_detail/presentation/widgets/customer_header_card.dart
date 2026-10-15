@@ -8,6 +8,8 @@ class CustomerHeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool hasValidAvatar = customer.avatarUrl.trim().isNotEmpty;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -24,7 +26,11 @@ class CustomerHeaderCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 26,
-                backgroundImage: NetworkImage(customer.avatarUrl),
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                backgroundImage: hasValidAvatar ? NetworkImage(customer.avatarUrl) : null,
+                child: !hasValidAvatar
+                    ? const Icon(Icons.person, color: Colors.white, size: 28)
+                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -58,9 +64,9 @@ class CustomerHeaderCard extends StatelessWidget {
                   color: const Color(0xFFD1FAE5),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
-                  children:  [
+                  children: [
                     CircleRadiusDot(color: Color(0xFF059669)),
                     SizedBox(width: 5),
                     Text(

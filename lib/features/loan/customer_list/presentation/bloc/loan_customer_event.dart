@@ -2,5 +2,10 @@ abstract class LoanCustomerEvent {}
 
 class FetchLoanCustomersEvent extends LoanCustomerEvent {
   final String status;
-  FetchLoanCustomersEvent({this.status = 'Active'});
+  final String search;
+
+  FetchLoanCustomersEvent({
+    required this.status,
+    this.search = '',
+  });
 }

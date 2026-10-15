@@ -11,14 +11,6 @@ class LoanHomeRepositoryImpl implements LoanHomeRepository {
   Future<LoanHomeEntity> getHomeData() async {
     final homeModel = await remoteDataSource.fetchHomeData();
 
-    List<LoanCustomerEntity> recentCustomersList = homeModel.recentCustomers;
-
-    try {
-      recentCustomersList = await remoteDataSource.fetchRecentCustomers();
-    } catch (e) {
-      print("Failed to fetch recent customers API, using fallback: $e");
-    }
-
     return LoanHomeEntity(
       retailerName: homeModel.retailerName,
       retailerCode: homeModel.retailerCode,
@@ -26,7 +18,7 @@ class LoanHomeRepositoryImpl implements LoanHomeRepository {
       totalLoan: homeModel.totalLoan,
       closedLoan: homeModel.closedLoan,
       settledLoan: homeModel.settledLoan,
-      recentCustomers: recentCustomersList,
+      recentCustomers: homeModel.recentCustomers,
     );
   }
 }

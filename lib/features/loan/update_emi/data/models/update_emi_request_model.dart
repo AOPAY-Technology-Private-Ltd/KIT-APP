@@ -1,43 +1,70 @@
-import '../../domain/entities/emi_customer_entity.dart';
+class EmiPaymentDetailModel {
+  final String customerName;
+  final String customerCode;
+  final String customerMobile;
+  final String loanCode;
+  final double emiAmount;
+  final double outstandingAmount;
+  final String nextDueDate;
+  final String customerStatus;
+  final String? profileImage;
+  final double lateFees;
+  final double bounceCharges;
+  final String paymentMode;
+  final String transactionId;
+  final String status;
+  final int totalEmiCount;
+  final int paidEmiCount;
+  final int nextEmiNumber;
 
-class UpdateEmiModel extends EmiUpdateEntity {
-  const UpdateEmiModel({
-    required super.loanId,
-    required super.numberOfEmi,
-    required super.paymentMode,
-    required super.emiAmount,
-    super.lateFees,
-    super.bounceCharges,
-    required super.paymentDate,
-    required super.status,
-    required super.transactionId,
+  const EmiPaymentDetailModel({
+    required this.customerName,
+    required this.customerCode,
+    required this.customerMobile,
+    required this.loanCode,
+    required this.emiAmount,
+    required this.outstandingAmount,
+    required this.nextDueDate,
+    required this.customerStatus,
+    this.profileImage,
+    required this.lateFees,
+    required this.bounceCharges,
+    required this.paymentMode,
+    required this.transactionId,
+    required this.status,
+    required this.totalEmiCount,
+    required this.paidEmiCount,
+    required this.nextEmiNumber,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'loan_id': loanId,
-      'number_of_emi': numberOfEmi,
-      'payment_mode': paymentMode,
-      'emi_amount': emiAmount,
-      'late_fees': lateFees,
-      'bounce_charges': bounceCharges,
-      'payment_date': paymentDate,
-      'status': status,
-      'transaction_id': transactionId,
-    };
-  }
+  factory EmiPaymentDetailModel.fromJson(Map<String, dynamic> json) {
+    int totalCount = int.tryParse(json['totalEmiCount']?.toString() ?? '6') ?? 6;
+    int paidCount = int.tryParse(json['paidEmiCount']?.toString() ?? '0') ?? 0;
 
-  factory UpdateEmiModel.fromEntity(EmiUpdateEntity entity) {
-    return UpdateEmiModel(
-      loanId: entity.loanId,
-      numberOfEmi: entity.numberOfEmi,
-      paymentMode: entity.paymentMode,
-      emiAmount: entity.emiAmount,
-      lateFees: entity.lateFees,
-      bounceCharges: entity.bounceCharges,
-      paymentDate: entity.paymentDate,
-      status: entity.status,
-      transactionId: entity.transactionId,
+    int nextEmi = paidCount + 1;
+    var payableEmisList = json['payableEmis'] as List?;
+    if (payableEmisList != null && payableEmisList.isNotEmpty) {
+      nextEmi = int.tryParse(payableEmisList[0]['numberOfEmi']?.toString() ?? '') ?? (paidCount + 1);
+    }
+
+    return EmiPaymentDetailModel(
+      customerName: json['customerName']?.toString() ?? 'N/A',
+      customerCode: json['customerCode']?.toString() ?? '',
+      customerMobile: json['customerMobile']?.toString() ?? '',
+      loanCode: json['loanCode']?.toString() ?? '',
+      emiAmount: double.tryParse(json['currentEmiAmount']?.toString() ?? json['monthlyEmi']?.toString() ?? '0') ?? 0.0,
+      outstandingAmount: double.tryParse(json['outstandingAmount']?.toString() ?? '0') ?? 0.0,
+      nextDueDate: json['nextDueDate']?.toString() ?? json['dueDate']?.toString() ?? '',
+      customerStatus: json['customerStatus']?.toString() ?? 'Active',
+      profileImage: json['customerImage']?.toString() ?? json['avatarUrl']?.toString(),
+      lateFees: double.tryParse(json['lateFees']?.toString() ?? '0') ?? 0.0,
+      bounceCharges: double.tryParse(json['bounceCharges']?.toString() ?? '0') ?? 0.0,
+      paymentMode: json['paymentMode']?.toString() ?? 'Cash',
+      transactionId: json['transactionId']?.toString() ?? json['paymentReference']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'Paid',
+      totalEmiCount: totalCount,
+      paidEmiCount: paidCount,
+      nextEmiNumber: nextEmi,
     );
   }
 }

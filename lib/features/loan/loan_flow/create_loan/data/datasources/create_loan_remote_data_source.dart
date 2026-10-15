@@ -398,15 +398,22 @@ class CreateLoanRemoteDataSourceImpl implements CreateLoanRemoteDataSource {
 
       if (customerPhoto != null && await customerPhoto.exists()) {
         request.files.add(await http.MultipartFile.fromPath('CustPhoto_path', customerPhoto.path));
+
+        debugPrint('=== ATTACHED FILE: CustPhoto_path (${customerPhoto.path}) ===');
       }
       if (panPhoto != null && await panPhoto.exists()) {
         request.files.add(await http.MultipartFile.fromPath('CustPanNumberPhoto_Path', panPhoto.path));
+
+        debugPrint('=== ATTACHED FILE: CustPanNumberPhoto_Path (${panPhoto.path}) ===');
       }
       if (frontImage != null && await frontImage.exists()) {
         request.files.add(await http.MultipartFile.fromPath('CustAdhaarPhoto_path', frontImage.path));
+
+        debugPrint('=== ATTACHED FILE: CustAdhaarPhoto_path (${frontImage.path}) ===');
       }
       if (backImage != null && await backImage.exists()) {
         request.files.add(await http.MultipartFile.fromPath('CustAadharBackPhoto_Path', backImage.path));
+        debugPrint('=== ATTACHED FILE: CustAadharBackPhoto_Path (${backImage.path}) ===');
       }
 
       debugPrint('=== API REQUEST: ManageCustomerStepWise ===');

@@ -6,7 +6,7 @@ class GetCustomerDetailUseCase {
 
   GetCustomerDetailUseCase(this.repository);
 
-  Future<CustomerDetailEntity> call({required String searchText}) async {
-    return await repository.getCustomerDetail(searchText: searchText);
+  Future<CustomerDetailEntity> call() async {
+    return await repository.getCustomerDetail();
   }
 }

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../../../../../../core/services/session_manager.dart';
 import '../models/loan_report_model.dart';
 
 abstract class LoanReportRemoteDataSource {
@@ -5,91 +8,71 @@ abstract class LoanReportRemoteDataSource {
 }
 
 class LoanReportRemoteDataSourceImpl implements LoanReportRemoteDataSource {
+  final http.Client client;
+
+  LoanReportRemoteDataSourceImpl({http.Client? client})
+      : client = client ?? http.Client();
+
   @override
   Future<Map<String, dynamic>> fetchReports(String status) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    const url = 'https://uatapi.aopay.co.in/api/V1/AopayFinance/AppLoan/GetLoanReports';
 
-    final List<Map<String, dynamic>> mockData = [
-      {
-        'id': '1',
-        'customerName': 'Rahul Verma',
-        'loanId': 'LN-20241',
-        'disbursementDate': '15 Jan 2024',
-        'loanAmount': 150000.0,
-        'tenure': '12 Months',
-        'emiAmount': 13500.0,
-        'status': 'Active',
-      },
-      {
-        'id': '2',
-        'customerName': 'Priya Sharma',
-        'loanId': 'LN-20242',
-        'disbursementDate': '22 Feb 2024',
-        'loanAmount': 200000.0,
-        'tenure': '24 Months',
-        'emiAmount': 9500.0,
-        'status': 'Active',
-      },
-      {
-        'id': '3',
-        'customerName': 'Arjun Mehta',
-        'loanId': 'LN-20243',
-        'disbursementDate': '10 Mar 2024',
-        'loanAmount': 75000.0,
-        'tenure': '6 Months',
-        'emiAmount': 13200.0,
-        'status': 'Overdue',
-      },
-      {
-        'id': '4',
-        'customerName': 'Sneha Kapoor',
-        'loanId': 'LN-20244',
-        'disbursementDate': '05 Apr 2024',
-        'loanAmount': 350000.0,
-        'tenure': '36 Months',
-        'emiAmount': 11000.0,
-        'status': 'Settled',
-      },
-      {
-        'id': '5',
-        'customerName': 'Vikram Singh',
-        'loanId': 'LN-20245',
-        'disbursementDate': '18 May 2024',
-        'loanAmount': 125000.0,
-        'tenure': '18 Months',
-        'emiAmount': 7500.0,
-        'status': 'Closed',
-      },
-      {
-        'id': '6',
-        'customerName': 'Amit Patel',
-        'loanId': 'LN-20246',
-        'disbursementDate': '01 Jun 2024',
-        'loanAmount': 50000.0,
-        'tenure': '9 Months',
-        'emiAmount': 6000.0,
-        'status': 'Active',
-      },
-    ];
+    final String clientCode = await SessionManager.getClientCode() ?? "";
+    final String retailerCode = await SessionManager.getRetailerCode() ?? "";
 
-    List<LoanReportModel> allLoans = mockData
-        .map((json) => LoanReportModel.fromJson(json))
-        .toList();
-
-    int totalCount = allLoans.length;
-    double totalVolume = allLoans.fold(0.0, (sum, item) => sum + item.loanAmount);
-
-    List<LoanReportModel> filteredLoans = allLoans;
-    if (status.toLowerCase() != 'all') {
-      filteredLoans = allLoans
-          .where((item) => item.status.toLowerCase() == status.toLowerCase())
-          .toList();
-    }
-
-    return {
-      'totalCount': totalCount,
-      'totalVolume': totalVolume,
-      'loans': filteredLoans,
+    final requestBody = {
+      "ClientCode": clientCode,
+      "RetailerCode": retailerCode,
+      "SearchText": "",
+      "LoanStatus": status,
+      "PageNumber": 0,
+      "PageSize": 0
     };
+
+    print('--------------------------------------------------');
+    print('🚀 API REQUEST: POST $url');
+    print('📦 REQUEST HEADERS: {accept: */*, Content-Type: application/json}');
+    print('📄 REQUEST BODY: ${jsonEncode(requestBody)}');
+    print('--------------------------------------------------');
+
+    final response = await client.post(
+      Uri.parse(url),
+      headers: {
+        'accept': '*/*',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    print('--------------------------------------------------');
+    print('📥 API RESPONSE: STATUS [${response.statusCode}]');
+    print('📄 RESPONSE BODY: ${response.body}');
+    print('--------------------------------------------------');
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> decodedJson = jsonDecode(response.body);
+
+      if (decodedJson['code'] == 200 || decodedJson['status'] == 'True' || decodedJson['status'] == true) {
+        final data = decodedJson['data'] ?? {};
+
+        final double totalVolume = (data['totalVolume'] as num?)?.toDouble() ?? 0.0;
+        final int totalLoans = data['totalLoans'] ?? 0;
+
+        final List<dynamic> loanListJson = data['loanList'] ?? [];
+        final List<LoanReportModel> models = loanListJson
+            .map((json) => LoanReportModel.fromJson(json))
+            .toList();
+
+        return {
+          'totalCount': totalLoans,
+          'totalVolume': totalVolume,
+          'loans': models,
+        };
+      } else {
+        throw Exception(decodedJson['message'] ?? 'Failed to fetch loan reports');
+      }
+    } else {
+      throw Exception('Server error: ${response.statusCode}');
+    }
   }
 }

@@ -14,14 +14,25 @@ class LoanReportModel extends LoanReportEntity {
 
   factory LoanReportModel.fromJson(Map<String, dynamic> json) {
     return LoanReportModel(
-      id: json['id']?.toString() ?? '',
-      customerName: json['customerName']?.toString() ?? '',
-      loanId: json['loanId']?.toString() ?? '',
-      disbursementDate: json['disbursementDate']?.toString() ?? '',
-      loanAmount: (json['loanAmount'] as num?)?.toDouble() ?? 0.0,
-      tenure: json['tenure']?.toString() ?? '',
+      id: json['rid']?.toString() ?? '',
+      customerName: json['customerName']?.toString() ?? 'Unknown',
+      loanId: json['loanCode']?.toString() ?? '',
+      disbursementDate: _formatDate(json['disbursedDate']),
+      loanAmount: (json['disbursedAmount'] as num?)?.toDouble() ?? 0.0,
+      tenure: '${json['tenure']?.toString() ?? '0'} Months',
       emiAmount: (json['emiAmount'] as num?)?.toDouble() ?? 0.0,
-      status: json['status']?.toString() ?? 'Active',
+      status: json['loanStatus']?.toString() ?? 'Disbursed',
     );
+  }
+
+  static String _formatDate(String? rawDate) {
+    if (rawDate == null || rawDate.isEmpty) return '';
+    try {
+      final DateTime parsed = DateTime.parse(rawDate);
+      final List<String> months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${parsed.day.toString().padLeft(2, '0')} ${months[parsed.month - 1]} ${parsed.year}';
+    } catch (e) {
+      return rawDate;
+    }
   }
 }

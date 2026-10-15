@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/constants/routes/route_names.dart';
+import '../../../../../core/services/session_manager.dart';
 import '../../domain/entities/loan_customer_entity.dart';
 
 class LoanCustomerCard extends StatelessWidget {
@@ -20,6 +21,9 @@ class LoanCustomerCard extends StatelessWidget {
     } else if (statusLabel.toLowerCase() == 'upcoming') {
       badgeBgColor = const Color(0xFFDBEAFE);
       badgeTextColor = const Color(0xFF2563EB);
+    } else if (statusLabel.toLowerCase() == 'loan not created') {
+      badgeBgColor = const Color(0xFFFEF3C7);
+      badgeTextColor = const Color(0xFFD97706);
     } else {
       badgeBgColor = const Color(0xFFE8F8EF);
       badgeTextColor = const Color(0xFF08A94F);
@@ -27,11 +31,37 @@ class LoanCustomerCard extends StatelessWidget {
     }
 
     return InkWell(
-      onTap: () {
-        context.push(
-          RouteNames.customerDetailNew,
-          extra: customer.loanId,
-        );
+
+      onTap: () async {
+        if (customer.status.toLowerCase() == 'loan not created') {
+          int step = int.tryParse(customer.currentStep) ?? 1;
+
+          if (step <= 1) {
+            context.push(RouteNames.loanDetailStep, extra: customer.customerCode);
+          } else if (step == 2) {
+            context.push(RouteNames.bankDetailStep, extra: customer.customerCode);
+          } else if (step == 3) {
+            context.push(RouteNames.emandateStep, extra: customer.customerCode);
+          } else if (step == 4) {
+            context.push(RouteNames.referenceStep, extra: customer.customerCode);
+          } else if (step == 5) {
+            context.push(RouteNames.termsConditionStep, extra: customer.customerCode);
+          } else if (step >= 6) {
+            context.push(RouteNames.loanDisbursedStep, extra: customer.customerCode);
+          } else {
+            context.push(RouteNames.loanDetailStep, extra: customer.customerCode);
+          }
+        } else {
+          await SessionManager.saveCustomerCodes(customer.customerCode);
+          await SessionManager.saveLoanDetails(
+            loanCode: customer.loanId,
+            rid: '',
+          );
+
+          if (context.mounted) {
+            context.push(RouteNames.customerDetailNew);
+          }
+        }
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
@@ -67,11 +97,9 @@ class LoanCustomerCard extends StatelessWidget {
                   CircleAvatar(
                     radius: 15,
                     backgroundColor: Colors.grey.shade300,
-                    backgroundImage: AssetImage(
-                      customer.profileImage.isNotEmpty
-                          ? customer.profileImage
-                          : "assets/images/profile.png",
-                    ),
+                    backgroundImage: customer.profileImage.isNotEmpty
+                        ? NetworkImage(customer.profileImage) as ImageProvider
+                        : const AssetImage("assets/images/profile.png"),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -97,7 +125,7 @@ class LoanCustomerCard extends StatelessWidget {
                           const SizedBox(height: 2),
                           SizedBox(
                             child: Text(
-                              '${customer.phone}  •  ${customer.email}',
+                              customer.phone,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -157,12 +185,12 @@ class LoanCustomerCard extends StatelessWidget {
                 children: [
                   _buildDetailRow('Loan ID', customer.loanId),
                   const SizedBox(height: 8),
-                  _buildDetailRow('Principal', '₹${customer.principal}'),
+                  _buildDetailRow('Principal', customer.principal),
                   const SizedBox(height: 8),
-                  _buildDetailRow('Monthly EMI', '₹${customer.monthlyEmi}'),
+                  _buildDetailRow('Monthly EMI', customer.monthlyEmi),
                   const SizedBox(height: 8),
                   _buildDetailRow(
-                    statusLabel.toLowerCase() == 'on track' ? 'Next payment' : 'Due date',
+                    statusLabel.toLowerCase() == 'upcoming' ? 'Due date' : 'Payment date',
                     customer.nextPaymentDate,
                   ),
                   const SizedBox(height: 8),

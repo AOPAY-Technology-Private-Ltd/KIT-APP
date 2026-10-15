@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import '../../../../../core/constants/apiconstants/api_constants.dart';
 import '../../../../../core/helper/api_client.dart';
 import '../../../../../core/services/session_manager.dart';
 import '../../../../lockit/create_customer/presentation/widgets/custom_header.dart';
@@ -34,23 +33,40 @@ class _LoanAllCustomersScreenState extends State<LoanAllCustomersScreen> {
 
   Future<List<dynamic>> _fetchAllCustomers() async {
     try {
+      final clientCode = await SessionManager.getClientCode() ?? "CMP0005";
       final retailerCode = await SessionManager.getRetailerCode();
-      final uri = Uri.parse(ApiConstants.getRecentCustomers).replace(
-        queryParameters: {
-          'retailerCode': retailerCode ?? '',
-          'topRecords': '0',
-        },
-      );
 
-      final response = await ApiClient.get(uri, headers: {'accept': '*/*'});
+      const urlString = 'https://uatapi.aopay.co.in/api/V1/AopayFinance/AppLoan/GetRetailerDashboard';
+      final uri = Uri.parse(urlString);
+
+      final requestBody = jsonEncode({
+        "ClientCode": clientCode,
+        "RetailerCode": retailerCode ?? "",
+        "RecentCount": 0
+      });
+
+      final response = await ApiClient.post(
+        uri,
+        headers: {'accept': '*/*', 'Content-Type': 'application/json'},
+        body: requestBody,
+      );
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
-        if (decoded['status'] == true || decoded['data'] != null) {
-          _allCustomers = decoded['data'] ?? [];
-          _filteredCustomers = _allCustomers;
-          return _allCustomers;
+        final rawStatus = decoded['success'] ?? decoded['status'];
+        bool isSuccess = rawStatus == true || rawStatus.toString().toLowerCase() == 'true';
+
+        if (isSuccess || decoded['code'] == 200) {
+          final data = decoded['data'];
+          final Map<String, dynamic> dataMap = data is Map<String, dynamic> ? data : {};
+
+          final rawCustomers = dataMap['recentCustomers'];
+          if (rawCustomers is List) {
+            _allCustomers = rawCustomers;
+            _filteredCustomers = _allCustomers;
+            return _allCustomers;
+          }
         }
       }
       return [];
@@ -67,14 +83,14 @@ class _LoanAllCustomersScreenState extends State<LoanAllCustomersScreen> {
       } else {
         _filteredCustomers = _allCustomers.where((c) {
           final name = (c['customerName'] ?? '').toString().toLowerCase();
-          final mobile = (c['mobileNo'] ?? '').toString().toLowerCase();
+          final mobile = (c['primaryMobileNumber'] ?? c['mobileNo'] ?? '').toString().toLowerCase();
           final code = (c['customerCode'] ?? '').toString().toLowerCase();
-          final imei = (c['imeiNumber'] ?? '').toString().toLowerCase();
+          final loanCode = (c['loanCode'] ?? '').toString().toLowerCase();
 
           return name.contains(query.toLowerCase()) ||
               mobile.contains(query.toLowerCase()) ||
               code.contains(query.toLowerCase()) ||
-              imei.contains(query.toLowerCase());
+              loanCode.contains(query.toLowerCase());
         }).toList();
       }
     });
@@ -112,7 +128,7 @@ class _LoanAllCustomersScreenState extends State<LoanAllCustomersScreen> {
                   autofocus: true,
                   onChanged: _filterSearch,
                   decoration: InputDecoration(
-                    hintText: 'Search by Name, Mobile, Code or IMEI...',
+                    hintText: 'Search by Name, Mobile, Code or Loan ID...',
                     hintStyle: const TextStyle(fontSize: 13, color: Colors.grey, fontFamily: 'Inter'),
                     prefixIcon: const Icon(Icons.search, color: Color(0xFF2563EB)),
                     suffixIcon: IconButton(
@@ -256,18 +272,18 @@ class _LoanAllCustomersScreenState extends State<LoanAllCustomersScreen> {
                       final customer = _filteredCustomers[index];
                       final customerName = (customer['customerName'] ?? '').toString().trim();
                       final displayName = customerName.isEmpty ? 'Unknown Customer' : customerName;
-                      final mobileNo = customer['mobileNo'] ?? '';
+                      final mobileNo = customer['primaryMobileNumber'] ?? customer['mobileNo'] ?? '';
                       final customerCode = customer['customerCode'] ?? '';
-                      final imeiNumber = customer['imeiNumber'] ?? '';
-                      final createdDate = customer['createdDate'] ?? '';
+                      final loanCode = customer['loanCode'] ?? '';
+                      final loanAmount = customer['loanAmount']?.toString() ?? '0';
+                      final activityDate = customer['activityDate'] ?? customer['createdDate'] ?? '';
 
                       String initials = "C";
-                      if (displayName != 'Unknown Customer' && displayName.isNotEmpty) {
-                        List<String> parts = displayName.split(' ');
-                        if (parts.length > 1) {
-                          initials = "${parts[0][0]}${parts[1][0]}".toUpperCase();
-                        } else {
-                          initials = parts[0][0].toUpperCase();
+                      final nameParts = displayName.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+                      if (nameParts.isNotEmpty) {
+                        initials = nameParts.first[0].toUpperCase();
+                        if (nameParts.length > 1) {
+                          initials += nameParts[1][0].toUpperCase();
                         }
                       }
 
@@ -312,7 +328,7 @@ class _LoanAllCustomersScreenState extends State<LoanAllCustomersScreen> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        mobileNo.isNotEmpty ? "Mobile: $mobileNo" : "No Mobile Number",
+                                        mobileNo.isNotEmpty ? "Mobile: $mobileNo" : "Customer ID: $customerCode",
                                         style: TextStyle(
                                           color: Colors.grey.shade600,
                                           fontSize: 13,
@@ -329,7 +345,7 @@ class _LoanAllCustomersScreenState extends State<LoanAllCustomersScreen> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    customerCode,
+                                    loanCode.isNotEmpty ? loanCode : customerCode,
                                     style: const TextStyle(
                                       color: Color(0xFF2563EB),
                                       fontWeight: FontWeight.bold,
@@ -345,16 +361,17 @@ class _LoanAllCustomersScreenState extends State<LoanAllCustomersScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "IMEI: $imeiNumber",
+                                  "Loan Amount: ₹$loanAmount",
                                   style: TextStyle(
                                     color: Colors.grey.shade700,
                                     fontSize: 12,
+                                    fontWeight: FontWeight.w500,
                                     fontFamily: 'Inter',
                                   ),
                                 ),
                                 Text(
-                                  createdDate.toString().isNotEmpty
-                                      ? createdDate.toString().split('T').first
+                                  activityDate.toString().isNotEmpty
+                                      ? activityDate.toString().split('T').first
                                       : '',
                                   style: TextStyle(
                                     color: Colors.grey.shade400,

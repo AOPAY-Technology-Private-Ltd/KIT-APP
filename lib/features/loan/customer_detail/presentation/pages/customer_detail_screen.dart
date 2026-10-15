@@ -21,7 +21,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<CustomerBloc>().add(FetchCustomerDetailEvent(searchText: 'AFC0485'));
+    context.read<CustomerBloc>().add(FetchCustomerDetailEvent());
   }
 
   void _showSendReminderDialog(BuildContext context) {

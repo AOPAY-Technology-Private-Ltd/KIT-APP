@@ -9,9 +9,9 @@ class LoanCustomerRepositoryImpl implements LoanCustomerRepository {
   LoanCustomerRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<List<LoanCustomerEntity>> getLoanCustomers(String status) async {
+  Future<List<LoanCustomerEntity>> getLoanCustomers(String status, {String search = ''}) async {
     try {
-      final List<LoanCustomerModel> remoteModels = await remoteDataSource.fetchLoanCustomers(status);
+      final List<LoanCustomerModel> remoteModels = await remoteDataSource.fetchLoanCustomers(status, search: search);
       return remoteModels;
     } catch (e) {
       throw Exception('Failed to fetch loan customers: $e');

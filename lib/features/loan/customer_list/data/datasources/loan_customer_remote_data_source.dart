@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/loan_customer_model.dart';
 
 abstract class LoanCustomerRemoteDataSource {
-  Future<List<LoanCustomerModel>> fetchLoanCustomers(String status);
+  Future<List<LoanCustomerModel>> fetchLoanCustomers(String status, {String search});
 }
 
 class LoanCustomerRemoteDataSourceImpl implements LoanCustomerRemoteDataSource {
@@ -14,14 +14,16 @@ class LoanCustomerRemoteDataSourceImpl implements LoanCustomerRemoteDataSource {
   LoanCustomerRemoteDataSourceImpl({required this.client});
 
   @override
-  Future<List<LoanCustomerModel>> fetchLoanCustomers(String status) async {
-    const url = 'https://uatapi.aopay.co.in/api/V1/AopayFinance/GetCustomerByRetailerSummary';
+  Future<List<LoanCustomerModel>> fetchLoanCustomers(String status, {String search = ''}) async {
+    const url = 'https://uatapi.aopay.co.in/api/V1/AopayFinance/AppLoan/GetCustomerByRetailerSummaryWithLoanApp';
 
-    final String retailerCode = await SessionManager.getRetailerCode() ?? '';
+    final String retailerCode = await SessionManager.getRetailerCode() ?? 'AFD0031';
+    const String clientCode = 'CMP0005';
 
     final requestBody = {
+      "clientCode": clientCode,
       "retailerCode": retailerCode,
-      "searchText": ""
+      "search": search.trim()
     };
 
     log('=== API REQUEST ===');
@@ -45,14 +47,13 @@ class LoanCustomerRemoteDataSourceImpl implements LoanCustomerRemoteDataSource {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedData = jsonDecode(response.body);
-
-        final List<dynamic> listData = decodedData['data'] ?? decodedData['result'] ?? [];
+        final List<dynamic> listData = decodedData['data'] ?? [];
 
         List<LoanCustomerModel> allCustomers = listData
             .map((json) => LoanCustomerModel.fromJson(json))
             .toList();
 
-        if (status.toLowerCase() == 'active') {
+        if (status.toLowerCase() == 'all') {
           return allCustomers;
         } else {
           return allCustomers

@@ -16,6 +16,7 @@ import '../widgets/upload_dashed_card.dart';
 import 'aadhaar_webview_screen.dart';
 
 class DocumentsStepScreen extends StatefulWidget {
+  final File? customerPhoto;
   final String firstName;
   final String? lastName;
   final String? mobileNumber;
@@ -28,6 +29,7 @@ class DocumentsStepScreen extends StatefulWidget {
 
   const DocumentsStepScreen({
     super.key,
+    required this.customerPhoto,
     required this.firstName,
     this.lastName,
     this.mobileNumber,
@@ -96,20 +98,101 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
     return null;
   }
 
-  Future<void> _pickImage(String type) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
 
-    if (image != null) {
+  Future<void> _pickImage(String type) async {
+    try {
+      final ImageSource? source = await showModalBottomSheet<ImageSource>(
+        context: context,
+        useSafeArea: true,
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(16),
+          ),
+        ),
+        builder: (sheetContext) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Select Image Source',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(sheetContext, ImageSource.camera);
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(Icons.camera_alt),
+                        SizedBox(width: 12),
+                        Text('Take from Camera'),
+                      ],
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(sheetContext, ImageSource.gallery);
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(Icons.photo_library),
+                        SizedBox(width: 12),
+                        Text('Choose from Gallery'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (source == null || !mounted) return;
+
+      final ImagePicker picker = ImagePicker();
+
+      final XFile? image = await picker.pickImage(
+        source: source,
+        imageQuality: 80,
+      );
+
+      if (image == null || !mounted) return;
+
       setState(() {
+        final file = File(image.path);
+
         if (type == 'pan') {
-          _panPhotoFile = File(image.path);
+          _panPhotoFile = file;
         } else if (type == 'front') {
-          _frontImageFile = File(image.path);
+          _frontImageFile = file;
         } else if (type == 'back') {
-          _backImageFile = File(image.path);
+          _backImageFile = file;
         }
       });
+    } catch (e, stackTrace) {
+      debugPrint('Image picker error: $e');
+      debugPrintStack(stackTrace: stackTrace);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Image select error: $e'),
+        ),
+      );
     }
   }
 
@@ -387,11 +470,6 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
 
                             final finalAadhaar = _aadhaarController.text.trim();
 
-                            debugPrint('=== Dispatching GetCreditReportEvent with OTP: ${widget.otp} ===');
-
-                            debugPrint('=== Dispatching GetCreditReportEvent with address: ${widget.address} ===');
-
-
                             BlocProvider.of<CreateLoanBloc>(context).add(
                               GetCreditReportEvent(
                                 firstName: widget.firstName,
@@ -409,11 +487,13 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
                                 consentMessage: 'I agree to fetch credit report',
                                 consentAcceptance: 'yes',
                                 address: widget.address,
-                                pinCode: null,
-                                stateName: null,
-                                cityName: null,
-
-                                customerPhoto: null,
+                                pinCode: widget.pinCode,
+                                stateName: widget.stateName,
+                                cityName: widget.cityName,
+                                customerPhoto: widget.customerPhoto,
+                                panPhoto: _panPhotoFile,
+                                frontImage: _frontImageFile,
+                                backImage: _backImageFile,
                               ),
                             );
                           }
@@ -452,9 +532,18 @@ class _DocumentsStepScreenState extends State<DocumentsStepScreen> {
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2563EB))),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFF2563EB)),
+      ),
     );
   }
 }

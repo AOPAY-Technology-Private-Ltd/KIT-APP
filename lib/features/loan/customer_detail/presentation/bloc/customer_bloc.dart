@@ -10,7 +10,7 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
     on<FetchCustomerDetailEvent>((event, emit) async {
       emit(CustomerLoadingState());
       try {
-        final customer = await getCustomerDetailUseCase(searchText: event.searchText);
+        final customer = await getCustomerDetailUseCase();
         emit(CustomerLoadedState(customer: customer));
       } catch (e) {
         emit(CustomerErrorState(message: e.toString()));

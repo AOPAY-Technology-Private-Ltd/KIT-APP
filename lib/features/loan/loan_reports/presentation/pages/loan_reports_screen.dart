@@ -37,71 +37,82 @@ class _LoanReportsScreenState extends State<LoanReportsScreen> {
     bool showResetButton = false,
     VoidCallback? onReset,
   }) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE2E8F0).withValues(alpha: 0.5),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: 48,
-                color: const Color(0xFF64748B),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF0F172A),
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'Inter',
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF64748B),
-                fontSize: 13,
-                fontFamily: 'Inter',
-              ),
-            ),
-            if (showResetButton && onReset != null) ...[
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: onReset,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0).withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 48,
+                        color: const Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      subtitle,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 13,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                    if (showResetButton && onReset != null) ...[
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: onReset,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'Reset Filters',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                child: const Text(
-                  'Reset Filters',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Inter',
-                  ),
-                ),
               ),
-            ],
-          ],
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -109,6 +120,7 @@ class _LoanReportsScreenState extends State<LoanReportsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
+      resizeToAvoidBottomInset: true,
       body: BlocBuilder<LoanReportBloc, LoanReportState>(
         builder: (context, state) {
           return Column(
@@ -233,8 +245,8 @@ class _LoanReportsScreenState extends State<LoanReportsScreen> {
                           style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13, fontFamily: 'Inter'),
                           decoration: InputDecoration(
                             icon: const Icon(Icons.search, color: Colors.grey, size: 20),
-                            hintText: 'Search by name, loan ID...',
-                            hintStyle: const TextStyle(color: Colors.grey, fontSize: 13, fontFamily: 'Inter'),
+                            hintText: 'Search by name, ID, status, amount, date...',
+                            hintStyle: const TextStyle(color: Colors.grey, fontSize: 12, fontFamily: 'Inter'),
                             border: InputBorder.none,
                             suffixIcon: _searchQuery.isNotEmpty
                                 ? IconButton(
@@ -321,9 +333,17 @@ class _LoanReportsScreenState extends State<LoanReportsScreen> {
                       );
                     } else if (state is LoanReportLoadedState) {
                       final loans = state.summary.loans.where((loan) {
+                        if (_searchQuery.isEmpty) return true;
+
                         final nameMatch = loan.customerName.toLowerCase().contains(_searchQuery);
                         final idMatch = loan.loanId.toLowerCase().contains(_searchQuery);
-                        return nameMatch || idMatch;
+                        final statusMatch = loan.status.toLowerCase().contains(_searchQuery);
+                        final dateMatch = loan.disbursementDate.toLowerCase().contains(_searchQuery);
+                        final amountMatch = loan.loanAmount.toString().contains(_searchQuery);
+                        final emiMatch = loan.emiAmount.toString().contains(_searchQuery);
+                        final tenureMatch = loan.tenure.toLowerCase().contains(_searchQuery);
+
+                        return nameMatch || idMatch || statusMatch || dateMatch || amountMatch || emiMatch || tenureMatch;
                       }).toList();
 
                       if (loans.isEmpty) {
@@ -347,7 +367,7 @@ class _LoanReportsScreenState extends State<LoanReportsScreen> {
                             icon: Icons.folder_open_rounded,
                             showResetButton: state.selectedFilter != 'All',
                             onReset: () {
-                              context.read<LoanReportBloc>().add( FetchLoanReportsEvent(status: 'All'));
+                              context.read<LoanReportBloc>().add(FetchLoanReportsEvent(status: 'All'));
                             },
                           );
                         }
@@ -373,4 +393,3 @@ class _LoanReportsScreenState extends State<LoanReportsScreen> {
     );
   }
 }
-

@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../../common/custom_app_bar.dart';
 import '../../../customer_detail/presentation/widgets/custom_action_button.dart';
-import '../../domain/entities/emi_customer_entity.dart';
 import '../bloc/update_emi_bloc.dart';
 import '../bloc/update_emi_event.dart';
 import '../bloc/update_emi_state.dart';
@@ -24,16 +23,25 @@ class UpdateEmiScreen extends StatefulWidget {
 class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  String? _selectedNumberOfEmi;
+  int? _selectedStartingEmi;
+  String? _selectedNumberOfEmisCount = '1';
   String? _selectedPaymentMode;
   String? _selectedStatus = 'Paid';
   File? _paymentPhotoFile;
 
-  final TextEditingController _emiAmountController = TextEditingController(text: '2250');
+  List<int> _availablePendingEmis = [];
+
+  final TextEditingController _emiAmountController = TextEditingController();
   final TextEditingController _lateFeesController = TextEditingController(text: '0');
   final TextEditingController _bounceChargesController = TextEditingController(text: '0');
-  final TextEditingController _paymentDateController = TextEditingController(text: '05 Oct, 2026');
-  final TextEditingController _transactionIdController = TextEditingController(text: '428931204912');
+  final TextEditingController _paymentDateController = TextEditingController();
+  final TextEditingController _transactionIdController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<UpdateEmiBloc>().add(FetchEmiDetailsEvent());
+  }
 
   Future<void> _pickPaymentImage(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
@@ -62,11 +70,7 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
               children: [
                 const Text(
                   'Select Payment Photo',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                 ),
                 const SizedBox(height: 12),
                 const Divider(height: 1),
@@ -81,10 +85,7 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
                       children: [
                         Icon(Icons.photo_library, color: Color(0xFF2563EB)),
                         SizedBox(width: 16),
-                        Text(
-                          'Choose from Gallery',
-                          style: TextStyle(fontSize: 14, color: Color(0xFF0F172A), fontWeight: FontWeight.w500),
-                        ),
+                        Text('Choose from Gallery', style: TextStyle(fontSize: 14, color: Color(0xFF0F172A), fontWeight: FontWeight.w500)),
                       ],
                     ),
                   ),
@@ -100,10 +101,7 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
                       children: [
                         Icon(Icons.photo_camera, color: Color(0xFF2563EB)),
                         SizedBox(width: 16),
-                        Text(
-                          'Take a Photo',
-                          style: TextStyle(fontSize: 14, color: Color(0xFF0F172A), fontWeight: FontWeight.w500),
-                        ),
+                        Text('Take a Photo', style: TextStyle(fontSize: 14, color: Color(0xFF0F172A), fontWeight: FontWeight.w500)),
                       ],
                     ),
                   ),
@@ -117,7 +115,7 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
   }
 
   Future<void> _selectPaymentDate(BuildContext context) async {
-    DateTime initialDate = DateTime(2026, 10, 5);
+    DateTime initialDate = DateTime.now();
     try {
       initialDate = DateFormat('dd MMM, yyyy').parse(_paymentDateController.text);
     } catch (_) {}
@@ -162,24 +160,50 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
           listener: (context, state) {
             if (state is UpdateEmiSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.green,
-                  behavior: SnackBarBehavior.floating,
-                ),
+                SnackBar(content: Text(state.message), backgroundColor: Colors.green, behavior: SnackBarBehavior.floating),
               );
               Navigator.pop(context);
             } else if (state is UpdateEmiError) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                ),
+                SnackBar(content: Text(state.message), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
               );
+            } else if (state is EmiDetailsLoadedState) {
+              final details = state.emiDetails;
+
+              _availableEmisListSetup(details);
+
+              _emiAmountController.text = details.emiAmount.toString();
+              _lateFeesController.text = details.lateFees.toString();
+              _bounceChargesController.text = details.bounceCharges.toString();
+              _transactionIdController.text = details.transactionId;
+              _selectedNumberOfEmisCount = '1';
+
+              List<String> validModes = ['Cash', 'UPI', 'Bank Transfer', 'Cheque'];
+              if (validModes.contains(details.paymentMode)) {
+                _selectedPaymentMode = details.paymentMode;
+              }
+
+              List<String> validStatuses = ['Paid', 'Pending', 'Failed'];
+              if (validStatuses.contains(details.status)) {
+                _selectedStatus = details.status;
+              }
+
+              if (details.nextDueDate.isNotEmpty) {
+                try {
+                  final parsedDate = DateTime.parse(details.nextDueDate);
+                  _paymentDateController.text = DateFormat('dd MMM, yyyy').format(parsedDate);
+                } catch (_) {
+                  _paymentDateController.text = details.nextDueDate;
+                }
+              } else {
+                _paymentDateController.text = DateFormat('dd MMM, yyyy').format(DateTime.now());
+              }
+              setState(() {});
             }
           },
           builder: (context, state) {
+            final emiDetails = state is EmiDetailsLoadedState ? state.emiDetails : null;
+
             return Column(
               children: [
                 CustomAppBar(
@@ -189,14 +213,18 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
                 ),
 
                 Expanded(
-                  child: Form(
+                  child: state is UpdateEmiLoading && emiDetails == null
+                      ? const Center(child: CircularProgressIndicator())
+                      : Form(
                     key: _formKey,
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const CustomerTopSummaryCard(),
+                          CustomerTopSummaryCard(
+                            emiDetails: emiDetails,
+                          ),
                           const SizedBox(height: 16),
                           const Text(
                             'EMI Details',
@@ -208,14 +236,22 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
+                          const SizedBox(height: 16),
 
-                          _buildLabel('Number Of EMI'),
+                          _buildLabel('Number Of EMIs to Pay'),
                           DropdownButtonFormField<String>(
-                            value: _selectedNumberOfEmi,
-                            decoration: _inputDecoration('-- Select Number Of EMI --'),
-                            items: ['1 EMI', '2 EMIs', '3 EMIs'].map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
-                            onChanged: (val) => setState(() => _selectedNumberOfEmi = val),
-                            validator: (val) => val == null || val.isEmpty ? 'Please select number of EMI' : null,
+                            value: _selectedNumberOfEmisCount,
+                            decoration: _inputDecoration('-- Select Count --'),
+                            items: ['1', '2', '3', '4'].map((val) => DropdownMenuItem(value: val, child: Text('$val EMI${val == '1' ? '' : 's'}'))).toList(),
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedNumberOfEmisCount = val;
+                                int count = int.tryParse(val ?? '1') ?? 1;
+                                double baseAmount = emiDetails?.emiAmount ?? 0.0;
+                                _emiAmountController.text = (baseAmount * count).toStringAsFixed(2);
+                              });
+                            },
+                            validator: (val) => val == null || val.isEmpty ? 'Please select count' : null,
                           ),
                           const SizedBox(height: 16),
 
@@ -298,15 +334,15 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          _buildLabel('Transaction ID'),
+                          _buildLabel('Transaction ID', isRequired: false),
                           TextFormField(
                             controller: _transactionIdController,
-                            decoration: _inputDecoration(''),
-                            validator: (val) => val == null || val.trim().isEmpty ? 'Enter Transaction ID' : null,
+                            decoration: _inputDecoration('Enter Transaction ID (Optional)'),
+                            validator: (val) => null,
                           ),
                           const SizedBox(height: 16),
 
-                          _buildLabel('Payment Photo', isRequired: true),
+                          _buildLabel('Payment Photo', isRequired: false),
                           GestureDetector(
                             onTap: () => _showImageSourceActionSheet(context),
                             child: Container(
@@ -372,7 +408,7 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
                                 children: [
                                   Icon(Icons.cloud_upload_outlined, color: Color(0xFF3B82F6), size: 32),
                                   SizedBox(height: 8),
-                                  Text('Upload Payment Photo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
+                                  Text('Upload Payment Photo (Optional)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
                                   SizedBox(height: 4),
                                   Text('JPG, PNG or PDF (Max. 5MB)', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
                                 ],
@@ -381,7 +417,10 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          const PaymentSummaryCard(),
+                          PaymentSummaryCard(
+                            dueAmount: double.tryParse(_emiAmountController.text) ?? (emiDetails?.emiAmount ?? 0.0),
+                            totalPaid: 0.0,
+                          ),
                           const SizedBox(height: 16),
 
                           const CautionBannerWidget(),
@@ -401,29 +440,25 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
                       title: 'Confirm & Mark Paid',
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          if (_paymentPhotoFile == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Please upload the payment photo'),
-                                backgroundColor: Colors.red,
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                            return;
-                          }
+                          final int startingEmi = _selectedStartingEmi ?? (emiDetails?.nextEmiNumber ?? 1);
 
-                          final entity = EmiUpdateEntity(
-                            loanId: 'LN-2026-10069',
-                            numberOfEmi: _selectedNumberOfEmi ?? '',
-                            paymentMode: _selectedPaymentMode ?? '',
-                            emiAmount: double.tryParse(_emiAmountController.text) ?? 0.0,
-                            lateFees: double.tryParse(_lateFeesController.text),
-                            bounceCharges: double.tryParse(_bounceChargesController.text),
-                            paymentDate: _paymentDateController.text,
-                            status: _selectedStatus ?? 'Paid',
-                            transactionId: _transactionIdController.text,
+                          int count = int.tryParse(_selectedNumberOfEmisCount ?? '1') ?? 1;
+
+                          List<int> selectedEmiNumbersList = List.generate(
+                            count,
+                                (index) => startingEmi + index,
                           );
-                          context.read<UpdateEmiBloc>().add(SubmitEmiEvent(entity));
+
+                          final Map<String, dynamic> payload = {
+                            'number_of_emi': count,
+                            'selectedEmiNumbers': selectedEmiNumbersList,
+                            'payment_mode': _selectedPaymentMode ?? 'Cash',
+                            'emi_amount': double.tryParse(_emiAmountController.text) ?? 0.0,
+                            'transaction_id': _transactionIdController.text,
+                            'payment_photo': _paymentPhotoFile?.path ?? '',
+                          };
+
+                          context.read<UpdateEmiBloc>().add(SubmitEmiEvent(payload));
                         }
                       },
                     ),
@@ -435,6 +470,29 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
         ),
       ),
     );
+  }
+
+  void _availableEmisListSetup(dynamic details) {
+    _availableEmisListSetupInternal(details.nextEmiNumber, details.totalEmiCount);
+  }
+
+  void _availableEmisListSetupInternal(int nextEmi, int totalCount) {
+    _availableEmisListSetupFallback(nextEmi, totalCount);
+  }
+
+  void _availableEmisListSetupFallback(int nextEmi, int totalCount) {
+    _availableEmisListSetupHelper(nextEmi, totalCount);
+  }
+
+  void _availableEmisListSetupHelper(int nextEmi, int totalCount) {
+    _availablePendingEmis = [];
+    int start = nextEmi > 0 ? nextEmi : 1;
+    for (int i = start; i <= totalCount; i++) {
+      _availablePendingEmis.add(i);
+    }
+    if (_availablePendingEmis.isNotEmpty) {
+      _selectedStartingEmi = _availablePendingEmis.first;
+    }
   }
 
   Widget _buildLabel(String text, {bool isRequired = true}) {

@@ -13,6 +13,8 @@ class SessionManager {
 
   static const String _keyLoanCode = 'loan_code';
   static const String _keyRid = 'rid';
+  static const String _keyStartDate = 'start_date';
+  static const String _keyEndDate = 'end_date';
 
   static Future<void> createSession({
     required String retailerCode,
@@ -52,10 +54,17 @@ class SessionManager {
     await prefs.setString(_keyCustomerCodeTwo, customerCode);
   }
 
-  static Future<void> saveLoanDetails({required String loanCode, required String rid}) async {
+  static Future<void> saveLoanDetails({
+    required String loanCode,
+    required String rid,
+    String? startDate,
+    String? endDate,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     if (loanCode.isNotEmpty) await prefs.setString(_keyLoanCode, loanCode);
     if (rid.isNotEmpty) await prefs.setString(_keyRid, rid);
+    if (startDate != null && startDate.isNotEmpty) await prefs.setString(_keyStartDate, startDate);
+    if (endDate != null && endDate.isNotEmpty) await prefs.setString(_keyEndDate, endDate);
   }
 
   static Future<String?> getLoanCode() async {
@@ -66,6 +75,16 @@ class SessionManager {
   static Future<String?> getRid() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyRid);
+  }
+
+  static Future<String?> getStartDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyStartDate);
+  }
+
+  static Future<String?> getEndDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyEndDate);
   }
 
   static Future<bool> isLoggedIn() async {
@@ -125,6 +144,8 @@ class SessionManager {
     await prefs.remove(_keyClientCode);
     await prefs.remove(_keyLoanCode);
     await prefs.remove(_keyRid);
+    await prefs.remove(_keyStartDate);
+    await prefs.remove(_keyEndDate);
     await prefs.setBool(_keyIsLoggedIn, false);
   }
 }

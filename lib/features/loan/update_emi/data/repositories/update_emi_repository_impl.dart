@@ -9,8 +9,28 @@ class UpdateEmiRepositoryImpl implements UpdateEmiRepository {
   UpdateEmiRepositoryImpl(this.remoteDataSource);
 
   @override
+  Future<EmiPaymentDetailModel> fetchEmiDetails() async {
+    return await remoteDataSource.fetchEmiPaymentDetails();
+  }
+
+  @override
   Future<bool> updateEmi(EmiUpdateEntity emiEntity) async {
-    final model = UpdateEmiModel.fromEntity(emiEntity);
-    return await remoteDataSource.submitEmiUpdate(model);
+    final Map<String, dynamic> payload = {
+      'loan_id': emiEntity.loanId,
+      'number_of_emi': emiEntity.numberOfEmi,
+      'payment_mode': emiEntity.paymentMode,
+      'emi_amount': emiEntity.emiAmount,
+      'late_fees': emiEntity.lateFees,
+      'bounce_charges': emiEntity.bounceCharges,
+      'payment_date': emiEntity.paymentDate,
+      'status': emiEntity.status,
+      'transaction_id': emiEntity.transactionId,
+    };
+    return await remoteDataSource.submitEmiUpdate(payload);
+  }
+
+  @override
+  Future<bool> submitUpdate(Map<String, dynamic> payload) async {
+    return await remoteDataSource.submitEmiUpdate(payload);
   }
 }

@@ -9,12 +9,17 @@ class LoanCustomerModel extends LoanCustomerEntity {
   });
 
   factory LoanCustomerModel.fromJson(Map<String, dynamic> json) {
-    final name = json['customerName'] ?? json['name'] ?? '';
+    final name = (json['customerName'] ?? json['name'] ?? 'Unknown').toString().trim();
 
-    final mobile = json['mobileNo'] ?? '';
-    final details = mobile.isNotEmpty ? "Mobile: $mobile" : (json['details'] ?? '');
+    final loanCode = json['loanCode'] ?? '';
+    final amount = json['loanAmount']?.toString() ?? '0';
 
-    final rawDate = json['createdDate'] ?? json['time'] ?? '';
+    // 🛠️ Fixed syntax error and formatted details cleanly
+    final details = loanCode.isNotEmpty
+        ? "Loan ID: $loanCode • ₹$amount"
+        : "Amount: ₹$amount";
+
+    final rawDate = json['activityDate'] ?? json['createdDate'] ?? json['time'] ?? '';
     String timeAgo = "Just now";
     if (rawDate.toString().isNotEmpty) {
       try {
@@ -33,12 +38,15 @@ class LoanCustomerModel extends LoanCustomerEntity {
     }
 
     String initials = "C";
-    if (name.isNotEmpty) {
-      List<String> nameParts = name.trim().split(' ');
+    final nameParts = name
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    if (nameParts.isNotEmpty) {
+      initials = nameParts.first[0].toUpperCase();
       if (nameParts.length > 1) {
-        initials = "${nameParts[0][0]}${nameParts[1][0]}".toUpperCase();
-      } else if (nameParts[0].isNotEmpty) {
-        initials = nameParts[0][0].toUpperCase();
+        initials += nameParts[1][0].toUpperCase();
       }
     }
 
@@ -63,25 +71,27 @@ class LoanHomeModel extends LoanHomeEntity {
   });
 
   factory LoanHomeModel.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] ?? {};
+    final data = json['data'];
+    final Map<String, dynamic> dataMap = data is Map<String, dynamic> ? data : {};
 
-    var customersFromJson = data['recentCustomers'];
-    List<dynamic> rawList = [];
-    if (customersFromJson is List) {
-      rawList = customersFromJson;
+    final rawCustomers = dataMap['recentCustomers'];
+    final List<LoanCustomerModel> customerList = [];
+
+    if (rawCustomers is List) {
+      for (final item in rawCustomers) {
+        if (item is Map<String, dynamic>) {
+          customerList.add(LoanCustomerModel.fromJson(item));
+        }
+      }
     }
 
-    List<LoanCustomerModel> customerList = rawList
-        .map((i) => LoanCustomerModel.fromJson(i as Map<String, dynamic>))
-        .toList();
-
     return LoanHomeModel(
-      retailerName: "Gupta’s Mobiles",
+      retailerName: "",
       retailerCode: "",
-      walletBalance: data['walletBalance']?.toString() ?? "2,56,850.00",
-      totalLoan: data['totalLoan'] ?? 20,
-      closedLoan: data['closedLoan'] ?? 20,
-      settledLoan: data['settledLoan'] ?? 20,
+      walletBalance: "2,56,850.00",
+      totalLoan: dataMap['totalLoan'] ?? 0,
+      closedLoan: dataMap['closedLoan'] ?? 0,
+      settledLoan: dataMap['settledLoan'] ?? 0,
       recentCustomers: customerList,
     );
   }

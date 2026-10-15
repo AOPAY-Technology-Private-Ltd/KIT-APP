@@ -10,7 +10,7 @@ class LoanCustomerBloc extends Bloc<LoanCustomerEvent, LoanCustomerState> {
     on<FetchLoanCustomersEvent>((event, emit) async {
       emit(LoanCustomerLoadingState());
       try {
-        final customers = await getLoanCustomersUseCase(event.status);
+        final customers = await getLoanCustomersUseCase(event.status, search: event.search);
         emit(LoanCustomerLoadedState(customers));
       } catch (e) {
         emit(LoanCustomerErrorState(e.toString()));

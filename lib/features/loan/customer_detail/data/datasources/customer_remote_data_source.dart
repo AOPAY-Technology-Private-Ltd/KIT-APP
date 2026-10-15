@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
+import '../../../../../../core/services/session_manager.dart';
 import '../models/customer_detail_model.dart';
 
 abstract class CustomerRemoteDataSource {
-  Future<CustomerDetailModel> fetchCustomerDetail({required String searchText});
+  Future<CustomerDetailModel> fetchCustomerDetail();
 }
 
 class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
@@ -13,11 +14,17 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
   CustomerRemoteDataSourceImpl({required this.client});
 
   @override
-  Future<CustomerDetailModel> fetchCustomerDetail({required String searchText}) async {
-    const url = 'https://uatapi.aopay.co.in/api/V1/AopayFinance/RetailerSearchCustomer';
+  Future<CustomerDetailModel> fetchCustomerDetail() async {
+    const url = 'https://uatapi.aopay.co.in/api/V1/AopayFinance/AppLoan/GetRetailerCustomerLoanDetail';
+
+    final String? retailerCode = await SessionManager.getRetailerCode();
+    final String? customerCode = await SessionManager.getCustomerCodeTwo();
+    final String? loanCode = await SessionManager.getLoanCode();
 
     final requestBody = {
-      "searchText": searchText,
+      "retailerCode": retailerCode ?? "",
+      "customerCode": customerCode ?? "",
+      "loanCode": loanCode ?? "",
     };
 
     log('=== API REQUEST ===');
@@ -41,16 +48,25 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedData = jsonDecode(response.body);
 
-        final dynamic dataField = decodedData['data'];
-        Map<String, dynamic> customerJson = {};
+        final rawStatus = decodedData['status'];
+        bool isSuccess = rawStatus is bool
+            ? rawStatus
+            : (rawStatus?.toString().toLowerCase() == 'true');
 
-        if (dataField is List && dataField.isNotEmpty) {
-          customerJson = dataField[0] as Map<String, dynamic>;
-        } else if (dataField is Map<String, dynamic>) {
-          customerJson = dataField;
+        if (isSuccess || decodedData['code'] == 200) {
+          final dynamic dataField = decodedData['data'];
+          Map<String, dynamic> customerJson = {};
+
+          if (dataField is List && dataField.isNotEmpty) {
+            customerJson = dataField[0] as Map<String, dynamic>;
+          } else if (dataField is Map<String, dynamic>) {
+            customerJson = dataField;
+          }
+
+          return CustomerDetailModel.fromJson(customerJson);
+        } else {
+          throw Exception(decodedData['message'] ?? 'Failed to load customer details');
         }
-
-        return CustomerDetailModel.fromJson(customerJson);
       } else {
         throw Exception('Failed to load customer details, Status Code: ${response.statusCode}');
       }

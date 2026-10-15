@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/loan_report_entity.dart';
-
 import 'package:intl/intl.dart';
 
 class LoanReportCard extends StatelessWidget {

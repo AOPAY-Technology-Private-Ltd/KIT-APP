@@ -8,8 +8,8 @@ class CustomerRepositoryImpl implements CustomerRepository {
   CustomerRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<CustomerDetailEntity> getCustomerDetail({required String searchText}) async {
-    final remoteData = await remoteDataSource.fetchCustomerDetail(searchText: searchText);
+  Future<CustomerDetailEntity> getCustomerDetail() async {
+    final remoteData = await remoteDataSource.fetchCustomerDetail();
     return remoteData;
   }
 }

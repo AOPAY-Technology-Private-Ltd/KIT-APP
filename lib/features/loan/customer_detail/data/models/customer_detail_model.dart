@@ -20,30 +20,22 @@ class CustomerDetailModel extends CustomerDetailEntity {
   });
 
   factory CustomerDetailModel.fromJson(Map<String, dynamic> json) {
-    final customerDetails = json['customerDetails'] ?? {};
-    final productDetails = json['productDetails'] ?? {};
-    final createLoanDetails = json['createLoanDetails'] ?? {};
-
-    final firstName = customerDetails['firstName'] ?? '';
-    final lastName = customerDetails['lastName'] ?? '';
-    final fullName = '$firstName $lastName'.trim();
-
     return CustomerDetailModel(
-      customerName: fullName.isNotEmpty ? fullName : 'N/A',
-      customerId: customerDetails['customerCode'] ?? '',
-      avatarUrl: customerDetails['custPhoto_path'] ?? '',
-      status: customerDetails['activeStatus'] ?? '',
-      loanNumber: createLoanDetails['loanCode'] ?? '',
-      nextEmiDate: createLoanDetails['loanStartDate'] ?? '',
-      loanType: 'Device Loan',
-      loanCategory: productDetails['brandName'] ?? '',
-      emiAmount: double.tryParse(productDetails['emiAmount']?.toString() ?? '0') ?? 0.0,
-      loanAmount: double.tryParse(productDetails['loanAmount']?.toString() ?? '0') ?? 0.0,
-      downPayment: double.tryParse(productDetails['downPayment']?.toString() ?? '0') ?? 0.0,
-      startDate: createLoanDetails['loanStartDate'] ?? '',
-      endDate: createLoanDetails['loanEndDate'] ?? '',
-      totalEmiCount: int.tryParse(productDetails['tenure']?.toString() ?? '0') ?? 0,
-      paidEmiCount: 0,
+      customerName: json['customerName']?.toString() ?? 'N/A',
+      customerId: json['customerCode']?.toString() ?? '',
+      avatarUrl: json['avatarUrl']?.toString() ?? json['custPhotoUrl']?.toString() ?? '',
+      status: json['customerStatus']?.toString() ?? 'Approved',
+      loanNumber: json['loanCode']?.toString() ?? '',
+      nextEmiDate: json['nextEmiDate']?.toString() ?? json['startDate']?.toString() ?? '',
+      loanType: json['loanType']?.toString() ?? 'Device Loan',
+      loanCategory: json['loanCategory']?.toString() ?? '',
+      emiAmount: double.tryParse(json['currentEmiAmount']?.toString() ?? json['monthlyEmi']?.toString() ?? '0') ?? 0.0,
+      loanAmount: double.tryParse(json['loanAmount']?.toString() ?? '0') ?? 0.0,
+      downPayment: double.tryParse(json['downPayment']?.toString() ?? '0') ?? 0.0,
+      startDate: json['startDate']?.toString() ?? '',
+      endDate: json['endDate']?.toString() ?? '',
+      totalEmiCount: int.tryParse(json['totalEmiCount']?.toString() ?? '0') ?? 0,
+      paidEmiCount: int.tryParse(json['paidEmiCount']?.toString() ?? '0') ?? 0,
     );
   }
 

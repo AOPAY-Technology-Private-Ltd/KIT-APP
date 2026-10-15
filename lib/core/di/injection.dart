@@ -79,7 +79,7 @@ import '../../features/loan/loan_reports/domain/repositories/loan_report_reposit
 import '../../features/loan/loan_reports/domain/usecases/get_loan_reports_usecase.dart';
 import '../../features/loan/loan_reports/presentation/bloc/loan_report_bloc.dart';
 import '../../features/loan/update_emi/data/datasources/update_emi_remote_datasource.dart';
-import '../../features/loan/update_emi/data/repositories/update_emi_repository_impl.dart';
+import '../../features/loan/update_emi/data/repositories/update_emi_repository_impl.dart' hide UpdateEmiRemoteDataSource, UpdateEmiRemoteDataSourceImpl;
 import '../../features/loan/update_emi/domain/repositories/update_emi_repository.dart';
 import '../../features/loan/update_emi/domain/usecases/submit_emi_update_usecase.dart';
 import '../../features/loan/update_emi/presentation/bloc/update_emi_bloc.dart';
@@ -418,10 +418,11 @@ Future<void> init() async {
   );
 
   sl.registerLazySingleton<UpdateEmiRemoteDataSource>(
-        () => UpdateEmiRemoteDataSourceImpl(),
+        () => UpdateEmiRemoteDataSourceImpl(client: sl<http.Client>()),
   );
+
   sl.registerLazySingleton<UpdateEmiRepository>(
-        () => UpdateEmiRepositoryImpl(sl()),
+        () => UpdateEmiRepositoryImpl(sl<UpdateEmiRemoteDataSource>()),
   );
   sl.registerLazySingleton<UpdateEmiUseCase>(
         () => UpdateEmiUseCase(sl()),

@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import '../../data/models/update_emi_request_model.dart';
 
 class CustomerTopSummaryCard extends StatelessWidget {
-  const CustomerTopSummaryCard({super.key});
+  final EmiPaymentDetailModel? emiDetails;
+
+  const CustomerTopSummaryCard({
+    super.key,
+    this.emiDetails,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -20,23 +26,36 @@ class CustomerTopSummaryCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 22,
-                backgroundImage: AssetImage('assets/images/profile.png'),
+                backgroundImage: emiDetails?.profileImage != null && emiDetails!.profileImage!.isNotEmpty
+                    ? NetworkImage(emiDetails!.profileImage!) as ImageProvider
+                    : const AssetImage('assets/images/profile.png'),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Pinki Sethi',
-                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Inter'),
+                    Text(
+                      emiDetails?.customerName ?? 'N/A',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Inter',
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'ID: PS10069 • +91 987•• ••210',
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11, fontFamily: 'Inter'),
+                      'ID: ${emiDetails?.customerCode ?? 'N/A'} • ${emiDetails?.customerMobile ?? ''}',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 11,
+                        fontFamily: 'Inter',
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -47,9 +66,13 @@ class CustomerTopSummaryCard extends StatelessWidget {
                   color: const Color(0xFF10B981),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  'Active',
-                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                child: Text(
+                  emiDetails?.customerStatus ?? 'Approved',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -64,12 +87,22 @@ class CustomerTopSummaryCard extends StatelessWidget {
                     color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('LOAN ID', style: TextStyle(color: Colors.white70, fontSize: 10)),
-                      SizedBox(height: 2),
-                      Text('LN-2026-10069', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      const Text(
+                        'LOAN CODE',
+                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        emiDetails?.loanCode ?? 'N/A',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -82,12 +115,22 @@ class CustomerTopSummaryCard extends StatelessWidget {
                     color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('OUTSTANDING', style: TextStyle(color: Colors.white70, fontSize: 10)),
-                      SizedBox(height: 2),
-                      Text('₹ 10,800', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      const Text(
+                        'OUTSTANDING',
+                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '₹ ${(emiDetails?.outstandingAmount ?? 0.0).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -95,11 +138,27 @@ class CustomerTopSummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Current EMI\n₹ 2,250 / month', style: TextStyle(color: Colors.white, fontSize: 13, height: 1.3)),
-              Text('Next Due Date\n05 Oct, 2026', textAlign: TextAlign.right, style: TextStyle(color: Colors.white, fontSize: 13, height: 1.3, fontWeight: FontWeight.bold)),
+              Text(
+                'Current EMI\n₹ ${(emiDetails?.emiAmount ?? 0.0).toStringAsFixed(2)} / month',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  height: 1.3,
+                ),
+              ),
+              Text(
+                'Next Due Date\n${(emiDetails?.nextDueDate != null && emiDetails!.nextDueDate.isNotEmpty) ? emiDetails!.nextDueDate : 'N/A'}',
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  height: 1.3,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           )
         ],

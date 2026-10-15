@@ -6,7 +6,7 @@ class GetLoanCustomersUseCase {
 
   GetLoanCustomersUseCase(this.repository);
 
-  Future<List<LoanCustomerEntity>> call(String status) async {
-    return await repository.getLoanCustomers(status);
+  Future<List<LoanCustomerEntity>> call(String status, {String search = ''}) async {
+    return await repository.getLoanCustomers(status, search: search);
   }
 }

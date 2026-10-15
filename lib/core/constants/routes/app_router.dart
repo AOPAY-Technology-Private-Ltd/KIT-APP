@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../features/loan/customer_detail/presentation/bloc/customer_bloc.dart' as new_customer;
@@ -394,9 +396,18 @@ final GoRouter appRouter = GoRouter(
       path: RouteNames.documentsStep,
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>?;
+
+        File? photoFile;
+        if (extra?['customerPhoto'] is File) {
+          photoFile = extra?['customerPhoto'] as File?;
+        } else if (extra?['customerPhoto'] is String) {
+          photoFile = File(extra?['customerPhoto']);
+        }
+
         return BlocProvider<CreateLoanBloc>(
           create: (context) => sl<CreateLoanBloc>(),
           child: DocumentsStepScreen(
+            customerPhoto: photoFile,
             firstName: extra?['firstName'] ?? 'Customer',
             lastName: extra?['lastName'],
             mobileNumber: extra?['mobileNumber'],
@@ -410,6 +421,7 @@ final GoRouter appRouter = GoRouter(
         );
       },
     ),
+
     GoRoute(
       path: RouteNames.basicDetailsStep,
       builder: (context, state) {

@@ -6,7 +6,6 @@ import '../bloc/loan_customer_bloc.dart';
 import '../bloc/loan_customer_event.dart';
 import '../bloc/loan_customer_state.dart';
 
-
 class LoanCustomerListPage extends StatefulWidget {
   const LoanCustomerListPage({super.key});
 
@@ -15,12 +14,28 @@ class LoanCustomerListPage extends StatefulWidget {
 }
 
 class _LoanCustomerListPageState extends State<LoanCustomerListPage> {
-  String _selectedFilter = 'Active';
+  final List<String> _filterOptions = ['All', 'Active', 'Overdue', 'Upcoming', 'Loan Not Created'];
+  String _selectedFilter = 'All';
+
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    context.read<LoanCustomerBloc>().add(FetchLoanCustomersEvent(status: _selectedFilter));
+    context.read<LoanCustomerBloc>().add(FetchLoanCustomersEvent(status: _selectedFilter, search: ''));
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    context.read<LoanCustomerBloc>().add(
+      FetchLoanCustomersEvent(status: _selectedFilter, search: query),
+    );
   }
 
   @override
@@ -33,8 +48,48 @@ class _LoanCustomerListPageState extends State<LoanCustomerListPage> {
             title: 'Customer List',
             onBackPressed: () => Navigator.pop(context),
             onSearchPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _searchController.clear();
+                  _onSearchChanged('');
+                }
+              });
             },
           ),
+
+          if (_isSearching)
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: TextField(
+                controller: _searchController,
+                autofocus: true,
+                onChanged: _onSearchChanged,
+                decoration: InputDecoration(
+                  hintText: 'Search customer by name, mobile...',
+                  hintStyle: TextStyle(color: Colors.black.withValues(alpha: 0.30), fontSize: 13, fontFamily: 'Inter'),
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: () {
+                      setState(() {
+                        _isSearching = false;
+                        _searchController.clear();
+                        _onSearchChanged('');
+                      });
+                    },
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFF1F5F9),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ),
 
           Expanded(
             child: ListView(
@@ -94,7 +149,7 @@ class _LoanCustomerListPageState extends State<LoanCustomerListPage> {
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w600,
                           ),
-                          items: ['Active', 'Overdue', 'Upcoming'].map((String value) {
+                          items: _filterOptions.map((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text(value),
@@ -106,7 +161,7 @@ class _LoanCustomerListPageState extends State<LoanCustomerListPage> {
                                 _selectedFilter = newValue;
                               });
                               context.read<LoanCustomerBloc>().add(
-                                FetchLoanCustomersEvent(status: newValue),
+                                FetchLoanCustomersEvent(status: newValue, search: _searchController.text),
                               );
                             }
                           },
@@ -116,7 +171,6 @@ class _LoanCustomerListPageState extends State<LoanCustomerListPage> {
                   ],
                 ),
                 const SizedBox(height: 16),
-
                 BlocBuilder<LoanCustomerBloc, LoanCustomerState>(
                   builder: (context, state) {
                     if (state is LoanCustomerLoadingState) {

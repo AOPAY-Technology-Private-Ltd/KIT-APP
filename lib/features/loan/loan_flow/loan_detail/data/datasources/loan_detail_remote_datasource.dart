@@ -43,6 +43,7 @@ class LoanDetailRemoteDataSourceImpl implements LoanDetailRemoteDataSource {
       'Tenure': tenureMonths.toInt().toString(),
       'LoanAmount': model.loanAmount,
       'EMIAmount': monthlyEmi.toStringAsFixed(2),
+      'InterestAmt': calculatedInterest.toStringAsFixed(2),
       'LoanMode': 'Offline',
     };
 
@@ -68,19 +69,21 @@ class LoanDetailRemoteDataSourceImpl implements LoanDetailRemoteDataSource {
         String message = decodedData['message'] ?? '';
 
         if (isSuccess || message.toLowerCase().contains('already completed')) {
-
-          // 🔥 Response ke 'data' object se loanCode aur rid extract karke session mein save karna
           final dynamicData = decodedData['data'];
           if (dynamicData is Map) {
             final loanCode = dynamicData['loanCode']?.toString() ?? '';
             final rid = dynamicData['rid']?.toString() ?? '';
+            final startDate = dynamicData['startDate']?.toString() ?? '';
+            final endDate = dynamicData['endDate']?.toString() ?? '';
 
             if (loanCode.isNotEmpty || rid.isNotEmpty) {
               await SessionManager.saveLoanDetails(
                 loanCode: loanCode,
                 rid: rid,
+                startDate: startDate,
+                endDate: endDate,
               );
-              print('✅ Saved to Session -> LoanCode: $loanCode, RID: $rid');
+              print('✅ Saved to Session -> LoanCode: $loanCode, RID: $rid, StartDate: $startDate, EndDate: $endDate');
             }
           }
 

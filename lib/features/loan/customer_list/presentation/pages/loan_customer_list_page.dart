@@ -7,7 +7,9 @@ import '../bloc/loan_customer_event.dart';
 import '../bloc/loan_customer_state.dart';
 
 class LoanCustomerListPage extends StatefulWidget {
-  const LoanCustomerListPage({super.key});
+  final String? initialStatus;
+
+  const LoanCustomerListPage({super.key, this.initialStatus});
 
   @override
   State<LoanCustomerListPage> createState() => _LoanCustomerListPageState();
@@ -15,7 +17,7 @@ class LoanCustomerListPage extends StatefulWidget {
 
 class _LoanCustomerListPageState extends State<LoanCustomerListPage> {
   final List<String> _filterOptions = ['All', 'Active', 'Overdue', 'Upcoming', 'Loan Not Created'];
-  String _selectedFilter = 'All';
+  late String _selectedFilter;
 
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
@@ -23,7 +25,20 @@ class _LoanCustomerListPageState extends State<LoanCustomerListPage> {
   @override
   void initState() {
     super.initState();
-    context.read<LoanCustomerBloc>().add(FetchLoanCustomersEvent(status: _selectedFilter, search: ''));
+
+    if (widget.initialStatus != null && _filterOptions.contains(widget.initialStatus)) {
+      _selectedFilter = widget.initialStatus!;
+    } else {
+      _selectedFilter = 'All';
+    }
+
+    _fetchCustomers();
+  }
+
+  void _fetchCustomers() {
+    context.read<LoanCustomerBloc>().add(
+      FetchLoanCustomersEvent(status: _selectedFilter, search: _searchController.text),
+    );
   }
 
   @override
@@ -176,18 +191,13 @@ class _LoanCustomerListPageState extends State<LoanCustomerListPage> {
                     if (state is LoanCustomerLoadingState) {
                       return const Center(
                         child: Padding(
-                          padding: EdgeInsets.only(top: 40),
+                          padding: EdgeInsets.only(top: 60),
                           child: CircularProgressIndicator(),
                         ),
                       );
                     } else if (state is LoanCustomerLoadedState) {
                       if (state.customers.isEmpty) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 40),
-                            child: Text('No customers found'),
-                          ),
-                        );
+                        return _buildEmptyStateWidget();
                       }
                       return ListView.builder(
                         itemCount: state.customers.length,
@@ -209,6 +219,97 @@ class _LoanCustomerListPageState extends State<LoanCustomerListPage> {
                   },
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateWidget() {
+    final bool hasSearchQuery = _searchController.text.trim().isNotEmpty;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 30),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              hasSearchQuery ? Icons.search_off_rounded : Icons.person_search_rounded,
+              size: 48,
+              color: const Color(0xFF2563EB),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Text(
+            hasSearchQuery ? 'No Results Found' : 'No Records Available',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F172A),
+              fontFamily: 'Inter',
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          Text(
+            hasSearchQuery
+                ? 'We couldn\'t find any customer matching "${_searchController.text.trim()}". Try searching with a different keyword.'
+                : 'There are currently no customers under the "$_selectedFilter" category.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 12,
+              height: 1.4,
+              color: Color(0xFF64748B),
+              fontFamily: 'Inter',
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              side: const BorderSide(color: Color(0xFF2563EB), width: 1.2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () {
+              if (hasSearchQuery) {
+                setState(() {
+                  _searchController.clear();
+                });
+              }
+              _fetchCustomers();
+            },
+            icon: const Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF2563EB)),
+            label: Text(
+              hasSearchQuery ? 'Clear Search' : 'Refresh List',
+              style: const TextStyle(
+                color: Color(0xFF2563EB),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Inter',
+              ),
             ),
           ),
         ],

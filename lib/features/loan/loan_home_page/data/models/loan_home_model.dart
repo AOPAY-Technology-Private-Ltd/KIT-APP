@@ -14,7 +14,6 @@ class LoanCustomerModel extends LoanCustomerEntity {
     final loanCode = json['loanCode'] ?? '';
     final amount = json['loanAmount']?.toString() ?? '0';
 
-    // 🛠️ Fixed syntax error and formatted details cleanly
     final details = loanCode.isNotEmpty
         ? "Loan ID: $loanCode • ₹$amount"
         : "Amount: ₹$amount";

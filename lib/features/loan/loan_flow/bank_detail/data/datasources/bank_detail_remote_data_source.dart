@@ -19,10 +19,24 @@ abstract class BankDetailRemoteDataSource {
 class BankDetailRemoteDataSourceImpl implements BankDetailRemoteDataSource {
   final http.Client client;
 
+  static final Map<String, int> _bankNameToIdCache = {};
+
   BankDetailRemoteDataSourceImpl({required this.client});
 
   @override
   Future<void> submitBankDetails(BankDetailModel model) async {
+    final bankId = _bankNameToIdCache[model.bankName] ?? 0;
+
+    await SessionManager.saveBankDetails(
+      bankId: bankId.toString(),
+      bankName: model.bankName,
+      accountNumber: model.accountNumber,
+      ifscCode: model.ifscCode,
+      accountType: model.accountType,
+      beneficiaryName: model.beneficiaryName,
+      branchName: model.branchName,
+    );
+
     final url = Uri.parse('https://api.aopay.in/api/AOP/V1/PennyDrop/Request');
     final requestBody = jsonEncode({
       "BankName": model.bankName,
@@ -164,12 +178,18 @@ class BankDetailRemoteDataSourceImpl implements BankDetailRemoteDataSource {
         bankListJson = decodedData['data'];
       }
 
-      return bankListJson.map((bank) {
+      List<String> bankNames = [];
+      for (var bank in bankListJson) {
         if (bank is Map) {
-          return bank['name']?.toString() ?? bank['bankName']?.toString() ?? '';
+          final name = bank['name']?.toString() ?? bank['bankName']?.toString() ?? '';
+          final id = bank['id'];
+          if (name.isNotEmpty && id != null) {
+            bankNames.add(name);
+            _bankNameToIdCache[name] = int.tryParse(id.toString()) ?? 0;
+          }
         }
-        return bank.toString();
-      }).where((bankName) => bankName.isNotEmpty).toList();
+      }
+      return bankNames;
     } else {
       throw Exception('Failed to load bank list: ${response.statusCode}');
     }

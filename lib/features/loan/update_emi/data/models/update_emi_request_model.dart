@@ -3,6 +3,8 @@ class EmiPaymentDetailModel {
   final String customerCode;
   final String customerMobile;
   final String loanCode;
+  final double loanAmount;
+  final double totalPaid;
   final double emiAmount;
   final double outstandingAmount;
   final String nextDueDate;
@@ -16,12 +18,16 @@ class EmiPaymentDetailModel {
   final int totalEmiCount;
   final int paidEmiCount;
   final int nextEmiNumber;
+  final String loanStatus;
+  final String loanMessage;
 
   const EmiPaymentDetailModel({
     required this.customerName,
     required this.customerCode,
     required this.customerMobile,
     required this.loanCode,
+    required this.loanAmount,
+    required this.totalPaid,
     required this.emiAmount,
     required this.outstandingAmount,
     required this.nextDueDate,
@@ -35,6 +41,8 @@ class EmiPaymentDetailModel {
     required this.totalEmiCount,
     required this.paidEmiCount,
     required this.nextEmiNumber,
+    required this.loanStatus,
+    required this.loanMessage,
   });
 
   factory EmiPaymentDetailModel.fromJson(Map<String, dynamic> json) {
@@ -52,6 +60,8 @@ class EmiPaymentDetailModel {
       customerCode: json['customerCode']?.toString() ?? '',
       customerMobile: json['customerMobile']?.toString() ?? '',
       loanCode: json['loanCode']?.toString() ?? '',
+      loanAmount: double.tryParse(json['loanAmount']?.toString() ?? '0') ?? 0.0,
+      totalPaid: double.tryParse(json['totalPaid']?.toString() ?? '0') ?? 0.0,
       emiAmount: double.tryParse(json['currentEmiAmount']?.toString() ?? json['monthlyEmi']?.toString() ?? '0') ?? 0.0,
       outstandingAmount: double.tryParse(json['outstandingAmount']?.toString() ?? '0') ?? 0.0,
       nextDueDate: json['nextDueDate']?.toString() ?? json['dueDate']?.toString() ?? '',
@@ -65,6 +75,8 @@ class EmiPaymentDetailModel {
       totalEmiCount: totalCount,
       paidEmiCount: paidCount,
       nextEmiNumber: nextEmi,
+      loanStatus: json['loanStatus']?.toString() ?? 'Close',
+      loanMessage: json['loanMessage']?.toString() ?? 'All payable EMIs are completed. Loan is ready to close.',
     );
   }
 }

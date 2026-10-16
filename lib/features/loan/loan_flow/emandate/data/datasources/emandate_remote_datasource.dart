@@ -22,29 +22,54 @@ class EmandateRemoteDataSourceImpl implements EmandateRemoteDataSource {
 
     final url = Uri.parse('https://api.aopay.in/api/AOP/Enach/V1/eMandate');
 
+    final String loanCode = await SessionManager.getLoanCode() ?? '';
+    final String customerCode = await SessionManager.getCustomerCode() ?? await SessionManager.getCustomerCodeTwo() ?? '';
+    final String customerMobile = await SessionManager.getCustomerMobileNo() ?? await SessionManager.getMobileNo() ?? '';
+    final String emailAddress = await SessionManager.getEmailID() ?? '';
+
+    final String accountNumber = await SessionManager.getAccountNumber() ?? '';
+    final String ifscCode = await SessionManager.getIfscCode() ?? '';
+    final String accountType = await SessionManager.getAccountType() ?? 'Savings';
+    final String beneficiaryName = await SessionManager.getBeneficiaryName() ?? '';
+    final String bankIdStr = await SessionManager.getBankId() ?? '6';
+    final int bankId = int.tryParse(bankIdStr) ?? 6;
+
+    final String startDate = await SessionManager.getStartDate() ?? '';
+    final String endDate = await SessionManager.getEndDate() ?? '';
+    final String firstName = await SessionManager.getFirstName() ?? '';
+    final String lastName = await SessionManager.getLastName() ?? '';
+
+    final String fullAccountHolderName = beneficiaryName.isNotEmpty
+        ? beneficiaryName
+        : "$firstName $lastName".trim();
+
+    final String registrationId = customerCode.isNotEmpty
+        ? 'AOP-$customerCode'
+        : 'AOP-${DateTime.now().millisecondsSinceEpoch}';
+
     final requestBody = jsonEncode({
-      "LoanNo": "LN0185",
+      "LoanNo": loanCode,
       "SeqType": "RCUR",
-      "FirstCollectionDate": "2027-03-05",
-      "FinalCollectionDate": "2026-10-05",
+      "FirstCollectionDate": startDate.isNotEmpty ? startDate : "",
+      "FinalCollectionDate": endDate.isNotEmpty ? endDate : "",
       "CollectCollectionUntilCancle": true,
       "CollectionAmount": 6,
-      "MobileNumber": "9971592326",
+      "MobileNumber": customerMobile,
       "TeleNumber": "",
-      "EmailAddress": "",
+      "EmailAddress": emailAddress,
       "CategoryID": 7,
-      "AccountHolderName": "Mohit",
-      "BankID": 6,
-      "authType": "",
-      "AccountType": "Savings",
-      "IFSCCode": "HDFC0004354",
-      "BankAccountNumber": "50100337262186",
-      "BankAccountNumberConfirmation": "50100337262186",
+      "AccountHolderName": fullAccountHolderName,
+      "BankID": bankId,
+      "authType": "DebitCard",
+      "AccountType": accountType,
+      "IFSCCode": ifscCode,
+      "BankAccountNumber": accountNumber,
+      "BankAccountNumberConfirmation": accountNumber,
       "Frequncy": "MNTH",
       "DebitType": true,
       "AddIn2": "New Delhi",
       "AddIn3": "",
-      "RegistrationID": "AOP-554"
+      "RegistrationID": registrationId
     });
 
     print('=== API REQUEST: eMandate ===');
@@ -65,11 +90,11 @@ class EmandateRemoteDataSourceImpl implements EmandateRemoteDataSource {
     print('Status Code: ${response.statusCode}');
     print('Response Body: ${response.body}');
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       final decodedData = jsonDecode(response.body);
 
-      final dataMap = decodedData['data'];
       String emandateId = '';
+      final dataMap = decodedData['data'];
       if (dataMap is Map) {
         final customerMap = dataMap['customer'];
         if (customerMap is Map) {
@@ -77,12 +102,14 @@ class EmandateRemoteDataSourceImpl implements EmandateRemoteDataSource {
         }
       }
 
-      final finalEmandateId = emandateId.isNotEmpty ? emandateId : "mul07ryhRJHm2V";
-
-      await checkEmandateStatus(
-        emandateId: finalEmandateId,
-        registrationId: "AOP-554",
-      );
+      if (emandateId.isNotEmpty) {
+        await checkEmandateStatus(
+          emandateId: emandateId,
+          registrationId: registrationId,
+        );
+      } else {
+        throw Exception('eMandate ID not received in API response');
+      }
     } else {
       throw Exception('Failed to submit e-mandate: ${response.statusCode}');
     }
@@ -115,7 +142,7 @@ class EmandateRemoteDataSourceImpl implements EmandateRemoteDataSource {
     print('Status Code: ${response.statusCode}');
     print('Response Body: ${response.body}');
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       await manageCustomerStepWiseForStep4(registrationId: registrationId);
     } else {
       throw Exception('Failed to check eMandate status: ${response.statusCode}');
@@ -126,8 +153,9 @@ class EmandateRemoteDataSourceImpl implements EmandateRemoteDataSource {
   Future<void> manageCustomerStepWiseForStep4({required String registrationId}) async {
     final url = Uri.parse('https://uatapi.aopay.co.in/api/V1/AopayFinance/AppLoan/ManageCustomerStepWise');
 
-    final customerCode = await SessionManager.getCustomerCode() ?? '';
+    final customerCode = await SessionManager.getCustomerCode() ?? await SessionManager.getCustomerCodeTwo() ?? '';
     final clientCode = await SessionManager.getClientCode() ?? '';
+    final retailerCode = await SessionManager.getRetailerCode() ?? '';
     final rid = await SessionManager.getRid() ?? '';
     final loanCode = await SessionManager.getLoanCode() ?? '';
 
@@ -145,7 +173,7 @@ class EmandateRemoteDataSourceImpl implements EmandateRemoteDataSource {
     request.fields['UPIMandate'] = 'UPI';
     request.fields['IsEmandateVerified'] = 'Yes';
     request.fields['CreatedBy'] = 'ADMIN';
-    request.fields['RetailerCode'] = '';
+    request.fields['RetailerCode'] = retailerCode;
     request.fields['clientcode'] = clientCode;
 
     print('=== API REQUEST: ManageCustomerStepWise Step 4 ===');
@@ -159,7 +187,7 @@ class EmandateRemoteDataSourceImpl implements EmandateRemoteDataSource {
     print('Status Code: ${response.statusCode}');
     print('Response Body: ${response.body}');
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       print('✅ Step 4 updated successfully!');
     } else {
       throw Exception('Failed to update step 4: ${response.statusCode}');

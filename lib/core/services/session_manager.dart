@@ -6,6 +6,7 @@ class SessionManager {
   static const String _keyCustomerCodeTwo = 'customer_code_two';
   static const String _keyIsLoggedIn = 'is_logged_in';
   static const String _keyMobileNo = 'mobile_no';
+  static const String _keyCustomerMobileNo = 'customer_mobile_no';
   static const String _keyFirstName = 'first_name';
   static const String _keyLastName = 'last_name';
   static const String _keyEmailID = 'email_id';
@@ -15,6 +16,14 @@ class SessionManager {
   static const String _keyRid = 'rid';
   static const String _keyStartDate = 'start_date';
   static const String _keyEndDate = 'end_date';
+
+  static const String _keyBankId = 'bank_id';
+  static const String _keyBankName = 'bank_name';
+  static const String _keyAccountNumber = 'account_number';
+  static const String _keyIfscCode = 'ifsc_code';
+  static const String _keyAccountType = 'account_type';
+  static const String _keyBeneficiaryName = 'beneficiary_name';
+  static const String _keyBranchName = 'branch_name';
 
   static Future<void> createSession({
     required String retailerCode,
@@ -59,12 +68,69 @@ class SessionManager {
     required String rid,
     String? startDate,
     String? endDate,
+    String? mobileNo,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     if (loanCode.isNotEmpty) await prefs.setString(_keyLoanCode, loanCode);
     if (rid.isNotEmpty) await prefs.setString(_keyRid, rid);
     if (startDate != null && startDate.isNotEmpty) await prefs.setString(_keyStartDate, startDate);
     if (endDate != null && endDate.isNotEmpty) await prefs.setString(_keyEndDate, endDate);
+    if (mobileNo != null && mobileNo.isNotEmpty) await prefs.setString(_keyCustomerMobileNo, mobileNo);
+  }
+
+  static Future<void> saveBankDetails({
+    required String bankId,
+    required String bankName,
+    required String accountNumber,
+    required String ifscCode,
+    required String accountType,
+    required String beneficiaryName,
+    String? branchName,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (bankId.isNotEmpty) await prefs.setString(_keyBankId, bankId);
+    if (bankName.isNotEmpty) await prefs.setString(_keyBankName, bankName);
+    if (accountNumber.isNotEmpty) await prefs.setString(_keyAccountNumber, accountNumber);
+    if (ifscCode.isNotEmpty) await prefs.setString(_keyIfscCode, ifscCode);
+    if (accountType.isNotEmpty) await prefs.setString(_keyAccountType, accountType);
+    if (beneficiaryName.isNotEmpty) await prefs.setString(_keyBeneficiaryName, beneficiaryName);
+    if (branchName != null && branchName.isNotEmpty) await prefs.setString(_keyBranchName, branchName);
+    print('✅ Bank Details Saved to Session Successfully!');
+  }
+
+  static Future<String?> getBankId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyBankId);
+  }
+
+  static Future<String?> getBankName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyBankName);
+  }
+
+  static Future<String?> getAccountNumber() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyAccountNumber);
+  }
+
+  static Future<String?> getIfscCode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyIfscCode);
+  }
+
+  static Future<String?> getAccountType() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyAccountType);
+  }
+
+  static Future<String?> getBeneficiaryName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyBeneficiaryName);
+  }
+
+  static Future<String?> getBranchName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyBranchName);
   }
 
   static Future<String?> getLoanCode() async {
@@ -85,6 +151,11 @@ class SessionManager {
   static Future<String?> getEndDate() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyEndDate);
+  }
+
+  static Future<String?> getCustomerMobileNo() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyCustomerMobileNo);
   }
 
   static Future<bool> isLoggedIn() async {
@@ -138,6 +209,7 @@ class SessionManager {
     await prefs.remove(_keyCustomerCode);
     await prefs.remove(_keyCustomerCodeTwo);
     await prefs.remove(_keyMobileNo);
+    await prefs.remove(_keyCustomerMobileNo);
     await prefs.remove(_keyFirstName);
     await prefs.remove(_keyLastName);
     await prefs.remove(_keyEmailID);
@@ -146,6 +218,13 @@ class SessionManager {
     await prefs.remove(_keyRid);
     await prefs.remove(_keyStartDate);
     await prefs.remove(_keyEndDate);
+    await prefs.remove(_keyBankId);
+    await prefs.remove(_keyBankName);
+    await prefs.remove(_keyAccountNumber);
+    await prefs.remove(_keyIfscCode);
+    await prefs.remove(_keyAccountType);
+    await prefs.remove(_keyBeneficiaryName);
+    await prefs.remove(_keyBranchName);
     await prefs.setBool(_keyIsLoggedIn, false);
   }
 }

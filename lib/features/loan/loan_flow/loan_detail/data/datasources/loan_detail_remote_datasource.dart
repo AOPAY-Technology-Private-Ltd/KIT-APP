@@ -75,6 +75,7 @@ class LoanDetailRemoteDataSourceImpl implements LoanDetailRemoteDataSource {
             final rid = dynamicData['rid']?.toString() ?? '';
             final startDate = dynamicData['startDate']?.toString() ?? '';
             final endDate = dynamicData['endDate']?.toString() ?? '';
+            final primaryMobileNo = dynamicData['primaryMobileNo']?.toString() ?? '';
 
             if (loanCode.isNotEmpty || rid.isNotEmpty) {
               await SessionManager.saveLoanDetails(
@@ -82,8 +83,9 @@ class LoanDetailRemoteDataSourceImpl implements LoanDetailRemoteDataSource {
                 rid: rid,
                 startDate: startDate,
                 endDate: endDate,
+                mobileNo: primaryMobileNo,
               );
-              print('✅ Saved to Session -> LoanCode: $loanCode, RID: $rid, StartDate: $startDate, EndDate: $endDate');
+              print('✅ Saved to Session -> LoanCode: $loanCode, RID: $rid, StartDate: $startDate, EndDate: $endDate, Mobile: $primaryMobileNo');
             }
           }
 

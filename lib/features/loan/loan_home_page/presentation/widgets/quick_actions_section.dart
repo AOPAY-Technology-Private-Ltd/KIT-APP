@@ -20,7 +20,7 @@ class QuickActionsSection extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const Text(
-          'Quick Actions',
+          'Loan',
           style: TextStyle(
             color: Colors.black,
             fontSize: 15,
@@ -151,19 +151,7 @@ class QuickActionsSection extends StatelessWidget {
                     elevation: 0,
                   ),
                   onPressed: () {
-                    if (availableKits <= 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please buy kits first to add a customer!'),
-                          backgroundColor: Colors.redAccent,
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    } else {
-                      if (onAddCustomerPressed != null) {
-                        onAddCustomerPressed!();
-                      }
-                    }
+                    context.push(RouteNames.loanCustomerList, extra: 'Active');
                   },
                   icon: Image.asset(
                     'assets/images/Lock.png',

@@ -204,6 +204,9 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
           builder: (context, state) {
             final emiDetails = state is EmiDetailsLoadedState ? state.emiDetails : null;
 
+            final bool isLoanCompleted = emiDetails != null &&
+                (emiDetails.outstandingAmount <= 0 || emiDetails.paidEmiCount >= emiDetails.totalEmiCount);
+
             return Column(
               children: [
                 CustomAppBar(
@@ -226,204 +229,261 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
                             emiDetails: emiDetails,
                           ),
                           const SizedBox(height: 16),
-                          const Text(
-                            'EMI Details',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F172A),
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          const SizedBox(height: 16),
 
-                          _buildLabel('Number Of EMIs to Pay'),
-                          DropdownButtonFormField<String>(
-                            value: _selectedNumberOfEmisCount,
-                            decoration: _inputDecoration('-- Select Count --'),
-                            items: ['1', '2', '3', '4'].map((val) => DropdownMenuItem(value: val, child: Text('$val EMI${val == '1' ? '' : 's'}'))).toList(),
-                            onChanged: (val) {
-                              setState(() {
-                                _selectedNumberOfEmisCount = val;
-                                int count = int.tryParse(val ?? '1') ?? 1;
-                                double baseAmount = emiDetails?.emiAmount ?? 0.0;
-                                _emiAmountController.text = (baseAmount * count).toStringAsFixed(2);
-                              });
-                            },
-                            validator: (val) => val == null || val.isEmpty ? 'Please select count' : null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          _buildLabel('Payment Mode'),
-                          DropdownButtonFormField<String>(
-                            value: _selectedPaymentMode,
-                            decoration: _inputDecoration('-- Select Payment Mode --'),
-                            items: ['Cash', 'UPI', 'Bank Transfer', 'Cheque'].map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
-                            onChanged: (val) => setState(() => _selectedPaymentMode = val),
-                            validator: (val) => val == null || val.isEmpty ? 'Please select payment mode' : null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          _buildLabel('EMI Amount (₹)'),
-                          TextFormField(
-                            controller: _emiAmountController,
-                            decoration: _inputDecoration(''),
-                            keyboardType: TextInputType.number,
-                            validator: (val) => val == null || val.trim().isEmpty ? 'Enter EMI amount' : null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildLabel('Late Fees'),
-                                    TextFormField(
-                                      controller: _lateFeesController,
-                                      decoration: _inputDecoration('Enter Late Fees'),
-                                      keyboardType: TextInputType.number,
-                                      validator: (val) => val == null || val.trim().isEmpty ? 'Enter late fees' : null,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildLabel('Bounce Charges'),
-                                    TextFormField(
-                                      controller: _bounceChargesController,
-                                      decoration: _inputDecoration('Enter Bounce Charges'),
-                                      keyboardType: TextInputType.number,
-                                      validator: (val) => val == null || val.trim().isEmpty ? 'Enter bounce charges' : null,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-
-                          _buildLabel('Payment Date'),
-                          TextFormField(
-                            controller: _paymentDateController,
-                            readOnly: true,
-                            onTap: () => _selectPaymentDate(context),
-                            decoration: _inputDecoration('').copyWith(
-                              suffixIcon: IconButton(
-                                icon: const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF2563EB)),
-                                onPressed: () => _selectPaymentDate(context),
-                              ),
-                            ),
-                            validator: (val) => val == null || val.trim().isEmpty ? 'Please select payment date' : null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          _buildLabel('Status Update'),
-                          DropdownButtonFormField<String>(
-                            value: _selectedStatus,
-                            decoration: _inputDecoration(''),
-                            items: ['Paid', 'Pending', 'Failed'].map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
-                            onChanged: (val) => setState(() => _selectedStatus = val),
-                            validator: (val) => val == null || val.isEmpty ? 'Please select status' : null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          _buildLabel('Transaction ID', isRequired: false),
-                          TextFormField(
-                            controller: _transactionIdController,
-                            decoration: _inputDecoration('Enter Transaction ID (Optional)'),
-                            validator: (val) => null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          _buildLabel('Payment Photo', isRequired: false),
-                          GestureDetector(
-                            onTap: () => _showImageSourceActionSheet(context),
-                            child: Container(
+                          if (isLoanCompleted) ...[
+                            Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                              padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: const Color(0xFF3B82F6),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: _paymentPhotoFile != null
-                                  ? Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.file(
-                                      _paymentPhotoFile!,
-                                      width: 55,
-                                      height: 55,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _paymentPhotoFile!.path.split('/').last,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                            color: Color(0xFF0F172A),
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        const Text(
-                                          'Tap to change photo',
-                                          style: TextStyle(
-                                            color: Color(0xFF2563EB),
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                    onPressed: () {
-                                      setState(() {
-                                        _paymentPhotoFile = null;
-                                      });
-                                    },
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.green.shade200),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.green.withValues(alpha: 0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
-                              )
-                                  : const Column(
+                              ),
+                              child: Column(
                                 children: [
-                                  Icon(Icons.cloud_upload_outlined, color: Color(0xFF3B82F6), size: 32),
-                                  SizedBox(height: 8),
-                                  Text('Upload Payment Photo (Optional)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
-                                  SizedBox(height: 4),
-                                  Text('JPG, PNG or PDF (Max. 5MB)', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade50,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.check_circle_rounded,
+                                      size: 48,
+                                      color: Color(0xFF059669),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'No Pending EMIs',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF0F172A),
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    emiDetails.loanMessage.isNotEmpty
+                                        ? emiDetails.loanMessage
+                                        : 'All payable EMIs are successfully cleared. This loan is now closed.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey.shade600,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 20),
+                          ] else ...[
+                            const Text(
+                              'EMI Details',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
+                                fontFamily: 'Inter',
+                              ),
+                            ),
+                            const SizedBox(height: 12),
 
-                          PaymentSummaryCard(
-                            dueAmount: double.tryParse(_emiAmountController.text) ?? (emiDetails?.emiAmount ?? 0.0),
-                            totalPaid: 0.0,
-                          ),
-                          const SizedBox(height: 16),
+                            _buildLabel('Number Of EMIs to Pay'),
+                            DropdownButtonFormField<String>(
+                              value: _selectedNumberOfEmisCount,
+                              decoration: _inputDecoration('-- Select Count --'),
+                              items: ['1', '2', '3', '4'].map((val) => DropdownMenuItem(value: val, child: Text('$val EMI${val == '1' ? '' : 's'}'))).toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  _selectedNumberOfEmisCount = val;
+                                  int count = int.tryParse(val ?? '1') ?? 1;
+                                  double baseAmount = emiDetails?.emiAmount ?? 0.0;
+                                  _emiAmountController.text = (baseAmount * count).toStringAsFixed(2);
+                                });
+                              },
+                              validator: (val) => val == null || val.isEmpty ? 'Please select count' : null,
+                            ),
+                            const SizedBox(height: 16),
 
-                          const CautionBannerWidget(),
+                            _buildLabel('Payment Mode'),
+                            DropdownButtonFormField<String>(
+                              value: _selectedPaymentMode,
+                              decoration: _inputDecoration('-- Select Payment Mode --'),
+                              items: ['Cash', 'UPI', 'Bank Transfer', 'Cheque'].map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
+                              onChanged: (val) => setState(() => _selectedPaymentMode = val),
+                              validator: (val) => val == null || val.isEmpty ? 'Please select payment mode' : null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            _buildLabel('EMI Amount (₹)'),
+                            TextFormField(
+                              controller: _emiAmountController,
+                              decoration: _inputDecoration(''),
+                              keyboardType: TextInputType.number,
+                              validator: (val) => val == null || val.trim().isEmpty ? 'Enter EMI amount' : null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      _buildLabel('Late Fees'),
+                                      TextFormField(
+                                        controller: _lateFeesController,
+                                        decoration: _inputDecoration('Enter Late Fees'),
+                                        keyboardType: TextInputType.number,
+                                        validator: (val) => val == null || val.trim().isEmpty ? 'Enter late fees' : null,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      _buildLabel('Bounce Charges'),
+                                      TextFormField(
+                                        controller: _bounceChargesController,
+                                        decoration: _inputDecoration('Enter Bounce Charges'),
+                                        keyboardType: TextInputType.number,
+                                        validator: (val) => val == null || val.trim().isEmpty ? 'Enter bounce charges' : null,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+
+                            _buildLabel('Payment Date'),
+                            TextFormField(
+                              controller: _paymentDateController,
+                              readOnly: true,
+                              onTap: () => _selectPaymentDate(context),
+                              decoration: _inputDecoration('').copyWith(
+                                suffixIcon: IconButton(
+                                  icon: const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF2563EB)),
+                                  onPressed: () => _selectPaymentDate(context),
+                                ),
+                              ),
+                              validator: (val) => val == null || val.trim().isEmpty ? 'Please select payment date' : null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            _buildLabel('Status Update'),
+                            DropdownButtonFormField<String>(
+                              value: _selectedStatus,
+                              decoration: _inputDecoration(''),
+                              items: ['Paid', 'Pending', 'Failed'].map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
+                              onChanged: (val) => setState(() => _selectedStatus = val),
+                              validator: (val) => val == null || val.isEmpty ? 'Please select status' : null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            _buildLabel('Transaction ID', isRequired: false),
+                            TextFormField(
+                              controller: _transactionIdController,
+                              decoration: _inputDecoration('Enter Transaction ID (Optional)'),
+                              validator: (val) => null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            _buildLabel('Payment Photo', isRequired: false),
+                            GestureDetector(
+                              onTap: () => _showImageSourceActionSheet(context),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color(0xFF3B82F6),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: _paymentPhotoFile != null
+                                    ? Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.file(
+                                        _paymentPhotoFile!,
+                                        width: 55,
+                                        height: 55,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            _paymentPhotoFile!.path.split('/').last,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                              color: Color(0xFF0F172A),
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          const Text(
+                                            'Tap to change photo',
+                                            style: TextStyle(
+                                              color: Color(0xFF2563EB),
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                      onPressed: () {
+                                        setState(() {
+                                          _paymentPhotoFile = null;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                )
+                                    : const Column(
+                                  children: [
+                                    Icon(Icons.cloud_upload_outlined, color: Color(0xFF3B82F6), size: 32),
+                                    SizedBox(height: 8),
+                                    Text('Upload Payment Photo (Optional)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
+                                    SizedBox(height: 4),
+                                    Text('JPG, PNG or PDF (Max. 5MB)', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            PaymentSummaryCard(
+                              dueAmount: double.tryParse(_emiAmountController.text) ?? (emiDetails?.emiAmount ?? 0.0),
+                              totalPaid: 0.0,
+                            ),
+                            const SizedBox(height: 16),
+
+                            const CautionBannerWidget(),
+                          ],
                           const SizedBox(height: 20),
                         ],
                       ),
@@ -431,39 +491,41 @@ class _UpdateEmiScreenState extends State<UpdateEmiScreen> {
                   ),
                 ),
 
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  color: Colors.white,
-                  child: SafeArea(
-                    top: false,
-                    child: CustomActionButton(
-                      title: 'Confirm & Mark Paid',
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          final int startingEmi = _selectedStartingEmi ?? (emiDetails?.nextEmiNumber ?? 1);
+                if (!isLoanCompleted) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    color: Colors.white,
+                    child: SafeArea(
+                      top: false,
+                      child: CustomActionButton(
+                        title: 'Confirm & Mark Paid',
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            final int startingEmi = _selectedStartingEmi ?? (emiDetails?.nextEmiNumber ?? 1);
 
-                          int count = int.tryParse(_selectedNumberOfEmisCount ?? '1') ?? 1;
+                            int count = int.tryParse(_selectedNumberOfEmisCount ?? '1') ?? 1;
 
-                          List<int> selectedEmiNumbersList = List.generate(
-                            count,
-                                (index) => startingEmi + index,
-                          );
+                            List<int> selectedEmiNumbersList = List.generate(
+                              count,
+                                  (index) => startingEmi + index,
+                            );
 
-                          final Map<String, dynamic> payload = {
-                            'number_of_emi': count,
-                            'selectedEmiNumbers': selectedEmiNumbersList,
-                            'payment_mode': _selectedPaymentMode ?? 'Cash',
-                            'emi_amount': double.tryParse(_emiAmountController.text) ?? 0.0,
-                            'transaction_id': _transactionIdController.text,
-                            'payment_photo': _paymentPhotoFile?.path ?? '',
-                          };
+                            final Map<String, dynamic> payload = {
+                              'number_of_emi': count,
+                              'selectedEmiNumbers': selectedEmiNumbersList,
+                              'payment_mode': _selectedPaymentMode ?? 'Cash',
+                              'emi_amount': double.tryParse(_emiAmountController.text) ?? 0.0,
+                              'transaction_id': _transactionIdController.text,
+                              'payment_photo': _paymentPhotoFile?.path ?? '',
+                            };
 
-                          context.read<UpdateEmiBloc>().add(SubmitEmiEvent(payload));
-                        }
-                      },
+                            context.read<UpdateEmiBloc>().add(SubmitEmiEvent(payload));
+                          }
+                        },
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
             );
           },

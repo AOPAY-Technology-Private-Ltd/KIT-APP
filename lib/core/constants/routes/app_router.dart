@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../features/loan/customer_detail/presentation/bloc/customer_bloc.dart' as new_customer;
 import '../../../features/loan/customer_detail/presentation/pages/customer_detail_screen.dart';
 import '../../../features/loan/customer_list/presentation/bloc/loan_customer_bloc.dart';
-import '../../../features/loan/customer_list/presentation/bloc/loan_customer_event.dart';
 import '../../../features/loan/customer_list/presentation/pages/loan_customer_list_page.dart';
 import '../../../features/loan/enach_request/presentation/bloc/enach_request_bloc.dart';
 import '../../../features/loan/enach_request/presentation/bloc/enach_request_event.dart';
@@ -35,7 +34,6 @@ import '../../../features/loan/loan_flow/terms_condition/presentation/pages/term
 import '../../../features/loan/loan_home_page/presentation/bloc/loan_home_bloc.dart';
 import '../../../features/loan/loan_home_page/presentation/bloc/loan_home_event.dart' as loan_event;
 import '../../../features/loan/loan_home_page/presentation/pages/loan_all_customers_screen.dart';
-import '../../../features/loan/loan_home_page/presentation/pages/loan_home_page.dart';
 import '../../../features/loan/loan_home_page/presentation/pages/loan_main_screen.dart';
 import '../../../features/loan/loan_reports/presentation/bloc/loan_report_bloc.dart';
 import '../../../features/loan/loan_reports/presentation/bloc/loan_report_event.dart';
@@ -357,9 +355,11 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: RouteNames.loanCustomerList,
       builder: (context, state) {
+        final String? statusExtra = state.extra as String?;
+
         return BlocProvider(
-          create: (_) => sl<LoanCustomerBloc>()..add(FetchLoanCustomersEvent(status: 'Active')),
-          child: const LoanCustomerListPage(),
+          create: (context) => sl<LoanCustomerBloc>(),
+          child: LoanCustomerListPage(initialStatus: statusExtra),
         );
       },
     ),
